@@ -36,7 +36,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/qml/parser
     ${CMAKE_CURRENT_SOURCE_DIR}/qml/rewriter
     ${CMAKE_CURRENT_SOURCE_DIR}/util
-    ${CMAKE_SOURCE_DIR}/src/3rdparty/harfbuzz/src
+    ${PROJECT_SOURCE_DIR}/src/3rdparty/harfbuzz/src
 )
 
 include(debugger/debugger.cmake)
