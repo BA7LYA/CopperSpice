@@ -11,3 +11,5 @@
 /utilities/unicode/do-*
 /utilities/unicode/error.log
 /utilities/unicode/read_me.txt
+
+build/
