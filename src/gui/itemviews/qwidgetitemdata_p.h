@@ -26,13 +26,16 @@
 
 #include <qdatastream.h>
 
-
-
 class QWidgetItemData
 {
  public:
-   inline QWidgetItemData() : role(-1) {}
-   inline QWidgetItemData(int r, QVariant v) : role(r), value(v) {}
+   QWidgetItemData()
+      : role(-1)
+   { }
+
+   QWidgetItemData(int r, QVariant v)
+      : role(r), value(v)
+   { }
 
    int role;
    QVariant value;
@@ -41,8 +44,6 @@ class QWidgetItemData
       return role == other.role && value == other.value;
    }
 };
-
-
 
 inline QDataStream &operator>>(QDataStream &in, QWidgetItemData &data)
 {

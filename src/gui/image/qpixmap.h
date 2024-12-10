@@ -28,12 +28,12 @@
 #include <cs_carbon_wrapper.h>
 #endif
 
-#include <qpaintdevice.h>
 #include <qcolor.h>
-#include <qnamespace.h>
-#include <qstring.h>
-#include <qsharedpointer.h>
 #include <qimage.h>
+#include <qnamespace.h>
+#include <qpaintdevice.h>
+#include <qsharedpointer.h>
+#include <qstring.h>
 #include <qtransform.h>
 #include <qvariant.h>
 
@@ -47,7 +47,7 @@ class Q_GUI_EXPORT QPixmap : public QPaintDevice
 {
  public:
    QPixmap();
-   explicit QPixmap(QPlatformPixmap *data);
+   explicit QPixmap(QPlatformPixmap *imageData);
    QPixmap(int width, int height);
    explicit QPixmap(const QSize &size);
 
@@ -87,7 +87,7 @@ class Q_GUI_EXPORT QPixmap : public QPaintDevice
    void fill(const QColor &fillColor = Qt::white);
    void fill(const QPaintDevice *device, const QPoint &offset);
 
-   inline void fill(const QPaintDevice *device, int xOffset, int yOffset) {
+   void fill(const QPaintDevice *device, int xOffset, int yOffset) {
       fill(device, QPoint(xOffset, yOffset));
    }
 
@@ -108,11 +108,11 @@ class Q_GUI_EXPORT QPixmap : public QPaintDevice
    static QPixmap grabWindow(WId window, int x = 0, int y = 0, int width = -1, int height = -1);
    static QPixmap grabWidget(QObject *widget, const QRect &rect);
 
-   static inline QPixmap grabWidget(QObject *widget, int x = 0, int y = 0, int width = -1, int height = -1) {
+   static QPixmap grabWidget(QObject *widget, int x = 0, int y = 0, int width = -1, int height = -1) {
       return grabWidget(widget, QRect(x, y, width, height));
    }
 
-   inline QPixmap scaled(int width, int height, Qt::AspectRatioMode aspectMode = Qt::IgnoreAspectRatio,
+   QPixmap scaled(int width, int height, Qt::AspectRatioMode aspectMode = Qt::IgnoreAspectRatio,
       Qt::TransformationMode transformMode = Qt::FastTransformation) const {
       return scaled(QSize(width, height), aspectMode, transformMode);
    }
@@ -136,9 +136,10 @@ class Q_GUI_EXPORT QPixmap : public QPaintDevice
    }
 
    bool load(const QString &fileName, const QString &format = QString(), Qt::ImageConversionFlags flags = Qt::AutoColor);
-   bool loadFromData(const uchar *data, uint len, const QString &format = QString(), Qt::ImageConversionFlags flags = Qt::AutoColor);
+   bool loadFromData(const uchar *imageData, uint len, const QString &format = QString(),
+         Qt::ImageConversionFlags flags = Qt::AutoColor);
 
-   inline bool loadFromData(const QByteArray &data, const QString &format = QString(),
+   inline bool loadFromData(const QByteArray &imageData, const QString &format = QString(),
          Qt::ImageConversionFlags flags = Qt::AutoColor);
 
    bool save(const QString &fileName, const QString &format = QString(), int quality = -1) const;
@@ -180,8 +181,7 @@ class Q_GUI_EXPORT QPixmap : public QPaintDevice
    QPixmap(const QSize &s, int type);
    void doInit(int, int, int);
 
-   using DataPtr = QExplicitlySharedDataPointer<QPlatformPixmap>;
-   inline DataPtr &data_ptr() {
+   QExplicitlySharedDataPointer<QPlatformPixmap> &data_ptr() {
       return data;
    }
 
@@ -208,9 +208,10 @@ inline void QPixmap::scroll(int dx, int dy, int x, int y, int width, int height,
    scroll(dx, dy, QRect(x, y, width, height), exposed);
 }
 
-inline bool QPixmap::loadFromData(const QByteArray &data, const QString &format, Qt::ImageConversionFlags flags)
+inline bool QPixmap::loadFromData(const QByteArray &imageData, const QString &format,
+      Qt::ImageConversionFlags flags)
 {
-   return loadFromData(reinterpret_cast<const uchar *>(data.constData()), data.size(), format, flags);
+   return loadFromData(reinterpret_cast<const uchar *>(imageData.constData()), imageData.size(), format, flags);
 }
 
 Q_GUI_EXPORT QDataStream &operator<<(QDataStream &stream, const QPixmap &pixmap);

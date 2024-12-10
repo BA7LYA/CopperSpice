@@ -211,35 +211,9 @@ static const char spdyDictionary[] = {
    0x2c, 0x65, 0x6e, 0x71, 0x3d, 0x30, 0x2e         // .enq.0.
 };
 
-// uncomment to debug
-//static void printHex(const QByteArray &ba)
-//{
-//    QByteArray hex;
-//    QByteArray clearText;
-//    for (int a = 0; a < ba.count(); ++a) {
-//        QByteArray currentHexChar = QByteArray(1, ba.at(a)).toHex().rightJustified(2, ' ');
-//        QByteArray currentChar;
-//        if (ba.at(a) >= 32 && ba.at(a) < 126) { // if ASCII, print the letter
-//            currentChar = QByteArray(1, ba.at(a));
-//        } else {
-//            currentChar = " ";
-//        }
-//        clearText.append(currentChar.rightJustified(2, ' '));
-//        hex.append(currentHexChar);
-//            hex.append(' ');
-//            clearText.append(' ');
-//    }
-//    int chunkSize = 102; // 12 == 4 bytes per line
-//    for (int a = 0; a < hex.count(); a += chunkSize) {
-//        qDebug() << hex.mid(a, chunkSize);
-//        qDebug() << clearText.mid(a, chunkSize);
-//    }
-//}
-
 QSpdyProtocolHandler::QSpdyProtocolHandler(QHttpNetworkConnectionChannel *channel)
    : QObject(nullptr), QAbstractProtocolHandler(channel), m_nextStreamID(-1),
-     m_maxConcurrentStreams(100),
-     m_initialWindowSize(0), m_waitingForCompleteStream(false)
+     m_maxConcurrentStreams(100), m_initialWindowSize(0), m_waitingForCompleteStream(false)
 {
    // 100 is recommended for m_maxConcurrentStreams in the SPDY RFC
 
@@ -875,8 +849,7 @@ void QSpdyProtocolHandler::handleControlFrame(const QByteArray &frameHeaders)
    }
 }
 
-void QSpdyProtocolHandler::handleSYN_STREAM(char /*flags*/, quint32 /*length*/,
-      const QByteArray &frameData)
+void QSpdyProtocolHandler::handleSYN_STREAM(char, quint32, const QByteArray &frameData)
 {
    // not implemented; will be implemented when servers start using it
    // we just tell the server that we do not accept that
@@ -886,7 +859,7 @@ void QSpdyProtocolHandler::handleSYN_STREAM(char /*flags*/, quint32 /*length*/,
    sendRST_STREAM(streamID, RST_STREAM_REFUSED_STREAM);
 }
 
-void QSpdyProtocolHandler::handleSYN_REPLY(char flags, quint32 /*length*/, const QByteArray &frameData)
+void QSpdyProtocolHandler::handleSYN_REPLY(char flags, quint32, const QByteArray &frameData)
 {
    parseHttpHeaders(flags, frameData);
 }
@@ -1075,7 +1048,7 @@ void QSpdyProtocolHandler::handleRST_STREAM(char, quint32 length, const QByteArr
    }
 }
 
-void QSpdyProtocolHandler::handleSETTINGS(char flags, quint32 /*length*/, const QByteArray &frameData)
+void QSpdyProtocolHandler::handleSETTINGS(char flags, quint32, const QByteArray &frameData)
 {
    Q_ASSERT(frameData.count() > 0);
 
@@ -1136,7 +1109,7 @@ void QSpdyProtocolHandler::handleSETTINGS(char flags, quint32 /*length*/, const 
    }
 }
 
-void QSpdyProtocolHandler::handlePING(char /*flags*/, quint32 length, const QByteArray &frameData)
+void QSpdyProtocolHandler::handlePING(char, quint32 length, const QByteArray &frameData)
 {
    // flags are ignored
 
@@ -1192,14 +1165,12 @@ void QSpdyProtocolHandler::handleGOAWAY(char,  quint32, const QByteArray &frameD
    // ### we could make sure a new session is initiated anyhow
 }
 
-void QSpdyProtocolHandler::handleHEADERS(char flags, quint32 /*length*/,
-      const QByteArray &frameData)
+void QSpdyProtocolHandler::handleHEADERS(char flags, quint32, const QByteArray &frameData)
 {
    parseHttpHeaders(flags, frameData);
 }
 
-void QSpdyProtocolHandler::handleWINDOW_UPDATE(char /*flags*/, quint32 /*length*/,
-      const QByteArray &frameData)
+void QSpdyProtocolHandler::handleWINDOW_UPDATE(char, quint32, const QByteArray &frameData)
 {
    qint32 streamID = getStreamID(frameData.constData());
    qint32 deltaWindowSize = fourBytesToInt(frameData.constData() + 4);

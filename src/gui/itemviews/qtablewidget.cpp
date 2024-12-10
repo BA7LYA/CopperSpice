@@ -498,10 +498,10 @@ QMap<int, QVariant> QTableModel::itemData(const QModelIndex &index) const
    return roles;
 }
 
-// reimplemented to ensure that only one dataChanged() signal is emitted
+// ensure only one dataChanged() signal is emitted
 bool QTableModel::setItemData(const QModelIndex &index, const QMap<int, QVariant> &roles)
 {
-   if (!index.isValid()) {
+   if (! index.isValid()) {
       return false;
    }
 
@@ -599,15 +599,7 @@ void QTableModel::sort(int column, Qt::SortOrder order)
    emit layoutChanged();
 }
 
-/*
-  \internal
-
-  Ensures that rows in the interval [start, end] are
-  sorted according to the contents of column \a column
-  and the given sort \a order.
-*/
-void QTableModel::ensureSorted(int column, Qt::SortOrder order,
-   int start, int end)
+void QTableModel::ensureSorted(int column, Qt::SortOrder order, int start, int end)
 {
    int count = end - start + 1;
    QVector < QPair<QTableWidgetItem *, int>> sorting;
@@ -699,11 +691,6 @@ void QTableModel::ensureSorted(int column, Qt::SortOrder order,
    }
 }
 
-/*
-  \internal
-
-  Returns the non-0 items in column \a column.
-*/
 QVector<QTableWidgetItem *> QTableModel::columnItems(int column) const
 {
    QVector<QTableWidgetItem *> items;
@@ -724,15 +711,7 @@ QVector<QTableWidgetItem *> QTableModel::columnItems(int column) const
    return items;
 }
 
-/*
-  \internal
-
-  Adjusts the row of each index in \a indexes if necessary, given
-  that a row of items has been moved from row \a movedFrom to row
-  \a movedTo.
-*/
-void QTableModel::updateRowIndexes(QModelIndexList &indexes,
-   int movedFromRow, int movedToRow)
+void QTableModel::updateRowIndexes(QModelIndexList &indexes, int movedFromRow, int movedToRow)
 {
    QModelIndexList::iterator it;
    for (it = indexes.begin(); it != indexes.end(); ++it) {
@@ -751,13 +730,6 @@ void QTableModel::updateRowIndexes(QModelIndexList &indexes,
    }
 }
 
-/*
-  \internal
-
-  Returns an iterator to the item where \a item should be
-  inserted in the interval (\a begin, \a end) according to
-  the given sort \a order.
-*/
 QVector<QTableWidgetItem *>::iterator QTableModel::sortedInsertionIterator(
    const QVector<QTableWidgetItem *>::iterator &begin,
    const QVector<QTableWidgetItem *>::iterator &end,

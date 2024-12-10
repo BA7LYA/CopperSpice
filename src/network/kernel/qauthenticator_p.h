@@ -24,38 +24,28 @@
 #ifndef QAUTHENTICATOR_P_H
 #define QAUTHENTICATOR_P_H
 
-#include <qhash.h>
-#include <qbytearray.h>
-#include <qstring.h>
 #include <qauthenticator.h>
+
+#include <qbytearray.h>
+#include <qhash.h>
+#include <qstring.h>
 #include <qvariant.h>
 
 class QHttpResponseHeader;
-
-#ifdef Q_OS_WIN
 class QNtlmWindowsHandles;
-#endif
 
 class QAuthenticatorPrivate
 {
  public:
-   enum Method { None, Basic, Plain, Login, Ntlm, CramMd5, DigestMd5 };
-   QAuthenticatorPrivate();
-   ~QAuthenticatorPrivate();
-
-   QString user;
-   QString extractedUser;
-   QString password;
-   QVariantHash options;
-   Method method;
-   QString realm;
-   QByteArray challenge;
-
-#ifdef Q_OS_WIN
-    QNtlmWindowsHandles *ntlmWindowsHandles;
-#endif
-
-   bool hasFailed; //credentials have been tried but rejected by server.
+   enum Method {
+      None,
+      Basic,
+      Plain,
+      Login,
+      Ntlm,
+      CramMd5,
+      DigestMd5
+   };
 
    enum Phase {
       Start,
@@ -63,7 +53,22 @@ class QAuthenticatorPrivate
       Done,
       Invalid
    };
+
+   QAuthenticatorPrivate();
+   ~QAuthenticatorPrivate();
+
+   QString user;
+   QString extractedUser;
+   QString password;
+   QVariantHash options;
+
+   QString realm;
+   QByteArray challenge;
+
+   Method method;
    Phase phase;
+
+   bool hasFailed;   // credentials have been tried but rejected by server.
 
    // digest specific
    QByteArray cnonce;
@@ -73,13 +78,17 @@ class QAuthenticatorPrivate
    QString workstation;
    QString userDomain;
 
+#ifdef Q_OS_WIN
+    QNtlmWindowsHandles *ntlmWindowsHandles;
+#endif
+
    QByteArray calculateResponse(const QByteArray &method, const QByteArray &path);
 
-   static inline QAuthenticatorPrivate *getPrivate(QAuthenticator &auth) {
+   static QAuthenticatorPrivate *getPrivate(QAuthenticator &auth) {
       return auth.d;
    }
 
-   static inline const QAuthenticatorPrivate *getPrivate(const QAuthenticator &auth) {
+   static const QAuthenticatorPrivate *getPrivate(const QAuthenticator &auth) {
       return auth.d;
    }
 

@@ -40,9 +40,6 @@ QGlyphRun::~QGlyphRun()
    // Required for QExplicitlySharedDataPointer
 }
 
-/*!
-    \internal
-*/
 void QGlyphRun::detach()
 {
    if (d->ref.load() != 1) {
@@ -107,7 +104,6 @@ QVector<quint32> QGlyphRun::glyphIndexes() const
    }
 }
 
-
 void QGlyphRun::setGlyphIndexes(const QVector<quint32> &glyphIndexes)
 {
    detach();
@@ -116,9 +112,6 @@ void QGlyphRun::setGlyphIndexes(const QVector<quint32> &glyphIndexes)
    d->glyphIndexDataSize = glyphIndexes.size();
 }
 
-/*!
-    Returns the position of the edge of the baseline for each glyph in this set of glyph indexes.
-*/
 QVector<QPointF> QGlyphRun::positions() const
 {
    if (d->glyphPositions.constData() == d->glyphPositionData) {
@@ -131,10 +124,6 @@ QVector<QPointF> QGlyphRun::positions() const
    }
 }
 
-/*!
-    Sets the positions of the edge of the baseline for each glyph in this set of glyph indexes to
-    \a positions.
-*/
 void QGlyphRun::setPositions(const QVector<QPointF> &positions)
 {
    detach();
@@ -143,9 +132,6 @@ void QGlyphRun::setPositions(const QVector<QPointF> &positions)
    d->glyphPositionDataSize = positions.size();
 }
 
-/*!
-    Clears all data in the QGlyphRun object.
-*/
 void QGlyphRun::clear()
 {
    detach();
@@ -156,16 +142,7 @@ void QGlyphRun::clear()
    setGlyphIndexes(QVector<quint32>());
 }
 
-/*!
-    Sets the glyph indexes and positions of this QGlyphRun to use the first \a size
-    elements in the arrays \a glyphIndexArray and \a glyphPositionArray. The data is
-    \e not copied. The caller must guarantee that the arrays are not deleted as long
-    as this QGlyphRun and any copies of it exists.
-
-    \sa setGlyphIndexes(), setPositions()
-*/
-void QGlyphRun::setRawData(const quint32 *glyphIndexArray, const QPointF *glyphPositionArray,
-   int size)
+void QGlyphRun::setRawData(const quint32 *glyphIndexArray, const QPointF *glyphPositionArray, int size)
 {
    detach();
    d->glyphIndexes.clear();
@@ -176,81 +153,51 @@ void QGlyphRun::setRawData(const quint32 *glyphIndexArray, const QPointF *glyphP
    d->glyphIndexDataSize = d->glyphPositionDataSize = size;
 }
 
-/*!
-   Returns true if this QGlyphRun should be painted with an overline decoration.
-
-   \sa setOverline()
-*/
 bool QGlyphRun::overline() const
 {
    return d->flags & Overline;
 }
 
-/*!
-  Indicates that this QGlyphRun should be painted with an overline decoration if \a overline is true.
-  Otherwise the QGlyphRun should be painted with no overline decoration.
-
-  \sa overline()
-*/
 void QGlyphRun::setOverline(bool overline)
 {
-
    setFlag(Overline, overline);
 }
 
-/*!
-   Returns true if this QGlyphRun should be painted with an underline decoration.
-
-   \sa setUnderline()
-*/
 bool QGlyphRun::underline() const
 {
    return d->flags & Underline;
 }
 
-/*!
-  Indicates that this QGlyphRun should be painted with an underline decoration if \a underline is
-  true. Otherwise the QGlyphRun should be painted with no underline decoration.
-
-  \sa underline()
-*/
 void QGlyphRun::setUnderline(bool underline)
 {
    setFlag(Underline, underline);
 }
 
-/*!
-   Returns true if this QGlyphRun should be painted with a strike out decoration.
-
-   \sa setStrikeOut()
-*/
 bool QGlyphRun::strikeOut() const
 {
    return d->flags & StrikeOut;
 }
 
-/*!
-  Indicates that this QGlyphRun should be painted with an strike out decoration if \a strikeOut is
-  true. Otherwise the QGlyphRun should be painted with no strike out decoration.
-
-  \sa strikeOut()
-*/
 void QGlyphRun::setStrikeOut(bool strikeOut)
 {
    setFlag(StrikeOut, strikeOut);
 }
+
 bool QGlyphRun::isRightToLeft() const
 {
    return d->flags & RightToLeft;
 }
+
 void QGlyphRun::setRightToLeft(bool rightToLeft)
 {
    setFlag(RightToLeft, rightToLeft);
 }
+
 QGlyphRun::GlyphRunFlags QGlyphRun::flags() const
 {
    return d->flags;
 }
+
 void QGlyphRun::setFlag(GlyphRunFlag flag, bool enabled)
 {
    if (d->flags.testFlag(flag) == enabled) {
@@ -280,7 +227,6 @@ void QGlyphRun::setBoundingRect(const QRectF &boundingRect)
    detach();
    d->boundingRect = boundingRect;
 }
-
 
 QRectF QGlyphRun::boundingRect() const
 {

@@ -39,7 +39,7 @@
 class QSqlRelationalTableModelSql: public QSqlTableModelSql
 {
  public:
-   inline const static QString relTablePrefix(int i) {
+   const static QString relTablePrefix(int i) {
       return QString::number(i).prepend("relTblAl_");
    }
 };
@@ -483,7 +483,6 @@ void QSqlRelationalTableModel::setTable(const QString &table)
    QSqlTableModel::setTable(table);
 }
 
-// internal
 void QSqlRelationalTableModelPrivate::translateFieldNames(QSqlRecord &values) const
 {
    for (int i = 0; i < values.count(); ++i) {

@@ -39,10 +39,8 @@
 
 #endif
 
-enum {
-   TargetRatio = 100,
-   MedianSize = 7
-};
+static constexpr const int TargetRatio = 100;
+static constexpr const int MedianSize  = 7;
 
 #ifdef Q_OS_DARWIN
 
@@ -62,7 +60,7 @@ static qint64 getticks()
    clockId = CLOCK_REALTIME;
 
 #elif (_POSIX_THREAD_CPUTIME-0 <= 0)
-   // if we don't have CLOCK_THREAD_CPUTIME_ID, we have to just use elapsed realtime instead
+   // if we do not have CLOCK_THREAD_CPUTIME_ID, we have to just use elapsed realtime instead
    clockId = CLOCK_REALTIME;
 
 #  if (_POSIX_THREAD_CPUTIME-0 == 0)
@@ -160,7 +158,7 @@ void BlockSizeManager::timeAfterUser()
 
    m_blockSize = qMin(m_blockSize * 2,  maxBlockSize);
 
-#ifdef QTCONCURRENT_FOR_DEBUG
+#if defined(CS_SHOW_DEBUG_CORE)
    qDebug() << QThread::currentThread() << "adjusting block size" << controlPartElapsed.median() <<
             userPartElapsed.median() << m_blockSize;
 #endif

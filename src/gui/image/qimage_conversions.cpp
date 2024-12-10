@@ -87,10 +87,6 @@ void qGamma_correct_back_to_linear_cs(QImage *image)
    }
 }
 
-/*****************************************************************************
-  Internal routines for converting image depth.
- *****************************************************************************/
-
 // The drawhelper conversions from/to RGB32 are passthroughs which is not always correct for general image conversion.
 static const uint *convertRGB32FromARGB32PM(uint *buffer, const uint *src, int count,
    const QPixelLayout *, const QRgb *)
@@ -1182,11 +1178,17 @@ void dither_to_Mono(QImageData *dst, const QImageData *src, Qt::ImageConversionF
    Q_ASSERT(src->height == dst->height);
    Q_ASSERT(dst->format == QImage::Format_Mono || dst->format == QImage::Format_MonoLSB);
 
+   enum DitherType {
+      Threshold,
+      Ordered,
+      Diffuse
+   };
+
+   DitherType dithermode;
+
    dst->colortable.clear();
    dst->colortable.append(0xffffffff);
    dst->colortable.append(0xff000000);
-
-   enum { Threshold, Ordered, Diffuse } dithermode;
 
    if (fromalpha) {
       if ((flags & Qt::AlphaDither_Mask) == Qt::DiffuseAlphaDither) {
@@ -1196,6 +1198,7 @@ void dither_to_Mono(QImageData *dst, const QImageData *src, Qt::ImageConversionF
       } else {
          dithermode = Threshold;
       }
+
    } else {
       if ((flags & Qt::Dither_Mask) == Qt::ThresholdDither) {
          dithermode = Threshold;
@@ -1206,11 +1209,13 @@ void dither_to_Mono(QImageData *dst, const QImageData *src, Qt::ImageConversionF
       }
    }
 
-   int          w = src->width;
-   int          h = src->height;
-   int          d = src->depth;
+   int w = src->width;
+   int h = src->height;
+   int d = src->depth;
+
    uchar gray[256];                                // gray map for 8 bit images
    bool  use_gray = (d == 8);
+
    if (use_gray) {                                // make gray map
       if (fromalpha) {
          // Alpha 0x00 -> 0 pixels (white)
@@ -1218,6 +1223,7 @@ void dither_to_Mono(QImageData *dst, const QImageData *src, Qt::ImageConversionF
          for (int i = 0; i < src->colortable.size(); i++) {
             gray[i] = (255 - (src->colortable.at(i) >> 24));
          }
+
       } else {
          // Pixel 0x00 -> 1 pixels (black)
          // Pixel 0xFF -> 0 pixels (white)
@@ -1235,19 +1241,24 @@ void dither_to_Mono(QImageData *dst, const QImageData *src, Qt::ImageConversionF
    switch (dithermode) {
       case Diffuse: {
          QScopedArrayPointer<int> lineBuffer(new int[w * 2]);
+
          int *line1 = lineBuffer.data();
          int *line2 = lineBuffer.data() + w;
          int bmwidth = (w + 7) / 8;
 
          int *b1, *b2;
          int wbytes = w * (d / 8);
+
          const uchar *p = src->data;
          const uchar *end = p + wbytes;
+
          b2 = line2;
+
          if (use_gray) {                        // 8 bit image
             while (p < end) {
                *b2++ = gray[*p++];
             }
+
          } else {                                // 32 bit image
             if (fromalpha) {
                while (p < end) {
@@ -1261,11 +1272,13 @@ void dither_to_Mono(QImageData *dst, const QImageData *src, Qt::ImageConversionF
                }
             }
          }
+
          for (int y = 0; y < h; y++) {                    // for each scan line...
             int *tmp = line1;
             line1 = line2;
             line2 = tmp;
             bool not_last_line = y < h - 1;
+
             if (not_last_line) {                // calc. grayvals for next line
                p = src->data + (y + 1) * src->bytes_per_line;
                end = p + wbytes;
@@ -1474,16 +1487,18 @@ static void convert_ARGB_PM_to_Mono(QImageData *dst, const QImageData *src, Qt::
    dither_to_Mono(dst, tmp.data(), flags, false);
 }
 
-//
 // convert_32_to_8:  Converts a 32 bits depth (true color) to an 8 bit
 // image with a colormap. If the 32 bit image has more than 256 colors,
 // we convert the red,green and blue bytes into a single byte encoded
 // as 6 shades of each of red, green and blue.
 //
 // if dithering is needed, only 1 color at most is available for alpha.
-//
+
 struct QRgbMap {
-   inline QRgbMap() : used(0) { }
+   QRgbMap()
+      : used(0)
+   { }
+
    uchar  pix;
    uchar used;
    QRgb  rgb;

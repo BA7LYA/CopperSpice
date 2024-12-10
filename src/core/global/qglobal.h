@@ -30,6 +30,7 @@
 
 #include <qexport.h>
 #include <qfeatures.h>
+#include <qglobal_debug.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -273,6 +274,11 @@
 // Ventura OS 13
 #  if ! defined(MAC_OS_X_VERSION_13)
 #     define MAC_OS_X_VERSION_13     130000
+#  endif
+
+// Sonoma OS 14
+#  if ! defined(MAC_OS_X_VERSION_14)
+#     define MAC_OS_X_VERSION_14     140000
 #  endif
 
 #endif
@@ -685,18 +691,6 @@ Q_CORE_EXPORT const char *csVersion();
 // avoid "unused parameter" warnings
 #define Q_UNUSED(x) (void)x;
 
-#if defined(CS_DISABLE_DEBUG)
-# undef  QT_DEBUG
-#else
-# define QT_DEBUG
-#endif
-
-// enables more debug messages (uncomment or pass in build files)
-// #define(CS_SHOW_DEBUG)
-
-// asserts (uncomment or pass in build files)
-// #define CS_DISABLE_ASSERT
-
 Q_CORE_EXPORT void qt_check_pointer(const char *, int);
 Q_CORE_EXPORT void qBadAlloc();
 
@@ -765,13 +759,11 @@ constexpr inline bool qFuzzyCompare(float p1, float p2)
    return (qAbs(p1 - p2) <= 0.00001f * qMin(qAbs(p1), qAbs(p2)));
 }
 
-// internal
 constexpr inline bool qFuzzyIsNull(double d)
 {
    return qAbs(d) <= 0.000000000001;
 }
 
-// internal
 constexpr inline bool qFuzzyIsNull(float f)
 {
    return qAbs(f) <= 0.00001f;
@@ -1051,7 +1043,7 @@ typename Wrapper::pointer qGetPtrHelper(const Wrapper &p)
 #define QT_TR_NOOP(text)                            cs_mark_tr_old(text)
 #define QT_TRANSLATE_NOOP3(context, text, comment)  cs_mark_tr_old(text, comment)
 
-// used internally
+// used internally by copperspice
 #define QT_TRANSLATE_NOOP(context, text)            cs_mark_tr_old(text)
 
 // not used in copperspice

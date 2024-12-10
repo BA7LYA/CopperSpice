@@ -48,17 +48,6 @@
 
 #define SMOOTH_SCALABLE 0xffff
 
-// #define FONT_MATCH_DEBUG
-#ifdef FONT_MATCH_DEBUG
-#define FM_DEBUG qDebug
-
-#else
-#define FM_DEBUG \
-   if (false)    \
-   qDebug
-
-#endif
-
 static void initializeDb();
 
 static int getFontWeight(const QString &weightString)
@@ -1046,7 +1035,9 @@ static QtFontStyle *bestStyle(QtFontFoundry *foundry, const QtFontStyle::Key &st
       }
    }
 
-   FM_DEBUG("          best style has distance 0x%x", dist);
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+   qDebug("QtFontStyle::bestStyle() Style has a distance 0x%x", dist);
+#endif
 
    return retval;
 }
@@ -1088,8 +1079,12 @@ static unsigned int bestFoundry(int script, unsigned int score, int styleStrateg
       // 2. see if we have a smoothly scalable font
       if (! size && style->smoothScalable && ! (styleStrategy & QFont::PreferBitmap)) {
          size = style->fontSize(SMOOTH_SCALABLE);
+
          if (size) {
-            FM_DEBUG("          found smoothly scalable font (%d pixels)", pixelSize);
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+            qDebug("bestFoundry() Scalable font is %d pixels", pixelSize);
+#endif
+
             px = pixelSize;
          }
       }
@@ -1097,8 +1092,12 @@ static unsigned int bestFoundry(int script, unsigned int score, int styleStrateg
       // 3. see if we have a bitmap scalable font
       if (! size && style->bitmapScalable && (styleStrategy & QFont::PreferMatch)) {
          size = style->fontSize(0);
+
          if (size) {
-            FM_DEBUG("          found bitmap scalable font (%d pixels)", pixelSize);
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+            qDebug("bestFoundry() Found bitmap scalable font of %d pixels", pixelSize);
+#endif
+
             px = pixelSize;
          }
       }
@@ -1122,17 +1121,21 @@ static unsigned int bestFoundry(int script, unsigned int score, int styleStrateg
             if (tmpDist < distance) {
                distance = tmpDist;
                size     = &fontSize;
-               FM_DEBUG("          best size so far: %3d (%d)", size->pixelSize, pixelSize);
+
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+               qDebug("bestFoundry() Best size so far is %3d (%d)", size->pixelSize, pixelSize);
+#endif
             }
          }
 
          if (! size) {
-            FM_DEBUG("          no size supports the script we want");
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+            qDebug("bestFoundry() No size supports requiested script");
+#endif
             continue;
          }
 
-         if (style->bitmapScalable && ! (styleStrategy & QFont::PreferQuality) &&
-                  (distance * 10 / pixelSize) >= 2) {
+         if (style->bitmapScalable && ! (styleStrategy & QFont::PreferQuality) && (distance * 10 / pixelSize) >= 2) {
             // closest size is not close enough, go ahead and use a bitmap scaled font
             size = style->fontSize(0);
             px   = pixelSize;
@@ -1143,6 +1146,7 @@ static unsigned int bestFoundry(int script, unsigned int score, int styleStrateg
       }
 
       uint currentScore = 0x0000;
+
       enum {
          PitchMismatch       = 0x4000,
          StyleMismatch       = 0x2000,
@@ -1150,7 +1154,6 @@ static unsigned int bestFoundry(int script, unsigned int score, int styleStrateg
       };
 
       if (pitch != '*') {
-
          if ((pitch == 'm' && ! family->m_fixedPitch) || (pitch == 'p' && family->m_fixedPitch)) {
             currentScore += PitchMismatch;
          }
@@ -1171,14 +1174,20 @@ static unsigned int bestFoundry(int script, unsigned int score, int styleStrateg
       }
 
       if (currentScore < score) {
-         FM_DEBUG("          found a match: score %x best score so far %x", currentScore, score);
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+         qDebug("bestFoundry() Found a match, score %x best score so far %x", currentScore, score);
+#endif
 
          score         = currentScore;
          desc->foundry = &fontFoundry;
          desc->style   = style;
          desc->size    = size;
+
       } else {
-         FM_DEBUG("          score %x no better than best %x", currentScore, score);
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+         qDebug("bestFoundry() Score %x no better than best %x", currentScore, score);
+#endif
+
       }
    }
 
@@ -1195,7 +1204,7 @@ static bool matchFamilyName(const QString &familyName, QtFontFamily *family)
 }
 
 QtFontFamily *match(int script, const QFontDef &request, const QString &familyName, const QString &foundryName,
-                    QtFontDesc *desc, const QList<QtFontFamily *> &blacklistedFamilies)
+      QtFontDesc *desc, const QList<QtFontFamily *> &blacklistedFamilies)
 {
    QtFontFamily *retval = nullptr;
 
@@ -1222,7 +1231,7 @@ QtFontFamily *match(int script, const QFontDef &request, const QString &familyNa
    loadDb(familyName, script);
 
    size_t writingSystem = std::find(scriptForWritingSystem, scriptForWritingSystem +
-                  QFontDatabase::WritingSystemsCount, script) - scriptForWritingSystem;
+         QFontDatabase::WritingSystemsCount, script) - scriptForWritingSystem;
 
    if (writingSystem >= QFontDatabase::WritingSystemsCount) {
       writingSystem = QFontDatabase::Any;
@@ -1857,7 +1866,6 @@ int QFontDatabase::weight(const QString &family, const QString &style) const
    return fontStyle == nullptr ? -1 : fontStyle->key.weight;
 }
 
-// internal
 bool QFontDatabase::hasFamily(const QString &family) const
 {
    QString parsedFamily, foundry;
@@ -2494,7 +2502,10 @@ QFontEngine *QFontDatabase::findFont(const QFontDef &request, int script)
    engine = fontCache->findEngine(key);
 
    if (engine != nullptr) {
-      FM_DEBUG("Cache hit level 1");
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+      qDebug("QFontDatabase::findFont() Cache hit level 1");
+#endif
+
       return engine;
    }
 
@@ -2517,7 +2528,10 @@ QFontEngine *QFontDatabase::findFont(const QFontDef &request, int script)
       }
 
    } else {
-      FM_DEBUG("  NO MATCH FOUND\n");
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+      qDebug("QFontDatabase::findFont() No match found");
+#endif
+
    }
 
    if (engine == nullptr) {
@@ -2573,7 +2587,10 @@ QFontEngine *QFontDatabase::findFont(const QFontDef &request, int script)
          engine = new QFontEngineBox(request.pixelSize);
       }
 
-      FM_DEBUG("returning box engine");
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+      qDebug("QFontDatabase::findFont() Returning box engine");
+#endif
+
    }
 
    return engine;

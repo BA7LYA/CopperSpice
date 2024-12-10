@@ -560,10 +560,6 @@ static void qt_mac_dispose_pattern(void *info)
    delete pat;
 }
 
-/*****************************************************************************
-  QCoreGraphicsPaintEngine member functions
- *****************************************************************************/
-
 static inline QPaintEngine::PaintEngineFeatures qt_mac_cg_features()
 {
    return QPaintEngine::PaintEngineFeatures(QPaintEngine::AllFeatures & ~QPaintEngine::PaintOutsidePaintEvent
@@ -1598,7 +1594,11 @@ void qt_mac_cg_transform_path_apply(void *info, const CGPathElement *element)
          break;
 
       default:
-         qDebug() << "Unhandled path transform type: " << element->type;
+#if defined(CS_SHOW_DEBUG_PLATFORM)
+         qDebug() << "qt_mac_cg_transform_path_apply() Unhandled path transform type =" << element->type;
+#endif
+
+         break;
    }
 }
 

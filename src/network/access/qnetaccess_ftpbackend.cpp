@@ -32,9 +32,7 @@
 
 #ifndef QT_NO_FTP
 
-enum {
-   DefaultFtpPort = 21
-};
+static constexpr const int DefaultFtpPort = 21;
 
 static QByteArray makeCacheKey(const QUrl &url)
 {
@@ -365,7 +363,6 @@ void QNetworkAccessFtpBackend::ftpReadyRead()
 
 void QNetworkAccessFtpBackend::ftpRawCommandReply(int code, const QString &text)
 {
-   //qDebug() << "FTP reply:" << code << text;
    int id = ftp->currentId();
 
    if ((id == helpId) && ((code == 200) || (code == 214))) {     // supported commands

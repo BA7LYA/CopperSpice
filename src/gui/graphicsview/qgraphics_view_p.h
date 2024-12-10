@@ -146,34 +146,33 @@ class Q_GUI_EXPORT QGraphicsViewPrivate : public QAbstractScrollAreaPrivate
    QRegion dirtyRegion;
    QRect dirtyBoundingRect;
    void processPendingUpdates();
-   inline void updateAll() {
+
+   void updateAll() {
       viewport->update();
       fullUpdatePending = true;
       dirtyBoundingRect = QRect();
       dirtyRegion = QRegion();
    }
 
-   inline void dispatchPendingUpdateRequests() {
-
-
-      {
-         if (qt_widget_private(viewport)->paintOnScreen()) {
-            QCoreApplication::sendPostedEvents(viewport, QEvent::UpdateRequest);
-         } else {
-            QCoreApplication::sendPostedEvents(viewport->window(), QEvent::UpdateRequest);
-         }
+   void dispatchPendingUpdateRequests() {
+      if (qt_widget_private(viewport)->paintOnScreen()) {
+         QCoreApplication::sendPostedEvents(viewport, QEvent::UpdateRequest);
+      } else {
+         QCoreApplication::sendPostedEvents(viewport->window(), QEvent::UpdateRequest);
       }
    }
 
    void setUpdateClip(QGraphicsItem *);
 
-   inline bool updateRectF(const QRectF &rect) {
+   bool updateRectF(const QRectF &rect) {
       if (rect.isEmpty()) {
          return false;
       }
+
       if (optimizationFlags & QGraphicsView::DontAdjustForAntialiasing) {
          return updateRect(rect.toAlignedRect().adjusted(-1, -1, 1, 1));
       }
+
       return updateRect(rect.toAlignedRect().adjusted(-2, -2, 2, 2));
    }
 

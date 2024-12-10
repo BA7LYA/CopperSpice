@@ -25,30 +25,29 @@
 
 #ifndef QT_NO_MESSAGEBOX
 
-#include <qdialogbuttonbox.h>
-#include <qlist.h>
-#include <qdebug.h>
-#include <qstyle.h>
-#include <qstyleoption.h>
-#include <qgridlayout.h>
-#include <qdesktopwidget.h>
-#include <qpushbutton.h>
-#include <qcheckbox.h>
-
 #include <qaccessible.h>
+#include <qapplication.h>
+#include <qcheckbox.h>
+#include <qclipboard.h>
+#include <qdebug.h>
+#include <qdesktopwidget.h>
+#include <qdialogbuttonbox.h>
 #include <qfont.h>
 #include <qfontmetrics.h>
-#include <qclipboard.h>
+#include <qgridlayout.h>
 #include <qicon.h>
-#include <qtextdocument.h>
-#include <qapplication.h>
-#include <qtextedit.h>
-#include <qtextbrowser.h>
+#include <qlist.h>
 #include <qmenu.h>
+#include <qpushbutton.h>
+#include <qstyle.h>
+#include <qstyleoption.h>
+#include <qtextbrowser.h>
+#include <qtextdocument.h>
+#include <qtextedit.h>
 
-#include <qlabel_p.h>
 #include <qapplication_p.h>
 #include <qdialog_p.h>
+#include <qlabel_p.h>
 
 #ifdef Q_OS_WIN
 #include <qt_windows.h>
@@ -66,12 +65,24 @@ HMENU qt_getWindowsSystemMenu(const QWidget *w)
 }
 #endif
 
-enum Button { Old_Ok = 1, Old_Cancel = 2, Old_Yes = 3, Old_No = 4, Old_Abort = 5, Old_Retry = 6,
-   Old_Ignore = 7, Old_YesAll = 8, Old_NoAll = 9, Old_ButtonMask = 0xFF,
-   NewButtonMask = 0xFFFFFC00
+enum Button {
+   Old_Ok         = 1,
+   Old_Cancel     = 2,
+   Old_Yes        = 3,
+   Old_No         = 4,
+   Old_Abort      = 5,
+   Old_Retry      = 6,
+   Old_Ignore     = 7,
+   Old_YesAll     = 8,
+   Old_NoAll      = 9,
+   Old_ButtonMask = 0xFF,
+   NewButtonMask  = 0xFFFFFC00
 };
 
-enum DetailButtonLabel { ShowLabel = 0, HideLabel = 1 };
+enum DetailButtonLabel {
+   ShowLabel = 0,
+   HideLabel = 1
+};
 
 void cs_require_version(int argc, char *argv[], const char *str)
 {

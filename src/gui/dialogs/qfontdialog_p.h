@@ -24,9 +24,9 @@
 #ifndef QFONTDIALOG_P_H
 #define QFONTDIALOG_P_H
 
+#include <qfontdialog.h>
 
 #include <qfontdatabase.h>
-#include <qfontdialog.h>
 #include <qplatform_dialoghelper.h>
 #include <qsharedpointer.h>
 
@@ -118,8 +118,8 @@ class QFontDialogPrivate : public QDialogPrivate
    void _q_runNativeAppModalPanel();
 
  private:
-   virtual void initHelper(QPlatformDialogHelper *) override;
-   virtual void helperPrepareShow(QPlatformDialogHelper *) override;
+   void initHelper(QPlatformDialogHelper *) override;
+   void helperPrepareShow(QPlatformDialogHelper *) override;
 };
 
 #endif // QT_NO_FONTDIALOG

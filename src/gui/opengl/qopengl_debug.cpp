@@ -25,10 +25,10 @@
 #include <qopengl_debug.h>
 
 #include <qglobal.h>
-#include <qvarlengtharray.h>
+#include <qoffscreensurface.h>
 #include <qopengl.h>
 #include <qopenglfunctions.h>
-#include <qoffscreensurface.h>
+#include <qvarlengtharray.h>
 
 // When using OpenGL ES 2.0, all the necessary GL_KHR_debug constants are
 // provided in qopengles2ext.h. Unfortunately, newer versions of that file
@@ -41,10 +41,9 @@
 #define USE_MANUAL_DEFS
 #endif
 
-// Under OSX (at least up to 10.8) we cannot include our copy of glext.h,
-// but we use the system-wide one, which unfortunately lacks all the needed
-// defines/typedefs. In order to make the code compile, we just add here
-// the GL_KHR_debug defines.
+// Under OSX (at least up to 10.8) we can not include our own copy of glext.h,
+// using the system version unfortunately lacks the needed  defines/typedefs.
+// Work around by adding GL_KHR_debug defines manually
 
 #ifndef GL_KHR_debug
 #define GL_KHR_debug 1
@@ -177,7 +176,7 @@
 typedef void (QOPENGLF_APIENTRY *GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,
    GLsizei length,const GLchar *message,const GLvoid *userParam);
 
-#endif /* USE_MANUAL_DEFS */
+#endif
 
 template <typename T, typename U>
 std::enable_if_t<sizeof(T) == sizeof(U) &&
@@ -214,7 +213,7 @@ static QOpenGLDebugMessage::Source qt_messageSourceFromGL(GLenum source)
          return QOpenGLDebugMessage::OtherSource;
     }
 
-    Q_ASSERT_X(false, Q_FUNC_INFO, "Unknown message source from GL");
+    Q_ASSERT_X(false, "qt_messageSourceFromGL()", "Unknown message source from GL");
 
     return QOpenGLDebugMessage::OtherSource;
 }
@@ -247,7 +246,7 @@ static GLenum qt_messageSourceToGL(QOpenGLDebugMessage::Source source)
          break;
    }
 
-    Q_ASSERT_X(false, Q_FUNC_INFO, "Invalid message source");
+    Q_ASSERT_X(false, "qt_messageSourceToGL()", "Invalid message source");
     return GL_DEBUG_SOURCE_OTHER;
 }
 
@@ -279,7 +278,7 @@ static QString qt_messageSourceToString(QOpenGLDebugMessage::Source source)
          return QString("AnySource");
     }
 
-    Q_ASSERT_X(false, Q_FUNC_INFO, "Unknown message source");
+    Q_ASSERT_X(false, "qt_messageSourceToString()", "Unknown message source");
     return QString();
 }
 
@@ -314,7 +313,7 @@ static QOpenGLDebugMessage::Type qt_messageTypeFromGL(GLenum type)
          return QOpenGLDebugMessage::GroupPopType;
    }
 
-   Q_ASSERT_X(false, Q_FUNC_INFO, "Unknown message type from GL");
+   Q_ASSERT_X(false, "qt_messageTypeFromGL()", "Unknown message type from GL");
 
    return QOpenGLDebugMessage::OtherType;
 }
@@ -356,7 +355,7 @@ static GLenum qt_messageTypeToGL(QOpenGLDebugMessage::Type type)
          break;
    }
 
-   Q_ASSERT_X(false, Q_FUNC_INFO, "Invalid message type");
+   Q_ASSERT_X(false, "qt_messageTypeToGL()", "Invalid message type");
    return GL_DEBUG_TYPE_OTHER;
 }
 
@@ -397,7 +396,7 @@ static QString qt_messageTypeToString(QOpenGLDebugMessage::Type type)
          return QString("AnyType");
       }
 
-   Q_ASSERT_X(false, Q_FUNC_INFO, "Unknown message type");
+   Q_ASSERT_X(false, "qt_messageTypeToString()", "Unknown message type");
 
    return QString();
 }
@@ -418,7 +417,7 @@ static QOpenGLDebugMessage::Severity qt_messageSeverityFromGL(GLenum severity)
          return QOpenGLDebugMessage::NotificationSeverity;
    }
 
-   Q_ASSERT_X(false, Q_FUNC_INFO, "Unknown message severity from GL");
+   Q_ASSERT_X(false, "qt_messageSeverityFromGL()", "Unknown message severity from GL");
 
    return QOpenGLDebugMessage::NotificationSeverity;
 }
@@ -445,7 +444,7 @@ static GLenum qt_messageSeverityToGL(QOpenGLDebugMessage::Severity severity)
          break;
    }
 
-   Q_ASSERT_X(false, Q_FUNC_INFO, "Invalid message severity");
+   Q_ASSERT_X(false, "qt_messageSeverityToGL()", "Invalid message severity");
 
    return GL_DEBUG_SEVERITY_NOTIFICATION;
 }
@@ -472,7 +471,7 @@ static QString qt_messageSeverityToString(QOpenGLDebugMessage::Severity severity
          return QString("AnySeverity");
    }
 
-   Q_ASSERT_X(false, Q_FUNC_INFO, "Unknown message severity");
+   Q_ASSERT_X(false, "qt_messageSeverityToString()", "Unknown message severity");
 
    return QString();
 }
@@ -489,7 +488,6 @@ class QOpenGLDebugMessagePrivate : public QSharedData
     QOpenGLDebugMessage::Severity severity;
 };
 
-// internal
 QOpenGLDebugMessagePrivate::QOpenGLDebugMessagePrivate()
     : message(), id(0), source(QOpenGLDebugMessage::InvalidSource),
       type(QOpenGLDebugMessage::InvalidType), severity(QOpenGLDebugMessage::InvalidSeverity)
@@ -577,8 +575,6 @@ bool QOpenGLDebugMessage::operator==(const QOpenGLDebugMessage &debugMessage) co
                 && d->message == debugMessage.d->message);
 }
 
-#ifndef QT_NO_DEBUG_STREAM
-
 QDebug operator<<(QDebug debug, QOpenGLDebugMessage::Source source)
 {
    QDebugStateSaver saver(debug);
@@ -621,7 +617,6 @@ QDebug operator<<(QDebug debug, const QOpenGLDebugMessage &message)
     return debug;
 
 }
-#endif // QT_NO_DEBUG_STREAM
 
 typedef void (QOPENGLF_APIENTRYP qt_glDebugMessageControl_t)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
 
@@ -672,7 +667,6 @@ class QOpenGLDebugLoggerPrivate
    QOpenGLDebugLogger *q_ptr;
 };
 
-// internal
 QOpenGLDebugLoggerPrivate::QOpenGLDebugLoggerPrivate()
     : glDebugMessageControl(nullptr), glDebugMessageInsert(nullptr), glDebugMessageCallback(nullptr),
       glGetDebugMessageLog(nullptr), glPushDebugGroup(nullptr), glPopDebugGroup(nullptr),
@@ -682,7 +676,6 @@ QOpenGLDebugLoggerPrivate::QOpenGLDebugLoggerPrivate()
 {
 }
 
-// internal
 void QOpenGLDebugLoggerPrivate::handleMessage(GLenum source, GLenum type, GLuint id,
       GLenum severity, GLsizei length, const GLchar *rawMessage)
 {
@@ -706,7 +699,6 @@ void QOpenGLDebugLoggerPrivate::handleMessage(GLenum source, GLenum type, GLuint
     emit q->messageLogged(message);
 }
 
-// internal
 void QOpenGLDebugLoggerPrivate::controlDebugMessages(QOpenGLDebugMessage::Sources sources,
       QOpenGLDebugMessage::Types types, QOpenGLDebugMessage::Severities severities,
       const QVector<GLuint> &ids, const QByteArray &callerName, bool enable)
@@ -790,7 +782,6 @@ void QOpenGLDebugLoggerPrivate::controlDebugMessages(QOpenGLDebugMessage::Source
     }
 }
 
-// internal
 void QOpenGLDebugLoggerPrivate::_q_contextAboutToBeDestroyed()
 {
     Q_ASSERT(context);
@@ -920,7 +911,7 @@ bool QOpenGLDebugLogger::initialize()
 
     QOpenGLContext::currentContext()->functions()->glGetIntegerv(GL_MAX_DEBUG_MESSAGE_LENGTH, &d->maxMessageLength);
 
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_GUI_OPENGL)
     if (! d->context->format().testOption(QSurfaceFormat::DebugContext)) {
         qWarning("QOpenGLDebugLogger::initialize(): the current context is not a debug context:\n"
                  "    which means the GL may not generate any debug output.\n"
@@ -1125,8 +1116,9 @@ QList<QOpenGLDebugMessage> QOpenGLDebugLogger::loggedMessages() const
         return QList<QOpenGLDebugMessage>();
     }
 
-    static const GLuint maxMessageCount = 128;
+    static constexpr const GLuint maxMessageCount = 128;
     GLuint messagesRead;
+
     GLenum messageSources[maxMessageCount];
     GLenum messageTypes[maxMessageCount];
     GLuint messageIds[maxMessageCount];

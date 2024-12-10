@@ -637,12 +637,12 @@ static bool pathIsDir(const QByteArray &nativeName)
 
    QT_STATBUF st;
    return QT_STAT(nativeName.constData(), &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR;
-};
+}
 
-// Note: if \a shouldMkdirFirst is false, we assume the caller did try to mkdir
-// before calling this function.
 static bool createDirectoryWithParents(const QByteArray &nativeName, bool shouldMkdirFirst = true)
 {
+   // if shouldMkdirFirst is false, assume the caller tried to mkdir before calling this function
+
    if (shouldMkdirFirst && QT_MKDIR(nativeName.constData(), 0777) == 0) {
       return true;
    }
@@ -915,13 +915,12 @@ QFileSystemEntry QFileSystemEngine::currentPath()
       result = QFileSystemEntry(QByteArray(currentName), QFileSystemEntry::FromNativePath());
    }
 
-# if defined(QT_DEBUG)
-
+#if defined(CS_SHOW_DEBUG_CORE)
    if (result.isEmpty()) {
-      qWarning("QFileSystemEngine::currentPath() Call to getcwd() failed");
+      qDebug("QFileSystemEngine::currentPath() Call to getcwd() failed");
    }
+#endif
 
-# endif
 #endif
 
    return result;

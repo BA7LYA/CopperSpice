@@ -24,9 +24,9 @@
 #ifndef QRADIODATA_H
 #define QRADIODATA_H
 
-#include <qobject.h>
-#include <qmediaobject.h>
 #include <qmediabindableinterface.h>
+#include <qmediaobject.h>
+#include <qobject.h>
 
 class QRadioDataPrivate;
 
@@ -59,7 +59,12 @@ class Q_MULTIMEDIA_EXPORT QRadioData : public QObject, public QMediaBindableInte
    CS_INTERFACES(QMediaBindableInterface)
 
 public:
-   enum Error { NoError, ResourceError, OpenError, OutOfRangeError };
+   enum Error {
+      NoError,
+      ResourceError,
+      OpenError,
+      OutOfRangeError
+   };
 
    enum ProgramType {
       Undefined = 0,
@@ -72,13 +77,36 @@ public:
       Culture,
       Science,
       Varied,
-      PopMusic, RockMusic, EasyListening, LightClassical,
-      SeriousClassical, OtherMusic, Weather, Finance,
-      ChildrensProgrammes, SocialAffairs, Religion,
-      PhoneIn, Travel, Leisure, JazzMusic, CountryMusic,
-      NationalMusic, OldiesMusic, FolkMusic, Documentary,
-      AlarmTest, Alarm, Talk, ClassicRock, AdultHits,
-      SoftRock, Top40, Soft, Nostalgia, Classical,
+      PopMusic,
+      RockMusic,
+      EasyListening,
+      LightClassical,
+      SeriousClassical,
+      OtherMusic,
+      Weather,
+      Finance,
+      ChildrensProgrammes,
+      SocialAffairs,
+      Religion,
+      PhoneIn,
+      Travel,
+      Leisure,
+      JazzMusic,
+      CountryMusic,
+      NationalMusic,
+      OldiesMusic,
+      FolkMusic,
+      Documentary,
+      AlarmTest,
+      Alarm,
+      Talk,
+      ClassicRock,
+      AdultHits,
+      SoftRock,
+      Top40,
+      Soft,
+      Nostalgia,
+      Classical,
       RhythmAndBlues,
       SoftRhythmAndBlues,
       Language,

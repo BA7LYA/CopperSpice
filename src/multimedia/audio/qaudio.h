@@ -24,17 +24,31 @@
 #ifndef QAUDIO_H
 #define QAUDIO_H
 
-#include <qmultimedia.h>
 #include <qglobal.h>
+#include <qmultimedia.h>
 #include <qstring.h>
 
 namespace QAudio {
 
-enum Error { NoError, OpenError, IOError, UnderrunError, FatalError };
+enum Error {
+   NoError,
+   OpenError,
+   IOError,
+   UnderrunError,
+   FatalError
+};
 
-enum State { ActiveState, SuspendedState, StoppedState, IdleState };
+enum State {
+   ActiveState,
+   SuspendedState,
+   StoppedState,
+   IdleState
+};
 
-enum Mode  { AudioInput, AudioOutput };
+enum Mode  {
+   AudioInput,
+   AudioOutput
+};
 
 enum Role {
    UnknownRole,

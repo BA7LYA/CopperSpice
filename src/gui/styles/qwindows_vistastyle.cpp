@@ -36,11 +36,11 @@
 
 #define CP_READONLY   5
 
-static const int windowsItemFrame     =  2;    // menu item frame width
-static const int windowsItemHMargin   =  3;    // menu item hor text margin
-static const int windowsItemVMargin   =  4;    // menu item ver text margin
-static const int windowsArrowHMargin  =  6;    // arrow horizontal margin
-static const int windowsRightBorder   = 15;    // right border on windows
+static constexpr const int windowsItemFrame    =  2;    // menu item frame width
+static constexpr const int windowsItemHMargin  =  3;    // menu item hor text margin
+static constexpr const int windowsItemVMargin  =  4;    // menu item ver text margin
+static constexpr const int windowsArrowHMargin =  6;    // arrow horizontal margin
+static constexpr const int windowsRightBorder  = 15;    // right border on windows
 
 #ifndef TMT_CONTENTMARGINS
 #  define TMT_CONTENTMARGINS 3602
@@ -1561,12 +1561,6 @@ void QWindowsVistaStyle::drawControl(ControlElement element, const QStyleOption 
    }
 }
 
-/*!
-  \internal
-
-  see drawPrimitive for comments on the animation support
-
- */
 void QWindowsVistaStyle::drawComplexControl(ComplexControl control, const QStyleOptionComplex *option,
    QPainter *painter, const QWidget *widget) const
 {
@@ -1990,7 +1984,7 @@ void QWindowsVistaStyle::drawComplexControl(ComplexControl control, const QStyle
          }
          break;
 
-#endif // QT_NO_SPINBOX
+#endif
 
       default:
          QWindowsXPStyle::drawComplexControl(control, option, painter, widget);
@@ -1998,7 +1992,6 @@ void QWindowsVistaStyle::drawComplexControl(ComplexControl control, const QStyle
    }
 }
 
-// internal
 QSize QWindowsVistaStyle::sizeFromContents(ContentsType type, const QStyleOption *option,
    const QSize &size, const QWidget *widget) const
 {
@@ -2271,7 +2264,6 @@ static bool buttonVisible(const QStyle::SubControl sc, const QStyleOptionTitleBa
    return retVal;
 }
 
-/*! \internal */
 int QWindowsVistaStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,
    QStyleHintReturn *returnData) const
 {
@@ -2314,7 +2306,6 @@ int QWindowsVistaStyle::styleHint(StyleHint hint, const QStyleOption *option, co
    return ret;
 }
 
-// internal
 QRect QWindowsVistaStyle::subControlRect(ComplexControl control, const QStyleOptionComplex *option,
    SubControl subControl, const QWidget *widget) const
 {
@@ -2586,7 +2577,6 @@ void QWindowsVistaStyle::polish(QWidget *widget)
       }
 }
 
-// internal
 void QWindowsVistaStyle::unpolish(QWidget *widget)
 {
    QWindowsXPStyle::unpolish(widget);
@@ -2633,20 +2623,17 @@ void QWindowsVistaStyle::unpolish(QWidget *widget)
       }
 }
 
-// internal
 void QWindowsVistaStyle::unpolish(QApplication *app)
 {
    QWindowsXPStyle::unpolish(app);
 }
 
-// internal
 void QWindowsVistaStyle::polish(QPalette &pal)
 {
    QWindowsStyle::polish(pal);
    pal.setBrush(QPalette::AlternateBase, pal.base().color().darker(104));
 }
 
-// internal
 QPixmap QWindowsVistaStyle::standardPixmap(StandardPixmap standardPixmap, const QStyleOption *option,
    const QWidget *widget) const
 {

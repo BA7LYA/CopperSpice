@@ -24,6 +24,7 @@
 #include <qsyntaxhighlighter.h>
 
 #ifndef QT_NO_SYNTAXHIGHLIGHTER
+
 #include <qtextdocument.h>
 #include <qtextlayout.h>
 #include <qpointer.h>
@@ -39,7 +40,7 @@ class QSyntaxHighlighterPrivate
    Q_DECLARE_PUBLIC(QSyntaxHighlighter)
 
  public:
-   inline QSyntaxHighlighterPrivate()
+   QSyntaxHighlighterPrivate()
       : rehighlightPending(false), inReformatBlocks(false) {
    }
 
@@ -52,7 +53,7 @@ class QSyntaxHighlighterPrivate
    void reformatBlocks(int from, int charsRemoved, int charsAdded);
    void reformatBlock(const QTextBlock &block);
 
-   inline void rehighlight(QTextCursor &cursor, QTextCursor::MoveOperation operation) {
+   void rehighlight(QTextCursor &cursor, QTextCursor::MoveOperation operation) {
       inReformatBlocks = true;
       cursor.beginEditBlock();
       int from = cursor.position();
@@ -62,7 +63,7 @@ class QSyntaxHighlighterPrivate
       inReformatBlocks = false;
    }
 
-   inline void _q_delayedRehighlight() {
+   void _q_delayedRehighlight() {
       if (! rehighlightPending) {
          return;
       }
@@ -341,10 +342,6 @@ int QSyntaxHighlighter::previousBlockState() const
    return previous.userState();
 }
 
-/*!
-    Returns the state of the current text block. If no value is set,
-    the returned value is -1.
-*/
 int QSyntaxHighlighter::currentBlockState() const
 {
    Q_D(const QSyntaxHighlighter);

@@ -77,36 +77,17 @@ QFileSystemEntry::QFileSystemEntry()
 {
 }
 
-/*!
-   \internal
-   Use this constructor when the path is supplied by user code, as it may contain a mix
-   of '/' and the native separator.
- */
 QFileSystemEntry::QFileSystemEntry(const QString &filePath)
    : m_filePath(QDir::fromNativeSeparators(filePath)),
-     m_lastSeparator(-2),
-     m_firstDotInFileName(-2),
-     m_lastDotInFileName(0)
+     m_lastSeparator(-2), m_firstDotInFileName(-2), m_lastDotInFileName(0)
 {
 }
 
-/*!
-   \internal
-   Use this constructor when the path is guaranteed to be in internal format, i.e. all
-   directory separators are '/' and not the native separator.
- */
 QFileSystemEntry::QFileSystemEntry(const QString &filePath, FromInternalPath)
-   : m_filePath(filePath),
-     m_lastSeparator(-2),
-     m_firstDotInFileName(-2),
-     m_lastDotInFileName(0)
+   : m_filePath(filePath), m_lastSeparator(-2), m_firstDotInFileName(-2), m_lastDotInFileName(0)
 {
 }
 
-/*!
-   \internal
-   Use this constructor when the path comes from a native API
- */
 QFileSystemEntry::QFileSystemEntry(const QString &nativeFilePath, FromNativePath)
    : m_nativeFilePath(nativeFilePath),
      m_lastSeparator(-2),

@@ -26,8 +26,8 @@
 #ifndef QT_NO_IMAGEFORMAT_PNG
 
 #include <qcoreapplication.h>
-#include <qiodevice.h>
 #include <qimage.h>
+#include <qiodevice.h>
 #include <qlist.h>
 #include <qtextcodec.h>
 #include <qvariant.h>
@@ -142,10 +142,16 @@ class QPngHandlerPrivate
 class QPNGImageWriter
 {
  public:
+   enum DisposalMethod {
+      Unspecified,
+      NoDisposal,
+      RestoreBackground,
+      RestoreImage
+   };
+
    explicit QPNGImageWriter(QIODevice *);
    ~QPNGImageWriter();
 
-   enum DisposalMethod { Unspecified, NoDisposal, RestoreBackground, RestoreImage };
    void setDisposalMethod(DisposalMethod);
    void setLooping(int loops = 0); // 0 == infinity
    void setFrameDelay(int msecs);
@@ -504,7 +510,6 @@ static void read_image_scaled(QImage *outImage, png_structp png_ptr, png_infop i
    if (unit_type == PNG_OFFSET_PIXEL) {
       outImage->setOffset(QPoint(offset_x * oxsz / ixsz, offset_y * oysz / iysz));
    }
-
 }
 
 extern "C" {
@@ -514,9 +519,6 @@ extern "C" {
    }
 }
 
-/*!
-    \internal
-*/
 void Q_INTERNAL_WIN_NO_THROW QPngHandlerPrivate::readPngTexts(png_info *info)
 {
 
@@ -546,7 +548,6 @@ void Q_INTERNAL_WIN_NO_THROW QPngHandlerPrivate::readPngTexts(png_info *info)
 
 }
 
-// internal
 bool Q_INTERNAL_WIN_NO_THROW QPngHandlerPrivate::readPngHeader()
 {
    state = Error;
@@ -600,9 +601,6 @@ bool Q_INTERNAL_WIN_NO_THROW QPngHandlerPrivate::readPngHeader()
    return true;
 }
 
-/*!
-    \internal
-*/
 bool Q_INTERNAL_WIN_NO_THROW QPngHandlerPrivate::readPngImage(QImage *outImage)
 {
    if (state == Error) {

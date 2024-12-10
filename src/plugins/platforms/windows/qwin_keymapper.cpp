@@ -22,13 +22,14 @@
 ***********************************************************************/
 
 #include <qwin_keymapper.h>
-#include <qwin_context.h>
-#include <qwin_integration.h>
-#include <qwin_window.h>
-#include <qwin_inputcontext.h>
-#include <qwin_gui_eventdispatcher_p.h>
+
 #include <qapplication.h>
 #include <qkeyevent.h>
+#include <qwin_context.h>
+#include <qwin_gui_eventdispatcher_p.h>
+#include <qwin_inputcontext.h>
+#include <qwin_integration.h>
+#include <qwin_window.h>
 #include <qwindow.h>
 #include <qwindowsysteminterface.h>
 
@@ -98,12 +99,14 @@ QWindowsKeyMapper::~QWindowsKeyMapper()
 
 // We not only need the scancode itself but also the extended bit of key messages. Thus we need
 // the additional bit when masking the scancode.
-enum { scancodeBitmask = 0x1ff };
+static constexpr const int scancodeBitmask = 0x1ff;
 
-// Key recorder ------------------------------------------------------------------------[ start ] --
 struct KeyRecord {
-   KeyRecord(int c, int a, int s, const QString &t) : code(c), ascii(a), state(s), text(t) {}
-   KeyRecord() {}
+   KeyRecord(int c, int a, int s, const QString &t)
+      : code(c), ascii(a), state(s), text(t)
+   { }
+
+   KeyRecord() = default;
 
    int code;
    int ascii;
@@ -115,7 +118,9 @@ struct KeyRecord {
 // event. As soon as its state changes, the chain of autorepeat events will be broken.
 static const int QT_MAX_KEY_RECORDINGS = 64; // User has LOTS of fingers...
 struct KeyRecorder {
-   KeyRecorder() : nrecs(0) {}
+   KeyRecorder()
+      : nrecs(0)
+   { }
 
    inline KeyRecord *findKey(int code, bool remove);
    inline void storeKey(int code, int ascii, int state, const QString &text);
@@ -523,9 +528,6 @@ static const Qt::KeyboardModifiers ModsTbl[] = {
 static const size_t NumMods = sizeof ModsTbl / sizeof * ModsTbl;
 static_assert((NumMods == KeyboardLayoutItem::NumQtKeys), "Size mismatch");
 
-/**
-  Remap return or action key to select key for windows mobile.
-*/
 inline quint32 winceKeyBend(quint32 keyCode)
 {
    return KeyTbl[keyCode];
@@ -630,10 +632,8 @@ void QWindowsKeyMapper::updateKeyMap(const MSG &msg)
 }
 
 // Fills keyLayout for that vk_key. Values are all characters one can type using that key
-// (in connection with every combination of modifiers) and whether these "characters" are
-// dead keys.
-void QWindowsKeyMapper::updatePossibleKeyCodes(unsigned char *kbdBuffer, quint32 scancode,
-   quint32 vk_key)
+// (in connection with every combination of modifiers) and whether these "characters" are dead keys.
+void QWindowsKeyMapper::updatePossibleKeyCodes(unsigned char *kbdBuffer, quint32 scancode, quint32 vk_key)
 {
    if (!vk_key || (keyLayout[vk_key].exists && !keyLayout[vk_key].dirty)) {
       return;
@@ -708,6 +708,7 @@ void QWindowsKeyMapper::updatePossibleKeyCodes(unsigned char *kbdBuffer, quint32
 
    // If one of the values inserted into the keyLayout above, can be considered a dead key, we have
    // to run the workaround below.
+
    if (keyLayout[vk_key].deadkeys) {
       // Push a Space, then the original key through the low-level ToAscii functions.
       // We do this because these functions (ToAscii / ToUnicode) will alter the internal state of
@@ -719,25 +720,6 @@ void QWindowsKeyMapper::updatePossibleKeyCodes(unsigned char *kbdBuffer, quint32
       memset(emptyBuffer, 0, sizeof(emptyBuffer));
       ::ToAscii(VK_SPACE, 0, emptyBuffer, reinterpret_cast<LPWORD>(&buffer), 0);
       ::ToAscii(vk_key, scancode, kbdBuffer, reinterpret_cast<LPWORD>(&buffer), 0);
-   }
-
-   if (QWindowsContext::verbose > 1) {
-      QString message;
-
-      QDebug debug(&message);
-      debug << __FUNCTION__ << " for virtual key = 0x" << hex << vk_key << dec << '\n';
-
-      for (size_t i = 0; i < NumMods; ++i) {
-         const quint32 qtKey = keyLayout[vk_key].qtKey[i];
-         debug << "    [" << i << "] (" << qtKey << ','
-            << hex << showbase << qtKey << noshowbase << dec
-            << ",'" << char(qtKey ? qtKey : 0x03) << "')";
-         if (keyLayout[vk_key].deadkeys & (1 << i)) {
-            debug << "  deadkey";
-         }
-         debug << '\n';
-      }
-      qDebug() << message;
    }
 }
 
@@ -752,8 +734,10 @@ static void showSystemMenu(QWindow *w)
    QWindow *topLevel = QWindowsWindow::topLevelOf(w);
    HWND topLevelHwnd = QWindowsWindow::handleOf(topLevel);
    HMENU menu = GetSystemMenu(topLevelHwnd, FALSE);
-   if (!menu) {
-      return;   // no menu for this window
+
+   if (! menu) {
+      // no menu for this window
+      return;
    }
 
 
@@ -806,10 +790,6 @@ static inline void sendExtendedPressRelease(QWindow *w, int k,
    QWindowSystemInterface::handleExtendedKeyEvent(w, QEvent::KeyRelease, k, mods, nativeScanCode, nativeVirtualKey, nativeModifiers, text,
       autorep, count);
 }
-
-/*!
-    \brief To be called from the window procedure.
-*/
 
 bool QWindowsKeyMapper::translateKeyEvent(QWindow *widget, HWND hwnd,
    const MSG &msg, LRESULT *result)
@@ -879,7 +859,7 @@ bool QWindowsKeyMapper::translateMultimediaKeyEventInternal(QWindow *window, con
 
 }
 
-bool QWindowsKeyMapper::translateKeyEventInternal(QWindow *window, const MSG &msg, bool /* grab */)
+bool QWindowsKeyMapper::translateKeyEventInternal(QWindow *window, const MSG &msg, bool)
 {
    const UINT msgType = msg.message;
 

@@ -52,29 +52,31 @@ class Graph
          }
       }
 
-      inline Vertex *operator*() {
+      Vertex *operator*() {
          return column.key();
       }
 
-      inline Vertex *from() const {
+      Vertex *from() const {
          return row.key();
       }
 
-      inline Vertex *to() const {
+      Vertex *to() const {
          return column.key();
       }
 
-      inline bool operator==(const const_iterator &o) const {
+      bool operator==(const const_iterator &o) const {
          return !(*this != o);
       }
-      inline bool operator!=(const const_iterator &o) const {
+
+      bool operator!=(const const_iterator &o) const {
          if (row ==  g->m_graph.end()) {
             return row != o.row;
          } else {
             return row != o.row || column != o.column;
          }
       }
-      inline const_iterator &operator=(const const_iterator &o) const {
+
+      const_iterator &operator=(const const_iterator &o) const {
          row = o.row;
          column = o.column;
          return *this;
@@ -171,8 +173,10 @@ class Graph
       return conns;
    }
 
-#if defined(QT_DEBUG)
-   QString serializeToDot() {   // traversal
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
+   QString serializeToDot() {
+      // traversal
+
       QString strVertices;
       QString edges;
 
@@ -180,10 +184,12 @@ class Graph
       for (typename QSet<Vertex *>::const_iterator it = setOfVertices.begin(); it != setOfVertices.end(); ++it) {
          Vertex *v = *it;
          QList<Vertex *> adjacents = adjacentVertices(v);
+
          for (int i = 0; i < adjacents.count(); ++i) {
             Vertex *v1 = adjacents.at(i);
             EdgeData *data = edgeData(v, v1);
             bool forward = data->from == v;
+
             if (forward) {
                edges += QString::fromLatin1("\"%1\"->\"%2\" [label=\"[%3,%4,%5,%6,%7]\" color=\"#000000\"] \n")
                   .formatArg(v->toString())

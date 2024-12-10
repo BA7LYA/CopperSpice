@@ -22,6 +22,7 @@
 ***********************************************************************/
 
 #include <qxmlstream.h>
+#include <qxmlstream_p.h>
 
 #include <qbuffer.h>
 #include <qcoreapplication.h>
@@ -30,7 +31,6 @@
 #include <qstack.h>
 #include <qtextcodec.h>
 
-#include <qxmlstream_p.h>
 #include <qxmlutils_p.h>
 
 #include <stdlib.h>
@@ -989,7 +989,11 @@ inline int QXmlStreamReaderPrivate::fastScanName(int *prefix)
    return 0;
 }
 
-enum NameChar { NameBeginning, NameNotBeginning, NotName };
+enum NameChar {
+   NameBeginning,
+   NameNotBeginning,
+   NotName
+};
 
 static const char Begi = static_cast<char>(NameBeginning);
 static const char NtBg = static_cast<char>(NameNotBeginning);

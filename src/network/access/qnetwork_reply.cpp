@@ -42,7 +42,6 @@ QNetworkReply::QNetworkReply(QObject *parent)
 {
 }
 
-// internal
 QNetworkReply::QNetworkReply(QNetworkReplyPrivate &dd, QObject *parent)
    : QIODevice(dd, parent)
 {
@@ -57,7 +56,6 @@ void QNetworkReply::close()
    QIODevice::close();
 }
 
-// internal
 bool QNetworkReply::isSequential() const
 {
    return true;
@@ -148,15 +146,7 @@ QVariant QNetworkReply::attribute(QNetworkRequest::Attribute code) const
 }
 
 #ifdef QT_SSL
-/*!
-    Returns the SSL configuration and state associated with this
-    reply, if SSL was used. It will contain the remote server's
-    certificate, its certificate chain leading to the Certificate
-    Authority as well as the encryption ciphers in use.
 
-    The peer's certificate and its certificate chain will be known by
-    the time sslErrors() is emitted, if it's emitted.
-*/
 QSslConfiguration QNetworkReply::sslConfiguration() const
 {
    QSslConfiguration config;
@@ -192,7 +182,6 @@ void QNetworkReply::ignoreSslErrors()
 {
 }
 
-// internal
 qint64 QNetworkReply::writeData(const char *, qint64)
 {
    return -1;                  // unable to write

@@ -378,7 +378,7 @@ int QMetaObject::indexOfSlot(const QString &slot) const
    return retval;
 }
 
-// internal method wrapping the global enum map
+// wraps the global enum map
 QMap<std::type_index, std::pair<QMetaObject *, QString>> &QMetaObject::m_enumsAll()
 {
    static QMap<std::type_index, std::pair<QMetaObject *, QString>> enums_All;
@@ -832,16 +832,12 @@ std::tuple<std::vector<QString>, QString, std::vector<QString>> QMetaObject::get
                } else if (bigArg_test && (word == "signed" || word == "unsigned" || word == "short" || word == "long"))  {
 
                   bool firstLoop = true;
-                  int index = k + 1;
-
-#if defined(CS_INTERNAL_DEBUG)
-                  qDebug("Debug (bigArg):  Passed full name %s",  csPrintable(fullName) );
-#endif
+                  int argIndex   = k + 1;
 
                   while (k < tokenMax)  {
                      bool found = false;
 
-                     nextWord = tokens[index];
+                     nextWord = tokens[argIndex];
 
                      if ((word == "long") && (nextWord == "double" || nextWord == "int" || nextWord == "long")) {
                         found = true;
@@ -864,18 +860,13 @@ std::tuple<std::vector<QString>, QString, std::vector<QString>> QMetaObject::get
 
                            firstLoop   = false;
                            bigArg      = true;
-
-#if defined(CS_INTERNAL_DEBUG)
-                           qDebug("Debug (bigArg):  Inside 'first loop'  %s", csPrintable(typeArg));
-#endif
-
                         }
 
                         typeArg += " " + nextWord;
                         ++k;
 
                         // used for nextWord
-                        index = k;
+                        argIndex = k;
 
                      }  else {
                         // all done
@@ -982,13 +973,6 @@ std::tuple<std::vector<QString>, QString, std::vector<QString>> QMetaObject::get
 
                   if (bigArg)  {
                      // we are on a comma, var name, right paren, star, ampersand
-
-#if defined(CS_INTERNAL_DEBUG)
-                     // parse the following:   &  *  (  )
-                     qDebug("Debug (bigArg):  Args:     %s", csPrintable(typeArg) );
-                     qDebug("Debug (bigArg):  NextWord  %s", csPrintable(nextWord) );
-#endif
-
                      break;
 
                   } else if (nextWord == "*" || nextWord == "&" || nextWord == "<" || nextWord == "[" || nextWord == "(") {
@@ -1462,8 +1446,8 @@ int QMetaObject::enum_calculate(QString enumData, QMap<QString, int> valueMap)
 
             if (metaObject->className() == className)  {
                // obtain the enum object
-               int index = metaObject->indexOfEnumerator(enumName);
-               QMetaEnum enumObj = metaObject->enumerator(index);
+               int enumIndex     = metaObject->indexOfEnumerator(enumName);
+               QMetaEnum enumObj = metaObject->enumerator(enumIndex);
 
                int answer = enumObj.keyToValue(enumKey);
 
@@ -1491,10 +1475,10 @@ int QMetaObject::enum_calculate(QString enumData, QMap<QString, int> valueMap)
 
          } else  {
             // look up the value for the enum
-            auto index = valueMap.find(word);
+            auto mapIndex = valueMap.find(word);
 
-            if (index != valueMap.end() )  {
-               valueStack.append(index.value());
+            if (mapIndex != valueMap.end() )  {
+               valueStack.append(mapIndex.value());
             }
          }
       }
@@ -1538,7 +1522,6 @@ int QMetaObject::enum_calculate(QString enumData, QMap<QString, int> valueMap)
    return retval;
 }
 
-// internal
 void QMetaObject_X::register_classInfo(const QString &name, const QString &value)
 {
    if (name.isEmpty()) {
@@ -1911,7 +1894,8 @@ void QMetaObject_X::register_method_s1(const QString &name, QMetaMethod::Access 
    }
 }
 
-void QMetaObject_X::register_method_s2_part2(QString className, const QString &name, CSBentoAbstract *methodBento, QMetaMethod::MethodType kind)
+void QMetaObject_X::register_method_s2_part2(QString className, const QString &name, CSBentoAbstract *methodBento,
+      QMetaMethod::MethodType kind)
 {
    QMap<QString, QMetaMethod> *map;
 
@@ -1943,7 +1927,7 @@ void QMetaObject_X::register_method_s2_part2(QString className, const QString &n
          QString msg = className;
          msg += "::" + name + " Unable to register overloaded method pointer, verify signal/slot";
 
-         qDebug("%s", csPrintable(msg));
+         qWarning("%s", csPrintable(msg));
          throw std::logic_error(std::string {msg.constData()});
 
       } else {
@@ -1968,7 +1952,7 @@ void QMetaObject_X::register_method_s2_part2(QString className, const QString &n
          QString msg = className;
          msg += "::" + name + " Unable to register method pointer, verify signal/slot";
 
-         qDebug("%s", csPrintable(msg));
+         qWarning("%s", csPrintable(msg));
          throw std::logic_error(std::string {msg.constData()});
       }
 
@@ -2007,7 +1991,6 @@ void QMetaObject_X::register_tag(const QString &name, const QString &method)
    }
 }
 
-// internal properties
 void QMetaObject_X::register_property_read(const QString &name, std::type_index returnTypeId,
       QString (*returnTypeFuncPtr)(), JarReadAbstract *readJar)
 {
@@ -2032,7 +2015,7 @@ void QMetaObject_X::register_property_read(const QString &name, std::type_index 
    }
 }
 
-void QMetaObject_X::register_property_write(const QString &name, JarWriteAbstract *method)
+void QMetaObject_X::register_property_write(const QString &name, JarWriteAbstract *method, const QString &methodName)
 {
    if (name.isEmpty()) {
       return;
@@ -2044,13 +2027,13 @@ void QMetaObject_X::register_property_write(const QString &name, JarWriteAbstrac
       // entry not found, construct new obj then add to container
 
       QMetaProperty data = QMetaProperty {name, this};
-      data.setWriteMethod(method);
+      data.setWriteMethod(method, methodName);
 
       m_properties.insert(name, data);
 
    } else {
       // update QMetaProperty in the container
-      iter->setWriteMethod(method);
+      iter->setWriteMethod(method, methodName);
 
    }
 }

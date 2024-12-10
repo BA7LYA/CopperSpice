@@ -21,14 +21,14 @@
 *
 ***********************************************************************/
 
-#include <qnetworkinterface.h>
-#include <qnetworkinterface_p.h>
-#include <qnet_unix_p.h>
-
 #include <qalgorithms.h>
+#include <qnetworkinterface.h>
 #include <qplatformdefs.h>
 #include <qset.h>
 #include <qvarlengtharray.h>
+
+#include <qnet_unix_p.h>
+#include <qnetworkinterface_p.h>
 
 #ifndef QT_NO_NETWORKINTERFACE
 
@@ -114,10 +114,10 @@ static QSet<QByteArray> interfaceNames(int socket)
    QSet<QByteArray> result;
 
 #ifdef QT_NO_IPV6IFNAME
-   QByteArray storageBuffer;
+   static constexpr const int STORAGEBUFFER_GROWTH = 256;
 
+   QByteArray storageBuffer;
    struct ifconf interfaceList;
-   static const int STORAGEBUFFER_GROWTH = 256;
 
    while(true) {
       // grow the storage buffer
@@ -133,7 +133,7 @@ static QSet<QByteArray> interfaceNames(int socket)
             break;
          }
       } else {
-         // internal error
+         // system error
          return result;
       }
 

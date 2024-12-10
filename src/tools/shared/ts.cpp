@@ -216,6 +216,7 @@ QString TSReader::readTransContents()
             break;
          }
       }
+
       return result;
 
    } else {
@@ -231,20 +232,15 @@ bool TSReader::read(Translator &translator)
       readNext();
 
       if (isStartDocument()) {
-         // <!DOCTYPE TS>
-         //qDebug() << attributes();
+         // ignore state
 
       } else if (isEndDocument()) {
-         // <!DOCTYPE TS>
-         //qDebug() << attributes();
+         // ignore state
 
       } else if (isDTD()) {
-         // <!DOCTYPE TS>
-         //qDebug() << tokenString();
+         // ignore state
 
       } else if (elementStarts(text_TS)) {
-         // <TS>
-         //qDebug() << "TS " << attributes();
          QHash<QString, int> currentLine;
          QString currentFile;
          bool maybeRelative = false, maybeAbsolute = false;
@@ -267,7 +263,6 @@ bool TSReader::read(Translator &translator)
 
                readElementText();
                m_cd.appendError("Warning: ignoring <defaultcodec> element");
-
 
             } else if (isStartElement() && name().toString().startsWith(text_extrans)) {
 

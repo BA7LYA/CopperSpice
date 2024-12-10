@@ -23,8 +23,8 @@
 
 #include <qfontengine_coretext_p.h>
 
-#include <qplatform_fontdatabase.h>
 #include <qendian.h>
+#include <qplatform_fontdatabase.h>
 #include <qsettings.h>
 #include <qstring16.h>
 
@@ -525,13 +525,18 @@ static void convertCGPathToQPainterPath(void *info, const CGPathElement *element
             element->points[2].x + myInfo->pos.x(),
             element->points[2].y + myInfo->pos.y());
          break;
+
       case kCGPathElementCloseSubpath:
          myInfo->path->closeSubpath();
          break;
-      default:
-         qDebug() << "Unhandled path transform type: " << element->type;
-   }
 
+      default:
+#if defined(CS_SHOW_DEBUG_PLATFORM)
+         qDebug() << "Unhandled path transform type: " << element->type;
+#endif
+
+         break;
+   }
 }
 
 void QCoreTextFontEngine::addGlyphsToPath(glyph_t *glyphs, QFixedPoint *positions, int nGlyphs,

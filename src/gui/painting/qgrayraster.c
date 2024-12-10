@@ -106,19 +106,12 @@
 /* experimental support for gamma correction within the rasterizer */
 #define xxxGRAYS_USE_GAMMA
 
-
-  /*************************************************************************/
-  /*                                                                       */
-  /* The macro QT_FT_COMPONENT is used in trace mode.  It is an implicit      */
-  /* parameter of the QT_FT_TRACE() and QT_FT_ERROR() macros, used to print/log  */
-  /* messages during execution.                                            */
-  /*                                                                       */
 #undef  QT_FT_COMPONENT
 #define QT_FT_COMPONENT  trace_smooth
 
 #define ErrRaster_MemoryOverflow   -4
 
-#include <string.h>             /* for qt_ft_memcpy() */
+#include <string.h>
 #include <setjmp.h>
 #include <limits.h>
 
@@ -142,20 +135,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-  /* This macro is used to indicate that a function parameter is unused. */
-  /* Its purpose is simply to reduce compiler warnings.  Note also that  */
-  /* simply defining it as `(void)x' doesn't avoid warnings with certain */
-  /* ANSI compilers (e.g. LCC).                                          */
-#define QT_FT_UNUSED( x )  (x) = (x)
+#define QT_FT_UNUSED(x)  (x) = (x)
 
-  /* Disable the tracing mechanism for simplicity -- developers can      */
-  /* activate it easily by redefining these two macros.                  */
+// Disable the tracing mechanism for simplicity, developers can activate by redefining these two macros
 #ifndef QT_FT_ERROR
-#define QT_FT_ERROR( x )  do ; while ( 0 )     /* nothing */
+#define QT_FT_ERROR(x)   do ; while ( 0 )
 #endif
 
 #ifndef QT_FT_TRACE
-#define QT_FT_TRACE( x )  do ; while ( 0 )     /* nothing */
+#define QT_FT_TRACE(x)   do ; while ( 0 )
 #endif
 
 #ifndef QT_FT_MEM_SET
@@ -166,8 +154,7 @@
 #define QT_FT_MEM_ZERO( dest, count )  QT_FT_MEM_SET( dest, 0, count )
 #endif
 
-
-  /* define this to dump debugging information */
+// define to dump debugging information
 #define xxxDEBUG_GRAYS
 
 #define RAS_ARG   PWorker  worker
@@ -178,8 +165,7 @@
 
 #define ras       (*worker)
 
-
-  /* must be at least 6 bits! */
+// must be at least 6 bits
 #define PIXEL_BITS  8
 
 #define ONE_PIXEL       ( 1L << PIXEL_BITS )
@@ -201,16 +187,14 @@
 typedef int   TCoord;   /* integer scanline/pixel coordinate */
 typedef int   TPos;     /* sub-pixel coordinate              */
 
-  /* determine the type used to store cell areas.  This normally takes at */
-  /* least PIXEL_BITS*2 + 1 bits.  On 16-bit systems, we need to use      */
-  /* `long' instead of `int', otherwise bad things happen                 */
-
+// determine the type used to store cell areas. This normally takes at least PIXEL_BITS*2 + 1 bits.
+// On 16-bit systems, we need to use "long" instead of "int"
 #if PIXEL_BITS <= 7
   typedef int  TArea;
 
 #else
 
-  /* approximately determine the size of integers using an ANSI-C header */
+// approximately determine the size of integers using an ANSI-C header
 #if QT_FT_UINT_MAX == 0xFFFFU
   typedef long  TArea;
 #else
@@ -219,9 +203,8 @@ typedef int   TPos;     /* sub-pixel coordinate              */
 
 #endif
 
-  /* maximal number of gray spans in a call to the span callback */
+// maximal number of gray spans in a call to the span callback
 #define QT_FT_MAX_GRAY_SPANS  256
-
 
   typedef struct TCell_*  PCell;
 
@@ -303,13 +286,8 @@ typedef int   TPos;     /* sub-pixel coordinate              */
     return 0;
   }
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* Initialize the cells table.                                           */
-  /*                                                                       */
-  static void
-  gray_init_cells( RAS_ARG_ void*  buffer,
-                   long            byte_size )
+  // Initialize the cells table.
+  static void gray_init_cells( RAS_ARG_ void *buffer, long byte_size )
   {
     ras.buffer      = buffer;
     ras.buffer_size = byte_size;
@@ -324,12 +302,8 @@ typedef int   TPos;     /* sub-pixel coordinate              */
   }
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* Compute the outline bounding box.                                     */
-  /*                                                                       */
-  static void
-  gray_compute_cbox( RAS_ARG )
+  // Compute the outline bounding box.
+  static void gray_compute_cbox( RAS_ARG )
   {
     QT_FT_Outline*  outline = &ras.outline;
     QT_FT_Vector*   vec     = outline->points;
@@ -1551,7 +1525,6 @@ typedef int   TPos;     /* sub-pixel coordinate              */
     return error;
   }
 
-
   static int
   gray_convert_glyph( RAS_ARG )
   {
@@ -1595,6 +1568,7 @@ typedef int   TPos;     /* sub-pixel coordinate              */
 
       if ( ras.count_ex > 24 || ras.count_ey > 24 )
         level++;
+
       if ( ras.count_ex > 120 || ras.count_ey > 120 )
         level++;
 
@@ -1612,18 +1586,18 @@ typedef int   TPos;     /* sub-pixel coordinate              */
     min   = ras.min_ey;
     max_y = ras.max_ey;
 
-    for ( n = 0; n < num_bands; n++, min = max )
-    {
+    for ( n = 0; n < num_bands; n++, min = max ) {
       max = min + ras.band_size;
-      if ( n == num_bands - 1 || max > max_y )
+
+      if ( n == num_bands - 1 || max > max_y ) {
         max = max_y;
+      }
 
       bands[0].min = min;
       bands[0].max = max;
       band         = bands;
 
-      while ( band >= bands )
-      {
+      while ( band >= bands ) {
         TPos  bottom, top, middle;
         int   error;
 
@@ -1717,15 +1691,12 @@ typedef int   TPos;     /* sub-pixel coordinate              */
     return 0;
   }
 
+  static int gray_raster_render(QT_FT_Raster raster, const QT_FT_Raster_Params *params)
+   {
+    const QT_FT_Outline *outline    = (const QT_FT_Outline*)params->source;
+    const QT_FT_Bitmap  *target_map = params->target;
 
-  static int
-  gray_raster_render( QT_FT_Raster                  raster,
-                      const QT_FT_Raster_Params*  params )
-  {
-    const QT_FT_Outline*  outline    = (const QT_FT_Outline*)params->source;
-    const QT_FT_Bitmap*   target_map = params->target;
-    PWorker            worker;
-
+    PWorker worker;
 
     if ( !raster || !raster->buffer || !raster->buffer_size )
       return ErrRaster_Invalid_Argument;
@@ -1734,12 +1705,11 @@ typedef int   TPos;     /* sub-pixel coordinate              */
       raster->worker->skip_spans = params->skip_spans;
 
     // If raster object and raster buffer are allocated, but
-    // raster size isn't of the minimum size, indicate out of
-    // memory.
+    // raster size isn't of the minimum size, indicate out of memory.
     if (raster->buffer_allocated_size < MINIMUM_POOL_SIZE )
       return ErrRaster_OutOfMemory;
 
-    /* return immediately if the outline is empty */
+    // return immediately if the outline is empty
     if ( outline->n_points == 0 || outline->n_contours <= 0 )
       return 0;
 
@@ -1752,13 +1722,13 @@ typedef int   TPos;     /* sub-pixel coordinate              */
 
     worker = raster->worker;
 
-    /* if direct mode is not set, we must have a target bitmap */
+    // if direct mode is not set, we must have a target bitmap
     if ( ( params->flags & QT_FT_RASTER_FLAG_DIRECT ) == 0 )
     {
       if ( !target_map )
         return ErrRaster_Invalid_Argument;
 
-      /* nothing to do */
+      // nothing to do
       if ( !target_map->width || !target_map->rows )
         return 0;
 
@@ -1766,25 +1736,22 @@ typedef int   TPos;     /* sub-pixel coordinate              */
         return ErrRaster_Invalid_Argument;
     }
 
-    /* this version does not support monochrome rendering */
+    // this version does not support monochrome rendering
     if ( !( params->flags & QT_FT_RASTER_FLAG_AA ) )
       return ErrRaster_Invalid_Mode;
 
-    /* compute clipping box */
-    if ( ( params->flags & QT_FT_RASTER_FLAG_DIRECT ) == 0 )
-    {
-      /* compute clip box from target pixmap */
+    // compute clipping box
+    if ( ( params->flags & QT_FT_RASTER_FLAG_DIRECT ) == 0 ) {
+      // compute clip box from target pixmap
       ras.clip_box.xMin = 0;
       ras.clip_box.yMin = 0;
       ras.clip_box.xMax = target_map->width;
       ras.clip_box.yMax = target_map->rows;
-    }
-    else if ( params->flags & QT_FT_RASTER_FLAG_CLIP )
-    {
+
+    } else if ( params->flags & QT_FT_RASTER_FLAG_CLIP ) {
       ras.clip_box = params->clip_box;
-    }
-    else
-    {
+
+    } else {
       ras.clip_box.xMin = -32768L;
       ras.clip_box.yMin = -32768L;
       ras.clip_box.xMax =  32767L;
@@ -1813,15 +1780,11 @@ typedef int   TPos;     /* sub-pixel coordinate              */
     return gray_convert_glyph( worker );
   }
 
-
-  /**** RASTER OBJECT CREATION: In standalone mode, we simply use *****/
-  /****                         a static object.                  *****/
-
-  static int
-  gray_raster_new( QT_FT_Raster*  araster )
+  static int gray_raster_new( QT_FT_Raster *araster )
   {
     *araster = malloc(sizeof(TRaster));
-    if (!*araster) {
+
+    if (! *araster) {
         *araster = 0;
         return ErrRaster_Memory_Overflow;
     }
@@ -1830,64 +1793,50 @@ typedef int   TPos;     /* sub-pixel coordinate              */
     return 0;
   }
 
-
-  static void
-  gray_raster_done( QT_FT_Raster  raster )
+  static void gray_raster_done( QT_FT_Raster  raster )
   {
     free(raster);
   }
 
-
-  static void
-  gray_raster_reset( QT_FT_Raster  raster,
-                     char*      pool_base,
-                     long       pool_size )
+  static void gray_raster_reset( QT_FT_Raster raster, char *pool_base, long pool_size )
   {
     PRaster  rast = (PRaster)raster;
 
-    if ( raster )
-    {
-      if ( pool_base && ( pool_size >= MINIMUM_POOL_SIZE ) )
-      {
+    if ( raster ) {
+      if ( pool_base && ( pool_size >= MINIMUM_POOL_SIZE ) ) {
         PWorker  worker = (PWorker)pool_base;
 
-
         rast->worker      = worker;
-        rast->buffer      = pool_base +
-                              ( ( sizeof ( TWorker ) + sizeof ( TCell ) - 1 ) &
-                                ~( sizeof ( TCell ) - 1 ) );
-        rast->buffer_size = (long)( ( pool_base + pool_size ) -
-                                    (char*)rast->buffer ) &
-                                      ~( sizeof ( TCell ) - 1 );
-        rast->band_size   = (int)( rast->buffer_size /
-                                     ( sizeof ( TCell ) * 8 ) );
-      }
-      else if ( pool_base)
-      { // Case when there is a raster pool allocated, but it
-        // doesn't have the minimum size (and so memory will be reallocated)
-          rast->buffer = pool_base;
-          rast->worker = NULL;
-          rast->buffer_size = pool_size;
-      }
-      else
-      {
+        rast->buffer      = pool_base + ( ( sizeof ( TWorker ) + sizeof ( TCell ) - 1 ) & ~( sizeof ( TCell ) - 1 ) );
+
+        rast->buffer_size = (long)( ( pool_base + pool_size ) - (char*)rast->buffer ) & ~( sizeof ( TCell ) - 1 );
+        rast->band_size   = (int)( rast->buffer_size / ( sizeof ( TCell ) * 8 ) );
+
+      } else if ( pool_base) {
+         // Case when there is a raster pool allocated, but it
+         // doesn't have the minimum size (and so memory will be reallocated)
+
+         rast->buffer = pool_base;
+         rast->worker = NULL;
+         rast->buffer_size = pool_size;
+
+      } else {
         rast->buffer      = NULL;
         rast->buffer_size = 0;
         rast->worker      = NULL;
       }
+
       rast->buffer_allocated_size = pool_size;
     }
   }
 
   const QT_FT_Raster_Funcs  qt_ft_grays_raster =
   {
-    QT_FT_GLYPH_FORMAT_OUTLINE,
+      QT_FT_GLYPH_FORMAT_OUTLINE,
 
-    (QT_FT_Raster_New_Func)     gray_raster_new,
-    (QT_FT_Raster_Reset_Func)   gray_raster_reset,
-    (QT_FT_Raster_Set_Mode_Func)0,
-    (QT_FT_Raster_Render_Func)  gray_raster_render,
-    (QT_FT_Raster_Done_Func)    gray_raster_done
+      (QT_FT_Raster_New_Func)      gray_raster_new,
+      (QT_FT_Raster_Reset_Func)    gray_raster_reset,
+      (QT_FT_Raster_Set_Mode_Func) 0,
+      (QT_FT_Raster_Render_Func)   gray_raster_render,
+      (QT_FT_Raster_Done_Func)     gray_raster_done
   };
-
-/* END */

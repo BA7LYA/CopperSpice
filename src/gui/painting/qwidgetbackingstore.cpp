@@ -21,7 +21,6 @@
 *
 ***********************************************************************/
 
-#include <qplatform_backingstore.h>
 #include <qwidgetbackingstore_p.h>
 
 #include <qapplication.h>
@@ -30,16 +29,17 @@
 #include <qglobal.h>
 #include <qgraphicsproxywidget.h>
 #include <qpaintengine.h>
+#include <qplatform_backingstore.h>
 #include <qplatformdefs.h>
 #include <qvarlengtharray.h>
 
 #include <qapplication_p.h>
-#include <qpaintengine_raster_p.h>
 #include <qgraphicseffect_p.h>
+#include <qpaintengine_raster_p.h>
 #include <qwidget_p.h>
 #include <qwindow_p.h>
 
-#if defined(Q_OS_WIN) && !defined(QT_NO_PAINT_DEBUG)
+#if defined(Q_OS_WIN)
 #  include <qt_windows.h>
 #  include <qplatform_nativeinterface.h>
 #endif
@@ -56,50 +56,25 @@ static QPlatformTextureList *qt_dummy_platformTextureList()
 
 #endif
 
-/**
- * Flushes the contents of the \a windowSurface into the screen area of \a widget.
- * \a tlwOffset is the position of the top level widget relative to the window surface.
- * \a region is the region to be updated in \a widget coordinates.
- */
 void QWidgetBackingStore::qt_flush(QWidget *widget, const QRegion &region, QBackingStore *backingStore,
-   QWidget *tlw, const QPoint &tlwOffset, QPlatformTextureList *widgetTextures,
-   QWidgetBackingStore *widgetBackingStore)
+      QWidget *tlw, const QPoint &tlwOffset, QPlatformTextureList *widgetTextures,
+      QWidgetBackingStore *widgetBackingStore)
 {
+   (void) widgetBackingStore;
+
 #ifdef QT_NO_OPENGL
    (void) widgetTextures;
-   Q_ASSERT(!region.isEmpty());
+   Q_ASSERT(! region.isEmpty());
 #else
-   Q_ASSERT(!region.isEmpty() || widgetTextures);
+   Q_ASSERT(! region.isEmpty() || widgetTextures);
 #endif
 
    Q_ASSERT(widget);
    Q_ASSERT(backingStore);
    Q_ASSERT(tlw);
 
-#if ! defined(QT_NO_PAINT_DEBUG)
-   static int flushUpdate = qgetenv("QT_FLUSH_UPDATE").toInt();
-
-   if (flushUpdate > 0) {
-      QWidgetBackingStore::showYellowThing(widget, region, flushUpdate * 10, false);
-   }
-#endif
-
    if (tlw->testAttribute(Qt::WA_DontShowOnScreen) || widget->testAttribute(Qt::WA_DontShowOnScreen)) {
       return;
-   }
-
-   static bool fpsDebug = ! qgetenv("QT_DEBUG_FPS").isEmpty();
-
-   if (fpsDebug) {
-      if (!widgetBackingStore->perfFrames++) {
-         widgetBackingStore->perfTime.start();
-      }
-
-      if (widgetBackingStore->perfTime.elapsed() > 5000) {
-         double fps = double(widgetBackingStore->perfFrames * 1000) / widgetBackingStore->perfTime.restart();
-         qDebug("FPS: %.1f\n", fps);
-         widgetBackingStore->perfFrames = 0;
-      }
    }
 
    QPoint offset = tlwOffset;
@@ -112,12 +87,14 @@ void QWidgetBackingStore::qt_flush(QWidget *widget, const QRegion &region, QBack
 #ifndef QT_NO_OPENGL
    const bool compositionWasActive = widget->d_func()->renderToTextureComposeActive;
 
-   if (! widgetTextures) {
+   if (widgetTextures == nullptr) {
       widget->d_func()->renderToTextureComposeActive = false;
+
       // Detect the case of falling back to the normal flush path when no
       // render-to-texture widgets are visible anymore. We will force one
       // last flush to go through the OpenGL-based composition to prevent
       // artifacts. The next flush after this one will use the normal path.
+
       if (compositionWasActive) {
          widgetTextures = qt_dummy_platformTextureList();
       }
@@ -134,7 +111,10 @@ void QWidgetBackingStore::qt_flush(QWidget *widget, const QRegion &region, QBack
    }
 
    // re-test since we may have been forced to this path via the dummy texture list above
-   if (widgetTextures) {
+   if (widgetTextures == nullptr) {
+      backingStore->flush(effectiveRegion, widget->windowHandle(), offset);
+
+   } else {
       qt_window_private(tlw->windowHandle())->compositing = true;
       widget->window()->d_func()->sendComposeStatus(widget->window(), false);
 
@@ -145,193 +125,27 @@ void QWidgetBackingStore::qt_flush(QWidget *widget, const QRegion &region, QBack
 
       // Use the tlw's context, not widget's. The difference is important with native child
       // widgets where tlw != widget.
-      backingStore->handle()->composeAndFlush(widget->windowHandle(), effectiveRegion, offset, widgetTextures,
-         tlw->d_func()->shareContext(), translucentBackground);
+      backingStore->handle()->composeAndFlush(widget->windowHandle(), effectiveRegion, offset,
+            widgetTextures, tlw->d_func()->shareContext(), translucentBackground);
 
       widget->window()->d_func()->sendComposeStatus(widget->window(), true);
-   } else
-#endif
-      backingStore->flush(effectiveRegion, widget->windowHandle(), offset);
-}
-
-#ifndef QT_NO_PAINT_DEBUG
-#if defined(Q_OS_WIN)
-
-static void showYellowThing_win(QWidget *widget, const QRegion &region, int msec)
-{
-   // We expect to be passed a native parent.
-   QWindow *nativeWindow = widget->windowHandle();
-   if (! nativeWindow) {
-      return;
    }
-
-   void *hdcV = QGuiApplication::platformNativeInterface()->nativeResourceForWindow(QByteArrayLiteral("getDC"), nativeWindow);
-   if (! hdcV) {
-      return;
-   }
-   const HDC hdc = reinterpret_cast<HDC>(hdcV);
-
-   HBRUSH brush = nullptr;
-   static int i = 0;
-
-   switch (i) {
-      case 0:
-         brush = CreateSolidBrush(RGB(255, 255, 0));
-         break;
-
-      case 1:
-         brush = CreateSolidBrush(RGB(255, 200, 55));
-         break;
-
-      case 2:
-         brush = CreateSolidBrush(RGB(200, 255, 55));
-         break;
-
-      case 3:
-         brush = CreateSolidBrush(RGB(200, 200, 0));
-         break;
-   }
-   i = (i + 1) & 3;
-
-   for (const QRect &rect : region.rects()) {
-      RECT winRect;
-      SetRect(&winRect, rect.left(), rect.top(), rect.right(), rect.bottom());
-      FillRect(hdc, &winRect, brush);
-   }
-
-   DeleteObject(brush);
-   QGuiApplication::platformNativeInterface()->nativeResourceForWindow(QByteArrayLiteral("releaseDC"), nativeWindow);
-   ::Sleep(msec);
-}
-#endif
-
-void QWidgetBackingStore::showYellowThing(QWidget *widget, const QRegion &toBePainted, int msec, bool unclipped)
-{
-
-   QRegion paintRegion = toBePainted;
-   QRect widgetRect = widget->rect();
-
-   if (!widget->internalWinId()) {
-      QWidget *nativeParent = widget->nativeParentWidget();
-      const QPoint offset = widget->mapTo(nativeParent, QPoint(0, 0));
-      paintRegion.translate(offset);
-      widgetRect.translate(offset);
-      widget = nativeParent;
-   }
-
-#if defined(Q_OS_WIN)
-   (void) unclipped;
-   showYellowThing_win(widget, paintRegion, msec);
 
 #else
-   //flags to fool painter
-   bool paintUnclipped = widget->testAttribute(Qt::WA_PaintUnclipped);
-   if (unclipped && !widget->d_func()->paintOnScreen()) {
-      widget->setAttribute(Qt::WA_PaintUnclipped);
-   }
+   backingStore->flush(effectiveRegion, widget->windowHandle(), offset);
 
-   const bool setFlag = !widget->testAttribute(Qt::WA_WState_InPaintEvent);
-   if (setFlag) {
-      widget->setAttribute(Qt::WA_WState_InPaintEvent);
-   }
-
-   //setup the engine
-   QPaintEngine *pe = widget->paintEngine();
-   if (pe) {
-      pe->setSystemClip(paintRegion);
-      {
-         QPainter p(widget);
-         p.setClipRegion(paintRegion);
-         static int i = 0;
-         switch (i) {
-            case 0:
-               p.fillRect(widgetRect, QColor(255, 255, 0));
-               break;
-            case 1:
-               p.fillRect(widgetRect, QColor(255, 200, 55));
-               break;
-            case 2:
-               p.fillRect(widgetRect, QColor(200, 255, 55));
-               break;
-            case 3:
-               p.fillRect(widgetRect, QColor(200, 200, 0));
-               break;
-         }
-         i = (i + 1) & 3;
-         p.end();
-      }
-   }
-
-   if (setFlag) {
-      widget->setAttribute(Qt::WA_WState_InPaintEvent, false);
-   }
-
-   //restore
-   widget->setAttribute(Qt::WA_PaintUnclipped, paintUnclipped);
-
-   if (pe) {
-      pe->setSystemClip(QRegion());
-   }
-
-#if defined(Q_OS_UNIX)
-   ::usleep(1000 * msec);
 #endif
 
-#endif // !Q_OS_WIN
+
 }
-
-bool QWidgetBackingStore::flushPaint(QWidget *widget, const QRegion &rgn)
-{
-   if (!widget) {
-      return false;
-   }
-
-   int delay = 0;
-   if (widget->testAttribute(Qt::WA_WState_InPaintEvent)) {
-      static int flushPaintEvent = qgetenv("QT_FLUSH_PAINT_EVENT").toInt();
-
-      if (!flushPaintEvent) {
-         return false;
-      }
-      delay = flushPaintEvent;
-
-   } else {
-      static int flushPaint = qgetenv("QT_FLUSH_PAINT").toInt();
-
-      if (!flushPaint) {
-         return false;
-      }
-      delay = flushPaint;
-   }
-
-   QWidgetBackingStore::showYellowThing(widget, rgn, delay * 10, true);
-   return true;
-}
-
-void QWidgetBackingStore::unflushPaint(QWidget *widget, const QRegion &rgn)
-{
-   if (widget->d_func()->paintOnScreen() || rgn.isEmpty()) {
-      return;
-   }
-
-   QWidget *tlw = widget->window();
-   QTLWExtra *tlwExtra = tlw->d_func()->maybeTopData();
-
-   if (! tlwExtra) {
-      return;
-   }
-
-   const QPoint offset = widget->mapTo(tlw, QPoint());
-   qt_flush(widget, rgn, tlwExtra->backingStoreTracker->store, tlw, offset, nullptr, tlw->d_func()->maybeBackingStore());
-}
-#endif // QT_NO_PAINT_DEBUG
 
 bool QWidgetBackingStore::bltRect(const QRect &rect, int dx, int dy, QWidget *widget)
 {
    const QPoint pos(tlwOffset + widget->mapTo(tlw, rect.topLeft()));
    const QRect tlwRect(QRect(pos, rect.size()));
+
    if (fullUpdatePending || dirty.intersects(tlwRect)) {
-      return false;   // We don't want to scroll junk.
+      return false;   // do not want to scroll
    }
 
    return store->scroll(tlwRect, dx, dy);
@@ -348,40 +162,21 @@ void QWidgetBackingStore::beginPaint(QRegion &toClean, QWidget *widget, QBacking
    BeginPaintInfo *returnInfo, bool toCleanIsInTopLevelCoordinates)
 {
    (void) widget;
+   (void) returnInfo;
    (void) toCleanIsInTopLevelCoordinates;
 
-   // Always flush repainted areas.
+   // always flush repainted areas
    dirtyOnScreen += toClean;
 
-#ifdef QT_NO_PAINT_DEBUG
    backingStore->beginPaint(toClean);
-
-#else
-   returnInfo->wasFlushed = QWidgetBackingStore::flushPaint(tlw, toClean);
-
-   // Avoid deadlock with QT_FLUSH_PAINT: the server will wait for
-   // the BackingStore lock, so if we hold that, the server will
-   // never release the Communication lock that we are waiting for in sendSynchronousCommand
-   if (!returnInfo->wasFlushed) {
-      backingStore->beginPaint(toClean);
-   }
-#endif
-
 }
 
 void QWidgetBackingStore::endPaint(const QRegion &cleaned, QBackingStore *backingStore, BeginPaintInfo *beginPaintInfo)
 {
-#ifndef QT_NO_PAINT_DEBUG
-   if (! beginPaintInfo->wasFlushed) {
-      backingStore->endPaint();
-   } else {
-      QWidgetBackingStore::unflushPaint(tlw, cleaned);
-   }
-#else
+   (void) cleaned;
+   (void) beginPaintInfo;
 
    backingStore->endPaint();
-#endif
-
    flush();
 }
 
@@ -435,11 +230,6 @@ QRegion QWidgetBackingStore::dirtyRegion(QWidget *widget) const
    return r;
 }
 
-/*!
-    Returns the static content inside the \a parent if non-zero; otherwise the static content
-    for the entire backing store is returned. The content will be clipped to \a withinClipRect
-    if non-empty.
-*/
 QRegion QWidgetBackingStore::staticContents(QWidget *parent, const QRect &withinClipRect) const
 {
    if (!parent && tlw->testAttribute(Qt::WA_StaticContents)) {
@@ -655,13 +445,6 @@ void QWidgetBackingStore::markDirty(const QRegion &rgn, QWidget *widget, UpdateT
    }
 }
 
-/*!
-    This function is equivalent to calling markDirty(QRegion(rect), ...), but
-    is more efficient as it eliminates QRegion operations/allocations and can
-    use the rect more precisely for additional cut-offs.
-
-    ### Merge into a template function (after MSVC isn't supported anymore).
-*/
 void QWidgetBackingStore::markDirty(const QRect &rect, QWidget *widget,
    UpdateTime updateTime, BufferState bufferState)
 {
@@ -755,12 +538,6 @@ void QWidgetBackingStore::markDirty(const QRect &rect, QWidget *widget,
    }
 }
 
-/*!
-    Marks the \a region of the \a widget as dirty on screen. The \a region will be copied from
-    the backing store to the \a widget's native parent next time flush() is called.
-
-    Paint on screen widgets are ignored.
-*/
 void QWidgetBackingStore::markDirtyOnScreen(const QRegion &region, QWidget *widget, const QPoint &topLevelOffset)
 {
    if (!widget || widget->d_func()->paintOnScreen() || region.isEmpty()) {
@@ -925,8 +702,10 @@ void QWidgetPrivate::moveRect(const QRect &rect, int dx, int dy)
          // invalidateBuffer() excludes anything outside the mask
          parentR += newRect & clipR;
       }
+
       pd->invalidateBuffer(parentR);
-      invalidateBuffer((newRect & clipR).translated(-data.crect.topLeft()));
+      invalidateBuffer((newRect & clipR).translated(- (m_privateData.crect.topLeft()) ));
+
    } else {
 
       QWidgetBackingStore *wbs = x->backingStoreTracker.data();
@@ -942,7 +721,7 @@ void QWidgetPrivate::moveRect(const QRect &rect, int dx, int dy)
 
       const bool childUpdatesEnabled = q->updatesEnabled();
       if (childUpdatesEnabled && !childExpose.isEmpty()) {
-         childExpose.translate(-data.crect.topLeft());
+         childExpose.translate(- (m_privateData.crect.topLeft()) );
          wbs->markDirty(childExpose, q);
          isMoved = true;
       }
@@ -950,7 +729,7 @@ void QWidgetPrivate::moveRect(const QRect &rect, int dx, int dy)
       QRegion parentExpose(parentRect);
       parentExpose -= newRect;
       if (extra && extra->hasMask) {
-         parentExpose += QRegion(newRect) - extra->mask.translated(data.crect.topLeft());
+         parentExpose += QRegion(newRect) - extra->mask.translated(m_privateData.crect.topLeft());
       }
 
       if (!parentExpose.isEmpty()) {
@@ -991,7 +770,7 @@ void QWidgetPrivate::scrollRect(const QRect &rect, int dx, int dy)
    QRect scrollRect = rect & clipRect();
    bool overlapped = false;
    bool accelerateScroll = accelEnv && isOpaque && !q_func()->testAttribute(Qt::WA_WState_InPaintEvent)
-      && !(overlapped = isOverlapped(scrollRect.translated(data.crect.topLeft())));
+      && !(overlapped = isOverlapped(scrollRect.translated(m_privateData.crect.topLeft())));
 
    if (! accelerateScroll) {
       if (overlapped) {
@@ -1054,9 +833,11 @@ static void findTextureWidgetsRecursively(QWidget *tlw, QWidget *widget, QPlatfo
 
    if (wd->renderToTexture) {
       QPlatformTextureList::Flags flags = Qt::EmptyFlag;
+
       if (widget->testAttribute(Qt::WA_AlwaysStackOnTop)) {
          flags |= QPlatformTextureList::StacksOnTop;
       }
+
       const QRect rect(widget->mapTo(tlw, QPoint()), widget->size());
       widgetTextures->appendTexture(widget, wd->textureId(), rect, wd->clipRect(), flags);
    }
@@ -1103,11 +884,12 @@ static void findAllTextureWidgetsRecursively(QWidget *tlw, QWidget *widget)
 static QPlatformTextureList *widgetTexturesFor(QWidget *tlw, QWidget *widget)
 {
    for (QPlatformTextureList *tl : QWidgetPrivate::get(tlw)->topData()->widgetTextures) {
-      Q_ASSERT(!tl->isEmpty());
+      Q_ASSERT(! tl->isEmpty());
 
       for (int i = 0; i < tl->count(); ++i) {
          QWidget *w = static_cast<QWidget *>(tl->source(i));
-         if ((w->internalWinId() && w == widget) || (!w->internalWinId() && w->nativeParentWidget() == widget)) {
+
+         if ((w->internalWinId() && w == widget) || (! w->internalWinId() && w->nativeParentWidget() == widget)) {
             return tl;
          }
       }
@@ -1119,21 +901,24 @@ static QPlatformTextureList *widgetTexturesFor(QWidget *tlw, QWidget *widget)
       // without OpenGL-based compositing. This is very desirable normally. However,
       // some platforms cannot handle switching between the non-GL and GL paths for
       // their windows so it has to be opt-in.
+
       static bool switchableWidgetComposition = QGuiApplicationPrivate::instance()->platformIntegration()
          ->hasCapability(QPlatformIntegration::SwitchableWidgetComposition);
 
-      if (! switchableWidgetComposition
-
-         // The Windows compositor handles fullscreen OpenGL window specially. Besides
-         // having trouble with popups, it also has issues with flip-flopping between
-         // OpenGL-based and normal flushing. Therefore, stick with GL for fullscreen
-         // windows (QTBUG-53515). Similary, translucent windows should not switch to
-         // layered native windows (QTBUG-54734).
-
 #if defined(Q_OS_WIN)
-         || tlw->windowState().testFlag(Qt::WindowFullScreen) || tlw->testAttribute(Qt::WA_TranslucentBackground)
+      // Windows compositor handles fullscreen OpenGL window specially. It has
+      // issues with popups and changing between OpenGL-based and normal flushing.
+      // Stay with GL for fullscreen windows.
+      // Similary, translucent windows should not switch to layered native windows.
+
+      if (! switchableWidgetComposition ||
+            tlw->windowState().testFlag(Qt::WindowFullScreen) || tlw->testAttribute(Qt::WA_TranslucentBackground)) {
+
+#else
+      if (! switchableWidgetComposition) {
+
 #endif
-      ) {
+
          return qt_dummy_platformTextureList();
       }
    }
@@ -1231,13 +1016,6 @@ bool QWidgetBackingStore::syncAllowed()
    return true;
 }
 
-/*!
-    Synchronizes the \a exposedRegion of the \a exposedWidget with the backing store.
-
-    If there's nothing to repaint, the area is flushed and painting does not occur;
-    otherwise the area is marked as dirty on screen and will be flushed right after
-    we are done with all painting.
-*/
 void QWidgetBackingStore::sync(QWidget *exposedWidget, const QRegion &exposedRegion)
 {
    QTLWExtra *tlwExtra = tlw->d_func()->maybeTopData();
@@ -1358,7 +1136,7 @@ void QWidgetBackingStore::doSync()
       QWidget *w = dirtyWidgets.at(i);
       QWidgetPrivate *wd = w->d_func();
 
-      if (wd->data.in_destructor) {
+      if (wd->m_privateData.in_destructor) {
          continue;
       }
 
@@ -1419,12 +1197,13 @@ void QWidgetBackingStore::doSync()
    // has its own list for the subtree below it.
    QTLWExtra *tlwExtra = tlw->d_func()->topData();
    qDeleteAll(tlwExtra->widgetTextures);
+
    tlwExtra->widgetTextures.clear();
    findAllTextureWidgetsRecursively(tlw, tlw);
+
    qt_window_private(tlw->windowHandle())->compositing = false; // will get updated in qt_flush()
    fullUpdatePending = false;
 #endif
-
 
    if (toClean.isEmpty()) {
       // Nothing to repaint. However renderToTexture widgets are handled
@@ -1623,10 +1402,6 @@ static inline bool discardInvalidateBufferRequest(QWidget *widget, QTLWExtra *tl
    return false;
 }
 
-/*!
-    Invalidates the buffer when the widget is resized.
-    Static areas are never invalidated unless absolutely needed.
-*/
 void QWidgetPrivate::invalidateBuffer_resizeHelper(const QPoint &oldPos, const QSize &oldSize)
 {
    Q_Q(QWidget);
@@ -1635,9 +1410,12 @@ void QWidgetPrivate::invalidateBuffer_resizeHelper(const QPoint &oldPos, const Q
    Q_ASSERT(q->parentWidget());
 
    const bool staticContents = q->testAttribute(Qt::WA_StaticContents);
-   const bool sizeDecreased = (data.crect.width() < oldSize.width()) || (data.crect.height() < oldSize.height());
 
-   const QPoint offset(data.crect.x() - oldPos.x(), data.crect.y() - oldPos.y());
+   const bool sizeDecreased = (m_privateData.crect.width() < oldSize.width()) ||
+         (m_privateData.crect.height() < oldSize.height());
+
+   const QPoint offset(m_privateData.crect.x() - oldPos.x(), m_privateData.crect.y() - oldPos.y());
+
    const bool parentAreaExposed = !offset.isNull() || sizeDecreased;
    const QRect newWidgetRect(q->rect());
    const QRect oldWidgetRect(0, 0, oldSize.width(), oldSize.height());
@@ -1669,14 +1447,16 @@ void QWidgetPrivate::invalidateBuffer_resizeHelper(const QPoint &oldPos, const Q
          QRegion parentExpose(extra->mask.translated(oldPos));
          parentExpose &= QRect(oldPos, oldSize);
          if (hasStaticChildren) {
-            parentExpose -= data.crect;   // Offset is unchanged, safe to do this.
+            parentExpose -= m_privateData.crect;   // Offset is unchanged, safe to do this.
          }
          q->parentWidget()->d_func()->invalidateBuffer(parentExpose);
+
       } else {
          if (hasStaticChildren && !graphicsEffect) {
             QRegion parentExpose(QRect(oldPos, oldSize));
-            parentExpose -= data.crect; // Offset is unchanged, safe to do this.
+            parentExpose -= m_privateData.crect; // Offset is unchanged, safe to do this.
             q->parentWidget()->d_func()->invalidateBuffer(parentExpose);
+
          } else {
             q->parentWidget()->d_func()->invalidateBuffer(effectiveRectFor(QRect(oldPos, oldSize)));
          }
@@ -1687,8 +1467,8 @@ void QWidgetPrivate::invalidateBuffer_resizeHelper(const QPoint &oldPos, const Q
    // Move static content to its new position.
    if (!offset.isNull()) {
       if (sizeDecreased) {
-         const QSize minSize(qMin(oldSize.width(), data.crect.width()),
-            qMin(oldSize.height(), data.crect.height()));
+         const QSize minSize(qMin(oldSize.width(), m_privateData.crect.width()),
+            qMin(oldSize.height(), m_privateData.crect.height()));
          moveRect(QRect(oldPos, minSize), offset.x(), offset.y());
       } else {
          moveRect(QRect(oldPos, oldSize), offset.x(), offset.y());
@@ -1711,22 +1491,15 @@ void QWidgetPrivate::invalidateBuffer_resizeHelper(const QPoint &oldPos, const Q
    if (extra && extra->hasMask) {
       QRegion parentExpose(oldRect);
       parentExpose &= extra->mask.translated(oldPos);
-      parentExpose -= (extra->mask.translated(data.crect.topLeft()) & data.crect);
+      parentExpose -= (extra->mask.translated(m_privateData.crect.topLeft()) & m_privateData.crect);
       q->parentWidget()->d_func()->invalidateBuffer(parentExpose);
    } else {
       QRegion parentExpose(oldRect);
-      parentExpose -= data.crect;
+      parentExpose -= m_privateData.crect;
       q->parentWidget()->d_func()->invalidateBuffer(parentExpose);
    }
 }
 
-/*!
-    Invalidates the \a rgn (in widget's coordinates) of the backing store, i.e.
-    all widgets intersecting with the region will be repainted when the backing store
-    is synced.
-
-    ### Merge into a template function (after MSVC isn't supported anymore).
-*/
 void QWidgetPrivate::invalidateBuffer(const QRegion &rgn)
 {
    Q_Q(QWidget);
@@ -1749,13 +1522,6 @@ void QWidgetPrivate::invalidateBuffer(const QRegion &rgn)
       QWidgetBackingStore::UpdateLater, QWidgetBackingStore::BufferInvalid);
 }
 
-/*!
-    This function is equivalent to calling invalidateBuffer(QRegion(rect), ...), but
-    is more efficient as it eliminates QRegion operations/allocations and can
-    use the rect more precisely for additional cut-offs.
-
-    ### Merge into a template function (after MSVC isn't supported anymore).
-*/
 void QWidgetPrivate::invalidateBuffer(const QRect &rect)
 {
    Q_Q(QWidget);
@@ -1790,7 +1556,7 @@ void QWidgetPrivate::invalidateBuffer(const QRect &rect)
 
 void QWidgetPrivate::repaint_sys(const QRegion &rgn)
 {
-   if (data.in_destructor) {
+   if (m_privateData.in_destructor) {
       return;
    }
 
@@ -1804,7 +1570,7 @@ void QWidgetPrivate::repaint_sys(const QRegion &rgn)
       if (!extra) {
          createExtra();
       }
-      extra->staticContentsSize = data.crect.size();
+      extra->staticContentsSize = m_privateData.crect.size();
    }
 
    QPaintEngine *engine = q->paintEngine();

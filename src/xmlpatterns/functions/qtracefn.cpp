@@ -35,13 +35,11 @@ class TraceCallback : public QSharedData
  public:
    typedef QExplicitlySharedDataPointer<TraceCallback> Ptr;
 
-   inline TraceCallback(const QString &msg) : m_position(0),
-      m_msg(msg) {
+   TraceCallback(const QString &msg)
+      : m_position(0), m_msg(msg)
+   {
    }
 
-   /**
-    * Performs the actual tracing.
-    */
    Item mapToItem(const Item &item,
                   const DynamicContext::Ptr &context) {
       QTextStream out(stderr);

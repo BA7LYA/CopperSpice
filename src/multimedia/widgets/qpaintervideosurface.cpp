@@ -23,15 +23,16 @@
 
 #include <qpaintervideosurface_p.h>
 
+#include <qdebug.h>
 #include <qmath.h>
 #include <qpainter.h>
 #include <qvariant.h>
 #include <qvideosurfaceformat.h>
-#include <qdebug.h>
 
 #include <qmediaopenglhelper_p.h>
 
 #if ! defined(QT_NO_OPENGL) && ! defined(QT_OPENGL_ES_1_CL) && ! defined(QT_OPENGL_ES_1)
+
 #include <qglshaderprogram.h>
 #include <qopenglcontext.h>
 #include <qopenglfunctions.h>
@@ -57,19 +58,19 @@ class QVideoSurfaceGenericPainter : public QVideoSurfacePainter
    QVideoSurfaceGenericPainter();
 
    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-      QAbstractVideoBuffer::HandleType handleType) const;
+      QAbstractVideoBuffer::HandleType handleType) const override;
 
-   bool isFormatSupported(const QVideoSurfaceFormat &format) const;
+   bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
 
-   QAbstractVideoSurface::Error start(const QVideoSurfaceFormat &format);
-   void stop();
+   QAbstractVideoSurface::Error start(const QVideoSurfaceFormat &format) override;
+   void stop() override;
 
-   QAbstractVideoSurface::Error setCurrentFrame(const QVideoFrame &frame);
+   QAbstractVideoSurface::Error setCurrentFrame(const QVideoFrame &frame) override;
 
    QAbstractVideoSurface::Error paint(
-      const QRectF &target, QPainter *painter, const QRectF &source);
+      const QRectF &target, QPainter *painter, const QRectF &source) override;
 
-   void updateColors(int brightness, int contrast, int hue, int saturation);
+   void updateColors(int brightness, int contrast, int hue, int saturation) override;
 
  private:
    QList<QVideoFrame::PixelFormat> m_imagePixelFormats;
@@ -256,20 +257,21 @@ class QVideoSurfaceGLPainter : public QVideoSurfacePainter, protected QOpenGLFun
  public:
    QVideoSurfaceGLPainter(QGLContext *context);
    ~QVideoSurfaceGLPainter();
+
    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-      QAbstractVideoBuffer::HandleType handleType) const;
+      QAbstractVideoBuffer::HandleType handleType) const override;
 
-   bool isFormatSupported(const QVideoSurfaceFormat &format) const;
+   bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
 
-   void stop();
+   void stop() override;
 
-   QAbstractVideoSurface::Error setCurrentFrame(const QVideoFrame &frame);
+   QAbstractVideoSurface::Error setCurrentFrame(const QVideoFrame &frame) override;
 
    QAbstractVideoSurface::Error paint(
-      const QRectF &target, QPainter *painter, const QRectF &source);
+      const QRectF &target, QPainter *painter, const QRectF &source) override;
 
-   void updateColors(int brightness, int contrast, int hue, int saturation);
-   void viewportDestroyed();
+   void updateColors(int brightness, int contrast, int hue, int saturation) override;
+   void viewportDestroyed() override;
 
  protected:
    void initRgbTextureInfo(GLenum internalFormat, GLuint format, GLenum type, const QSize &size);
@@ -302,7 +304,8 @@ class QVideoSurfaceGLPainter : public QVideoSurfacePainter, protected QOpenGLFun
    GLenum m_textureType;
    int m_textureCount;
 
-   static const uint Max_Textures = 3;
+   static constexpr const uint Max_Textures = 3;
+
    GLuint m_textureIds[Max_Textures];
    int m_textureWidths[Max_Textures];
    int m_textureHeights[Max_Textures];
@@ -674,10 +677,10 @@ class QVideoSurfaceArbFpPainter : public QVideoSurfaceGLPainter
  public:
    QVideoSurfaceArbFpPainter(QGLContext *context);
 
-   QAbstractVideoSurface::Error start(const QVideoSurfaceFormat &format);
-   void stop();
+   QAbstractVideoSurface::Error start(const QVideoSurfaceFormat &format) override;
+   void stop() override;
 
-   QAbstractVideoSurface::Error paint(const QRectF &target, QPainter *painter, const QRectF &source);
+   QAbstractVideoSurface::Error paint(const QRectF &target, QPainter *painter, const QRectF &source) override;
 
  private:
    typedef void (APIENTRY *_glProgramStringARB) (GLenum, GLenum, GLsizei, const GLvoid *);
@@ -1085,11 +1088,11 @@ class QVideoSurfaceGlslPainter : public QVideoSurfaceGLPainter
  public:
    QVideoSurfaceGlslPainter(QGLContext *context);
 
-   QAbstractVideoSurface::Error start(const QVideoSurfaceFormat &format);
-   void stop();
+   QAbstractVideoSurface::Error start(const QVideoSurfaceFormat &format) override;
+   void stop() override;
 
    QAbstractVideoSurface::Error paint(
-      const QRectF &target, QPainter *painter, const QRectF &source);
+      const QRectF &target, QPainter *painter, const QRectF &source) override;
 
  private:
    QGLShaderProgram m_program;
@@ -1392,7 +1395,6 @@ QAbstractVideoSurface::Error QVideoSurfaceGlslPainter::paint(
 
 #endif
 
-// internal
 QPainterVideoSurface::QPainterVideoSurface(QObject *parent)
    : QAbstractVideoSurface(parent), m_painter(nullptr),
 
@@ -1433,8 +1435,6 @@ bool QPainterVideoSurface::isFormatSupported(const QVideoSurfaceFormat &format) 
    return m_painter->isFormatSupported(format);
 }
 
-/*!
-*/
 bool QPainterVideoSurface::start(const QVideoSurfaceFormat &format)
 {
    if (isActive()) {
@@ -1468,8 +1468,6 @@ bool QPainterVideoSurface::start(const QVideoSurfaceFormat &format)
    return false;
 }
 
-/*!
-*/
 void QPainterVideoSurface::stop()
 {
    if (isActive()) {
@@ -1480,8 +1478,6 @@ void QPainterVideoSurface::stop()
    }
 }
 
-/*!
-*/
 bool QPainterVideoSurface::present(const QVideoFrame &frame)
 {
    if (!m_ready) {
@@ -1511,15 +1507,11 @@ bool QPainterVideoSurface::present(const QVideoFrame &frame)
    return false;
 }
 
-/*!
-*/
 int QPainterVideoSurface::brightness() const
 {
    return m_brightness;
 }
 
-/*!
-*/
 void QPainterVideoSurface::setBrightness(int brightness)
 {
    m_brightness = brightness;
@@ -1527,15 +1519,11 @@ void QPainterVideoSurface::setBrightness(int brightness)
    m_colorsDirty = true;
 }
 
-/*!
-*/
 int QPainterVideoSurface::contrast() const
 {
    return m_contrast;
 }
 
-/*!
-*/
 void QPainterVideoSurface::setContrast(int contrast)
 {
    m_contrast = contrast;
@@ -1543,15 +1531,11 @@ void QPainterVideoSurface::setContrast(int contrast)
    m_colorsDirty = true;
 }
 
-/*!
-*/
 int QPainterVideoSurface::hue() const
 {
    return m_hue;
 }
 
-/*!
-*/
 void QPainterVideoSurface::setHue(int hue)
 {
    m_hue = hue;
@@ -1559,15 +1543,11 @@ void QPainterVideoSurface::setHue(int hue)
    m_colorsDirty = true;
 }
 
-/*!
-*/
 int QPainterVideoSurface::saturation() const
 {
    return m_saturation;
 }
 
-/*!
-*/
 void QPainterVideoSurface::setSaturation(int saturation)
 {
    m_saturation = saturation;
@@ -1575,22 +1555,16 @@ void QPainterVideoSurface::setSaturation(int saturation)
    m_colorsDirty = true;
 }
 
-/*!
-*/
 bool QPainterVideoSurface::isReady() const
 {
    return m_ready;
 }
 
-/*!
-*/
 void QPainterVideoSurface::setReady(bool ready)
 {
    m_ready = ready;
 }
 
-/*!
-*/
 void QPainterVideoSurface::paint(QPainter *painter, const QRectF &target, const QRectF &source)
 {
    if (!isActive()) {
@@ -1617,21 +1591,13 @@ void QPainterVideoSurface::paint(QPainter *painter, const QRectF &target, const 
    }
 }
 
-/*!
-    \fn QPainterVideoSurface::frameChanged()
-*/
-
 #if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
 
-/*!
-*/
 const QGLContext *QPainterVideoSurface::glContext() const
 {
    return m_glContext;
 }
 
-/*!
-*/
 void QPainterVideoSurface::setGLContext(QGLContext *context)
 {
    if (m_glContext == context) {

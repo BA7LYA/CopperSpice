@@ -148,7 +148,7 @@ void QCocoaEventDispatcherPrivate::maybeStopCFRunLoopTimer()
 
 void QCocoaEventDispatcher::registerTimer(int timerId, int interval, Qt::TimerType timerType, QObject *obj)
 {
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_PLATFORM)
    if (timerId < 1 || interval < 0 || ! obj) {
       qWarning("QCocoaEventDispatcher::registerTimer: invalid arguments");
       return;
@@ -165,7 +165,7 @@ void QCocoaEventDispatcher::registerTimer(int timerId, int interval, Qt::TimerTy
 
 bool QCocoaEventDispatcher::unregisterTimer(int timerId)
 {
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_PLATFORM)
    if (timerId < 1) {
       qWarning("QCocoaEventDispatcher::unregisterTimer: invalid argument");
       return false;
@@ -189,7 +189,7 @@ bool QCocoaEventDispatcher::unregisterTimer(int timerId)
 
 bool QCocoaEventDispatcher::unregisterTimers(QObject *obj)
 {
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_PLATFORM)
    if (! obj) {
       qWarning("QCocoaEventDispatcher::unregisterTimers: invalid argument");
       return false;
@@ -214,7 +214,7 @@ bool QCocoaEventDispatcher::unregisterTimers(QObject *obj)
 
 QList<QTimerInfo> QCocoaEventDispatcher::registeredTimers(QObject *object) const
 {
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_PLATFORM)
    if (! object) {
       qWarning("QCocoaEventDispatcher:registeredTimers: invalid argument");
       return QList<QTimerInfo>();
@@ -372,9 +372,10 @@ bool QCocoaEventDispatcher::processEvents(QEventLoop::ProcessEventsFlags flags)
             }
 
             if (! d->interrupt && session == d->currentModalSessionCached) {
-               // Someone called [NSApp stopModal:] from outside the event
-               // dispatcher (e.g to stop a native dialog). But that call wrongly stopped
-               // 'session' as well. As a result, we need to restart all internal sessions:
+               // Someone called [NSApp stopModal:] from outside the event dispatcher
+               // then something was called incorrectly to stop the session,
+               // as a result, we need to restart all sessions
+
                d->temporarilyStopAllModalSessions();
             }
 
@@ -402,7 +403,7 @@ bool QCocoaEventDispatcher::processEvents(QEventLoop::ProcessEventsFlags flags)
          int lastSerialCopy = d->lastSerial;
          bool hadModalSession = d->currentModalSessionCached != nullptr;
 
-         // We cannot block the thread (and run in a tight loop).
+         // can not block the thread (and run in a tight loop).
          // Instead we will process all current pending events and return.
          d->ensureNSAppInitialized();
 
@@ -418,9 +419,10 @@ bool QCocoaEventDispatcher::processEvents(QEventLoop::ProcessEventsFlags flags)
 
                NSInteger status = [NSApp runModalSession: session];
                if (status != NSModalResponseContinue && session == d->currentModalSessionCached) {
-                  // INVARIANT: Someone called [NSApp stopModal:] from outside the event
-                  // dispatcher (e.g to stop a native dialog). But that call wrongly stopped
-                  // 'session' as well. As a result, we need to restart all internal sessions:
+                  // Someone called [NSApp stopModal:] from outside the event dispatcher
+                  // then something was called incorrectly to stop the session,
+                  // as a result, we need to restart all sessions
+
                   d->temporarilyStopAllModalSessions();
                }
 
@@ -543,7 +545,7 @@ bool QCocoaEventDispatcher::processEvents(QEventLoop::ProcessEventsFlags flags)
 
 int QCocoaEventDispatcher::remainingTime(int timerId)
 {
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_PLATFORM)
    if (timerId < 1) {
       qWarning("QCocoaEventDispatcher::remainingTime: invalid argument");
       return -1;
@@ -563,10 +565,6 @@ void QCocoaEventDispatcher::wakeUp()
    CFRunLoopSourceSignal(d->postedEventsSource);
    CFRunLoopWakeUp(mainRunLoop());
 }
-
-/*****************************************************************************
-  QEventDispatcherMac Implementation
- *****************************************************************************/
 
 void QCocoaEventDispatcherPrivate::ensureNSAppInitialized()
 {

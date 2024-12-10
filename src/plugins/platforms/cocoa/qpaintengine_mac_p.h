@@ -123,10 +123,17 @@ class QCoreGraphicsPaintEngine : public QPaintEngine
 class QCoreGraphicsPaintEnginePrivate : public QPaintEnginePrivate
 {
    Q_DECLARE_PUBLIC(QCoreGraphicsPaintEngine)
+
  public:
+   enum { CosmeticNone, CosmeticTransformPath, CosmeticSetPenWidth } cosmeticPen;
+
+   static constexpr const int CGStroke = 0x01;
+   static constexpr const int CGEOFill = 0x02;
+   static constexpr const int CGFill   = 0x04;
+
    QCoreGraphicsPaintEnginePrivate()
-      : hd(nullptr), shading(nullptr), stackCount(0), complexXForm(false), disabledSmoothFonts(false) {
-   }
+      : hd(nullptr), shading(nullptr), stackCount(0), complexXForm(false), disabledSmoothFonts(false)
+   { }
 
    struct {
       QPen pen;
@@ -145,13 +152,10 @@ class QCoreGraphicsPaintEnginePrivate : public QPaintEnginePrivate
    int stackCount;
    bool complexXForm;
    bool disabledSmoothFonts;
-   enum { CosmeticNone, CosmeticTransformPath, CosmeticSetPenWidth } cosmeticPen;
 
    // pixel and cosmetic pen size in user coordinates.
    QPointF pixelSize;
    float cosmeticPenSize;
-
-   enum { CGStroke = 0x01, CGEOFill = 0x02, CGFill = 0x04 };
 
    void drawPath(uchar ops, CGMutablePathRef path = nullptr);
    void setClip(const QRegion *rgn = nullptr);

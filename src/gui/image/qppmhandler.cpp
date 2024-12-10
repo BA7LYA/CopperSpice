@@ -28,13 +28,8 @@
 #include <qimage.h>
 #include <qvariant.h>
 #include <qvector.h>
+
 #include <ctype.h>
-
-
-
-/*****************************************************************************
-  PBM/PGM/PPM (ASCII and RAW) image read/write functions
- *****************************************************************************/
 
 static void discard_pbm_line(QIODevice *d)
 {

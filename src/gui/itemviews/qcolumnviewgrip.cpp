@@ -39,7 +39,6 @@ QColumnViewGrip::QColumnViewGrip(QWidget *parent)
 #endif
 }
 
-// internal
 QColumnViewGrip::QColumnViewGrip(QColumnViewGripPrivate &dd, QWidget *parent, Qt::WindowFlags flags)
    :  QWidget(dd, parent, flags)
 {
@@ -100,10 +99,6 @@ void QColumnViewGrip::mouseDoubleClickEvent(QMouseEvent *event)
    event->accept();
 }
 
-/*!
-    \reimp
-    Begin watching for mouse movements
-*/
 void QColumnViewGrip::mousePressEvent(QMouseEvent *event)
 {
    Q_D(QColumnViewGrip);
@@ -111,10 +106,6 @@ void QColumnViewGrip::mousePressEvent(QMouseEvent *event)
    event->accept();
 }
 
-/*!
-    \reimp
-    Calculate the movement of the grip and moveGrip() and emit gripMoved
-*/
 void QColumnViewGrip::mouseMoveEvent(QMouseEvent *event)
 {
    Q_D(QColumnViewGrip);
@@ -123,26 +114,16 @@ void QColumnViewGrip::mouseMoveEvent(QMouseEvent *event)
    event->accept();
 }
 
-/*!
-    \reimp
-    Stop watching for mouse movements
-*/
 void QColumnViewGrip::mouseReleaseEvent(QMouseEvent *event)
 {
    Q_D(QColumnViewGrip);
    d->originalXLocation = -1;
    event->accept();
 }
-
-/*
- * private object implementation
- */
 QColumnViewGripPrivate::QColumnViewGripPrivate()
    :  QWidgetPrivate(),
       originalXLocation(-1)
 {
 }
-
-
 
 #endif // QT_NO_QCOLUMNVIEW

@@ -22,11 +22,12 @@
 ***********************************************************************/
 
 #include <qabstracttextdocumentlayout.h>
+
 #include <qtextformat.h>
 
+#include <qabstracttextdocumentlayout_p.h>
 #include <qtextdocument_p.h>
 #include <qtextengine_p.h>
-#include <qabstracttextdocumentlayout_p.h>
 
 QAbstractTextDocumentLayoutPrivate::~QAbstractTextDocumentLayoutPrivate()
 {
@@ -206,6 +207,7 @@ QString QAbstractTextDocumentLayout::anchorAt(const QPointF &pos) const
    QTextDocumentPrivate *pieceTable = qobject_cast<const QTextDocument *>(parent())->docHandle();
    QTextDocumentPrivate::FragmentIterator it = pieceTable->find(cursorPos);
    QTextCharFormat fmt = pieceTable->formatCollection()->charFormat(it->format);
+
    return fmt.anchorHref();
 }
 
@@ -238,4 +240,3 @@ QSizeF QAbstractTextDocumentLayout::_q_dynamicDocumentSizeSlot()
    Q_D(QAbstractTextDocumentLayout);
    return d->_q_dynamicDocumentSizeSlot();
 }
-

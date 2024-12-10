@@ -29,15 +29,15 @@
 #include <qmutex.h>
 #include <qobject.h>
 #include <qthread.h>
-#include <qvector.h>
 #include <qvarlengtharray.h>
+#include <qvector.h>
 #include <qwindowsysteminterface.h>
 #include <qxcb_export.h>
 
 #include <xcb/xcb.h>
 #include <xcb/randr.h>
 
-// required since  xkb.h is using a variable called 'explicit'
+// required since xkb.h is using a variable called 'explicit'
 #ifndef QT_NO_XKB
 #define explicit dont_use_cxx_explicit
 #include <xcb/xkb.h>
@@ -65,21 +65,18 @@ struct XInput2TouchDeviceData;
 
 struct xcb_randr_get_output_info_reply_t;
 
-//#define Q_XCB_DEBUG
-
-class QXcbVirtualDesktop;
-class QXcbScreen;
-class QXcbWindow;
-class QXcbDrag;
-class QXcbKeyboard;
-class QXcbClipboard;
-class QXcbWMSupport;
-class QXcbNativeInterface;
-class QXcbSystemTrayTracker;
-class QXcbGlIntegration;
-
 class QAbstractEventDispatcher;
+class QXcbClipboard;
 class QXcbConnection;
+class QXcbDrag;
+class QXcbGlIntegration;
+class QXcbKeyboard;
+class QXcbNativeInterface;
+class QXcbScreen;
+class QXcbSystemTrayTracker;
+class QXcbVirtualDesktop;
+class QXcbWMSupport;
+class QXcbWindow;
 class QXcbWindowEventListener;
 
 using QXcbEventArray = QVarLengthArray<xcb_generic_event_t *, 64>;
@@ -767,7 +764,7 @@ class QXcbConnection : public QObject
    QHash<int, XInput2TouchDeviceData *> m_touchDevices;
 #endif
 
-#ifdef Q_XCB_DEBUG
+#if defined(CS_SHOW_DEBUG_PLATFORM)
    struct CallInfo {
       int sequence;
       QByteArray file;
@@ -859,18 +856,24 @@ union q_padded_xcb_event {
     q_padded_xcb_event<event_type> store = q_padded_xcb_event<event_type>(); \
     auto &event_var = store.event;
 
-#ifdef Q_XCB_DEBUG
+#if defined(CS_SHOW_DEBUG_PLATFORM)
 
 template <typename cookie_t>
 cookie_t q_xcb_call_template(const cookie_t &cookie, QXcbConnection *connection, const char *file, int line)
 {
-   connection->log(file, line, cookie.sequence);
+   if constexpr(std::is_pointer_v<cookie_t>) {
+      connection->log(file, line, cookie->sequence);
+   } else {
+      connection->log(file, line, cookie.sequence);
+   }
+
    return cookie;
 }
 
 #define Q_XCB_CALL(x) q_xcb_call_template(x, connection(), __FILE__, __LINE__)
 #define Q_XCB_CALL2(x, connection) q_xcb_call_template(x, connection, __FILE__, __LINE__)
 #define Q_XCB_NOOP(c) q_xcb_call_template(xcb_no_operation(c->xcb_connection()), c, __FILE__, __LINE__);
+
 #else
 
 #define Q_XCB_CALL(x) x

@@ -22,23 +22,24 @@
 ***********************************************************************/
 
 #include <qwin_screen.h>
-#include <qwin_context.h>
-#include <qwin_window.h>
-#include <qwin_integration.h>
-#include <qwin_cursor.h>
+
+#include <qapplication.h>
+#include <qdebug.h>
+#include <qpixmap.h>
+#include <qscreen.h>
+#include <qsettings.h>
 #include <qwin_additional.h>
-
-#include <QSettings>
-#include <QPixmap>
-#include <QApplication>
+#include <qwin_context.h>
+#include <qwin_cursor.h>
+#include <qwin_integration.h>
+#include <qwin_window.h>
 #include <qwindowsysteminterface.h>
-#include <qhighdpiscaling_p.h>
-#include <QScreen>
-#include <QDebug>
 
-QWindowsScreenData::QWindowsScreenData() :
-   dpi(96, 96), depth(32), format(QImage::Format_ARGB32_Premultiplied),
-   flags(VirtualDesktop), orientation(Qt::LandscapeOrientation), refreshRateHz(60)
+#include <qhighdpiscaling_p.h>
+
+QWindowsScreenData::QWindowsScreenData()
+   : dpi(96, 96), depth(32), format(QImage::Format_ARGB32_Premultiplied),
+     flags(VirtualDesktop), orientation(Qt::LandscapeOrientation), refreshRateHz(60)
 {
 }
 
@@ -99,7 +100,7 @@ static bool monitorData(HMONITOR hMonitor, QWindowsScreenData *data)
          DeleteDC(hdc);
 
       } else {
-         qWarning("monitorData(): Unable to obtain handle for monitor '%s', defaulting to %g DPI.",
+         qWarning("monitorData() Unable to obtain handle for monitor %s, defaulting to %g DPI.",
             csPrintable(QString::fromStdWString(std::wstring(info.szDevice))), data->dpi.first);
 
       } // CreateDC() failed
@@ -150,42 +151,43 @@ static inline WindowsScreenDataList monitorData()
    return result;
 }
 
-#if defined(CS_SHOW_DEBUG)
-static QDebug operator<<(QDebug dbg, const QWindowsScreenData &d)
+#if defined(CS_SHOW_DEBUG_PLATFORM)
+static QDebug operator<<(QDebug debug, const QWindowsScreenData &d)
 {
-   QDebugStateSaver saver(dbg);
+   QDebugStateSaver saver(debug);
+   debug.nospace();
+   debug.noquote();
 
-   dbg.nospace();
-   dbg.noquote();
+   debug << "  Screen Id = \"" << d.name << "\" "
+      << " size = " << d.geometry.width() << "x" << d.geometry.height()
+      << " location = " << d.geometry.x() << '+' << d.geometry.y()
 
-   dbg << "Screen = \"" << d.name << "\" "
-      << d.geometry.width() << 'x' << d.geometry.height() << '+' << d.geometry.x() << '+' << d.geometry.y()
+      << "\n   Availiable = " << d.availableGeometry.width() << "x" << d.availableGeometry.height()
+      << " location = " << d.availableGeometry.x() << '+' << d.availableGeometry.y()
 
-      << "\n  Avail = " << d.availableGeometry.width() << 'x' << d.availableGeometry.height() << '+'
-      << d.availableGeometry.x() << '+' << d.availableGeometry.y()
-
-      << " Physical = " << d.physicalSizeMM.width() << 'x' << d.physicalSizeMM.height()
-      << "\n  DPI = " << d.dpi.first << 'x' << d.dpi.second << " Depth = " << d.depth
-      << " Format = " << d.format << " Flags = ";
+      << "  Physical = " << d.physicalSizeMM.width() << " x " << d.physicalSizeMM.height()
+      << "\n   DPI = " << d.dpi.first << "x" << d.dpi.second << "  Depth = " << d.depth
+      << "  Format = " << d.format << "  Flags = ";
 
    if (d.flags & QWindowsScreenData::PrimaryScreen) {
-      dbg << "primary ";
+      debug << "primary ";
    }
 
    if (d.flags & QWindowsScreenData::VirtualDesktop) {
-      dbg << "virtual desktop ";
+      debug << "virtual desktop ";
    }
 
    if (d.flags & QWindowsScreenData::LockScreen) {
-      dbg << "lock screen";
+      debug << "lock screen";
    }
 
-   return dbg;
+   return debug;
 }
 #endif
 
-QWindowsScreen::QWindowsScreen(const QWindowsScreenData &data) :
-   m_data(data)
+QWindowsScreen::QWindowsScreen(const QWindowsScreenData &data)
+   : m_data(data)
+
 #ifndef QT_NO_CURSOR
    , m_cursor(new QWindowsCursor(this))
 #endif
@@ -238,8 +240,8 @@ QWindow *QWindowsScreen::topLevelWindowAt(const QPoint &point) const
       result = QWindowsWindow::topLevelOf(child);
    }
 
-#if defined(CS_SHOW_DEBUG)
-   qDebug() << "QWindowsScreen::topLevelWindowAt():" << point << result;
+#if defined(CS_SHOW_DEBUG_PLATFORM)
+   qDebug() << "QWindowsScreen::topLevelWindowAt() " << point << result;
 #endif
 
    return result;
@@ -255,8 +257,8 @@ QWindow *QWindowsScreen::windowAt(const QPoint &screenPoint, unsigned flags)
       result = bw->window();
    }
 
-#if defined(CS_SHOW_DEBUG)
-   qDebug() << "QWindowsScreen::windowAt():" << screenPoint << " Return =" << result;
+#if defined(CS_SHOW_DEBUG_PLATFORM)
+   qDebug() << "QWindowsScreen::windowAt() " << screenPoint << " Return =" << result;
 #endif
 
    return result;
@@ -424,9 +426,9 @@ bool QWindowsScreenManager::handleDisplayChange(WPARAM wParam, LPARAM lParam)
       m_lastHorizontalResolution = newHorizontalResolution;
       m_lastVerticalResolution = newVerticalResolution;
 
-#if defined(CS_SHOW_DEBUG)
-      qDebug() << "QWindowsScreenManager::handleDisplayChange(): Depth =" << newDepth
-               << ", Resolution =" << newHorizontalResolution << 'x =' << newVerticalResolution;
+#if defined(CS_SHOW_DEBUG_PLATFORM)
+      qDebug() << "QWindowsScreenManager::handleDisplayChange() Depth =" << newDepth
+               << ", Resolution =" << newHorizontalResolution << "x =" << newVerticalResolution;
 #endif
 
       handleScreenChanges();
@@ -480,9 +482,8 @@ static void moveToVirtualScreen(QWindow *w, const QScreen *newScreen)
 
 void QWindowsScreenManager::removeScreen(int index)
 {
-
-#if defined(CS_SHOW_DEBUG)
-   qDebug() << "Removing Monitor =" << m_screens.at(index)->data();
+#if defined(CS_SHOW_DEBUG_PLATFORM)
+   qDebug() << "QWindowsScreenManager::removeScreen() Removing Monitor = " << m_screens.at(index)->data();
 #endif
 
    QScreen *screen = m_screens.at(index)->screen();
@@ -514,13 +515,9 @@ void QWindowsScreenManager::removeScreen(int index)
          QWindowSystemInterface::flushWindowSystemEvents();
       }
    }
+
    QWindowsIntegration::instance()->emitDestroyScreen(m_screens.takeAt(index));
 }
-
-/*!
-    \brief Synchronizes the screen list, adds new screens, removes deleted
-    ones and propagates resolution changes to QWindowSystemInterface.
-*/
 
 bool QWindowsScreenManager::handleScreenChanges()
 {
@@ -540,8 +537,8 @@ bool QWindowsScreenManager::handleScreenChanges()
 
          QWindowsIntegration::instance()->emitScreenAdded(newScreen, newData.flags & QWindowsScreenData::PrimaryScreen);
 
-#if defined(CS_SHOW_DEBUG)
-         qDebug() << "New Monitor:" << newData;
+#if defined(CS_SHOW_DEBUG_PLATFORM)
+         qDebug() << "QWindowsScreenManager::handleScreenChanges() " << newData;
 #endif
       }
    }
@@ -562,7 +559,7 @@ bool QWindowsScreenManager::handleScreenChanges()
 void QWindowsScreenManager::clearScreens()
 {
    // Delete screens in reverse order to avoid crash in case of multiple screens
-   while (!m_screens.isEmpty()) {
+   while (! m_screens.isEmpty()) {
       QWindowsIntegration::instance()->emitDestroyScreen(m_screens.takeLast());
    }
 }

@@ -24,8 +24,8 @@
 #ifndef BATCHTRANSLATION_DIALOG_H
 #define BATCHTRANSLATION_DIALOG_H
 
-#include <ui_batchtranslation.h>
 #include <phrase.h>
+#include <ui_batchtranslation.h>
 
 #include <qdialog.h>
 #include <qstandarditemmodel.h>
@@ -36,7 +36,7 @@ class CheckableListModel : public QStandardItemModel
 {
  public:
    CheckableListModel(QObject *parent = nullptr);
-   virtual Qt::ItemFlags flags(const QModelIndex &index) const;
+   Qt::ItemFlags flags(const QModelIndex &index) const override;
 };
 
 class BatchTranslationDialog : public QDialog

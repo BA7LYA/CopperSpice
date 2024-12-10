@@ -42,12 +42,11 @@ class DirectShowVideoRendererControl : public QVideoRendererControl
    DirectShowVideoRendererControl(DirectShowEventLoop *loop, QObject *parent = nullptr);
    ~DirectShowVideoRendererControl();
 
-   QAbstractVideoSurface *surface() const;
-   void setSurface(QAbstractVideoSurface *surface);
+   QAbstractVideoSurface *surface() const override;
+   void setSurface(QAbstractVideoSurface *surface) override;
 
    IBaseFilter *filter();
 
- public:
    CS_SIGNAL_1(Public, void filterChanged())
    CS_SIGNAL_2(filterChanged)
 

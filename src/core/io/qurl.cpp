@@ -1973,7 +1973,7 @@ QUrl QUrl::resolved(const QUrl &relative) const
 
 bool QUrl::isRelative() const
 {
-   if (!d) {
+   if (! d) {
       return true;
    }
 
@@ -2605,7 +2605,7 @@ QList<QUrl> QUrl::fromStringList(const QStringList &urls, ParsingMode mode)
    return lst;
 }
 
-uint qHash(const QUrl &url, uint seed)
+uint QUrl::hash(const QUrl &url, uint seed)
 {
    if (! url.d) {
       return qHash(-1, seed);   // the hash of an unset port (-1)
@@ -2619,6 +2619,11 @@ uint qHash(const QUrl &url, uint seed)
          qHash(url.d->path) ^
          qHash(url.d->query) ^
          qHash(url.d->fragment);
+}
+
+uint qHash(const QUrl &url, uint seed)
+{
+   return QUrl::hash(url, seed);
 }
 
 static QUrl adjustFtpPath(QUrl url)

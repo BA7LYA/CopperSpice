@@ -30,11 +30,11 @@
 #include <qdrawutil.h>
 #include <qelapsedtimer.h>
 #include <qlabel.h>
+#include <qpainter.h>
 #include <qprogressbar.h>
 #include <qpushbutton.h>
-#include <qpainter.h>
-#include <qstyle.h>
 #include <qshortcut.h>
+#include <qstyle.h>
 #include <qtimer.h>
 #include <qvboxlayout.h>
 
@@ -43,10 +43,10 @@
 #include <limits.h>
 
 // wait at least the minWaitTime long before attempting to make a prediction
-static const int minWaitTime         = 50;
-static const int LABEL_INDEX         = 0;
-static const int PROGRESS_BAR_INDEX  = 1;
-static const int CANCEL_BUTTON_INDEX = 2;
+static constexpr const int minWaitTime         = 50;
+static constexpr const int LABEL_INDEX         = 0;
+static constexpr const int PROGRESS_BAR_INDEX  = 1;
+static constexpr const int CANCEL_BUTTON_INDEX = 2;
 
 QProgressDialog::QProgressDialog(QWidget *parent, Qt::WindowFlags flags)
    : QDialog(parent, flags)

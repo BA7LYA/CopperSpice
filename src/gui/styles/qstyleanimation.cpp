@@ -26,12 +26,11 @@
 #ifndef QT_NO_ANIMATION
 
 #include <qcoreapplication.h>
-#include <qwidget.h>
 #include <qevent.h>
+#include <qwidget.h>
 
-
-static const qreal ScrollBarFadeOutDuration = 200.0;
-static const qreal ScrollBarFadeOutDelay = 450.0;
+static constexpr const qreal ScrollBarFadeOutDuration = 200.0;
+static constexpr const qreal ScrollBarFadeOutDelay    = 450.0;
 
 QStyleAnimation::QStyleAnimation(QObject *target) : QAbstractAnimation(target),
    _delay(0), _duration(-1), _startTime(QTime::currentTime()), _fps(ThirtyFps), _skip(0)
@@ -235,13 +234,6 @@ QImage QBlendStyleAnimation::currentImage() const
    return _current;
 }
 
-/*! \internal
-
-    A helper function to blend two images.
-
-    The result consists of ((alpha)*startImage) + ((1-alpha)*endImage)
-
-*/
 static QImage blendedImage(const QImage &start, const QImage &end, float alpha)
 {
    if (start.isNull() || end.isNull()) {

@@ -28,11 +28,11 @@
 
 #include <cs_string.h>
 
-#include <qglobal.h>
 #include <qbytearray.h>
 #include <qchar32.h>
-#include <qstringview.h>
+#include <qglobal.h>
 #include <qstringfwd.h>
+#include <qstringview.h>
 
 #include <cstddef>
 #include <string>
@@ -277,12 +277,10 @@ class Q_CORE_EXPORT QString8 : public CsString::CsString
          : CsString::CsString(begin, end)
       { }
 
-      // internal
       QString8(const CsString::CsString &other)
          : CsString::CsString(other)
       { }
 
-      // internal
       QString8(CsString::CsString &&other)
          : CsString::CsString(std::move(other))
       { }
@@ -305,9 +303,9 @@ class Q_CORE_EXPORT QString8 : public CsString::CsString
       static inline QString8 fromUtf8(const char8_t *str, size_type numOfChars = -1);
 #endif
 
-      using CsString::CsString::append;          // internal
-      using CsString::CsString::operator=;      // internal
-      using CsString::CsString::operator+=;     // internal
+      using CsString::CsString::append;
+      using CsString::CsString::operator=;
+      using CsString::CsString::operator+=;
 
       // methods
       QString8 &append(char32_t c)  {
@@ -1021,8 +1019,13 @@ class Q_CORE_EXPORT QString8 : public CsString::CsString
       const_iterator cs_internal_rfind_fast(QChar32 c, const_iterator iter_begin) const;
       const_iterator cs_internal_rfind_fast(const QString8 &str, const_iterator iter_begin) const;
 
-      iterator replace(const_iterator iter, const QString8 &str) {
-         return CsString::CsString::replace(iter, str);
+      iterator replace(const_iterator iter_begin, const QString8 &str) {
+         // returns an iterator to the end of the replacement string
+
+         auto iter = CsString::CsString::replace(iter_begin, str);
+         iter = iter.advance_storage(str.size_storage());
+
+         return iter;
       }
 };
 

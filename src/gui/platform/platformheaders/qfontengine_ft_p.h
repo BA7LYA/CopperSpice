@@ -47,6 +47,8 @@ class QFontconfigDatabase;
 class QFreetypeFace
 {
  public:
+   static constexpr const int CmapCacheSize = 0x200;
+
    void computeSize(const QFontDef &fontDef, int *xsize, int *ysize, bool *outline_drawing);
    QFontEngine::Properties properties() const;
    bool getSfntTable(uint tag, uchar *buffer, uint *length) const;
@@ -71,8 +73,7 @@ class QFreetypeFace
    FT_CharMap unicode_map;
    FT_CharMap symbol_map;
 
-   enum { cmapCacheSize = 0x200 };
-   glyph_t cmapCache[cmapCacheSize];
+   glyph_t cmapCache[CmapCacheSize];
 
    int fsType() const;
 
@@ -149,7 +150,7 @@ class QFontEngineFT : public QFontEngine
       void removeGlyphFromCache(glyph_t index, QFixed subPixelPosition);
       void clear();
 
-      inline bool useFastGlyphData(glyph_t index, QFixed subPixelPosition) const {
+      bool useFastGlyphData(glyph_t index, QFixed subPixelPosition) const {
          return (index < 256 && subPixelPosition == 0);
       }
 
@@ -157,11 +158,11 @@ class QFontEngineFT : public QFontEngine
 
       void setGlyph(glyph_t index, QFixed spp, Glyph *glyph);
 
-      inline bool isGlyphMissing(glyph_t index) const {
+      bool isGlyphMissing(glyph_t index) const {
          return missing_glyphs.contains(index);
       }
 
-      inline void setGlyphMissing(glyph_t index) const {
+      void setGlyphMissing(glyph_t index) const {
          missing_glyphs.insert(index);
       }
 

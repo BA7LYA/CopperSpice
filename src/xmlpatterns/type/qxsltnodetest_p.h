@@ -39,13 +39,10 @@ class XSLTNodeTest : public AnyNodeType
  protected:
    friend class BuiltinTypes;
 
-   /**
-    * This constructor does nothing, but exists in order to make it impossible to
-    * instantiate this class from anywhere but from BuiltinTypes.
-    */
-   inline XSLTNodeTest() {
-   }
+   XSLTNodeTest()
+   { }
 };
+
 }
 
 #endif

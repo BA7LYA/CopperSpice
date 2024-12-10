@@ -93,9 +93,6 @@ void QFSFileEnginePrivate::init()
 
 }
 
-/*!
-    Constructs a QFSFileEngine for the file name \a file.
-*/
 QFSFileEngine::QFSFileEngine(const QString &file)
    : QAbstractFileEngine(*new QFSFileEnginePrivate)
 {
@@ -153,8 +150,8 @@ bool QFSFileEngine::open(QIODevice::OpenMode openMode)
 
    if (d->fileEntry.isEmpty()) {
 
-#if defined(CS_SHOW_DEBUG)
-      qWarning("QFSFileEngine::open() No file name specified");
+#if defined(CS_SHOW_DEBUG_CORE)
+      qDebug("QFSFileEngine::open() No file name specified");
 #endif
 
       setError(QFile::OpenError, QString("No file name specified"));
@@ -180,10 +177,6 @@ bool QFSFileEngine::open(QIODevice::OpenMode openMode)
    return d->nativeOpen(openMode);
 }
 
-/*!
-    Opens the file handle \a fh in \a openMode mode. Returns true on
-    success; otherwise returns false.
-*/
 bool QFSFileEngine::open(QIODevice::OpenMode openMode, FILE *fh)
 {
    return open(openMode, fh, QFile::DontCloseHandle);
@@ -213,12 +206,10 @@ bool QFSFileEngine::open(QIODevice::OpenMode openMode, FILE *fh, QFile::FileHand
    return d->openFh(openMode, fh);
 }
 
-/*!
-    Opens the file handle \a fh using the open mode \a flags.
-*/
 bool QFSFileEnginePrivate::openFh(QIODevice::OpenMode openMode, FILE *fh)
 {
    Q_Q(QFSFileEngine);
+
    this->fh = fh;
    fd = -1;
 
@@ -480,8 +471,8 @@ bool QFSFileEnginePrivate::seekFdFh(qint64 pos)
       // Unbuffered stdio mode.
       if (QT_LSEEK(fd, QT_OFF_T(pos), SEEK_SET) == -1) {
 
-#if defined(CS_SHOW_DEBUG)
-         qWarning() << "QFSFileEngine::seekFdFh() Unable to set file position" << pos;
+#if defined(CS_SHOW_DEBUG_CORE)
+         qDebug() << "QFSFileEngine::seekFdFh() Unable to set file position" << pos;
 #endif
 
          q->setError(QFile::PositionError, qt_error_string(errno));

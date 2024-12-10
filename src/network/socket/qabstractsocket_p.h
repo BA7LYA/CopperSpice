@@ -25,14 +25,15 @@
 #define QABSTRACTSOCKET_P_H
 
 #include <qabstractsocket.h>
+
 #include <qbytearray.h>
 #include <qlist.h>
-#include <qtimer.h>
 #include <qnetworkproxy.h>
+#include <qtimer.h>
 
-#include <qringbuffer_p.h>
-#include <qiodevice_p.h>
 #include <qabstractsocketengine_p.h>
+#include <qiodevice_p.h>
+#include <qringbuffer_p.h>
 
 class QHostInfo;
 
@@ -45,24 +46,25 @@ class QAbstractSocketPrivate : public QIODevicePrivate, public QAbstractSocketEn
    virtual ~QAbstractSocketPrivate();
 
    // from QAbstractSocketEngineReceiver
-   inline void readNotification() override {
+   void readNotification() override {
       canReadNotification();
    }
 
-   inline void writeNotification() override {
+   void writeNotification() override {
       canWriteNotification();
    }
 
-   inline void exceptionNotification() override {}
+   void exceptionNotification() override {
+   }
 
-   inline void closeNotification() override {
+   void closeNotification() override {
       canCloseNotification();
    }
 
    void connectionNotification() override;
 
 #ifndef QT_NO_NETWORKPROXY
-   inline void proxyAuthenticationRequired(const QNetworkProxy &proxy, QAuthenticator *authenticator) override {
+   void proxyAuthenticationRequired(const QNetworkProxy &proxy, QAuthenticator *authenticator) override {
       Q_Q(QAbstractSocket);
       q->proxyAuthenticationRequired(proxy, authenticator);
    }
@@ -112,11 +114,12 @@ class QAbstractSocketPrivate : public QIODevicePrivate, public QAbstractSocketEn
    QNetworkProxy proxyInUse;
    void resolveProxy(const QString &hostName, quint16 port);
 #else
-   inline void resolveProxy(const QString &, quint16) { }
+   void resolveProxy(const QString &, quint16) {
+   }
 
 #endif
 
-   inline void resolveProxy(quint16 port) {
+   void resolveProxy(quint16 port) {
       resolveProxy(QString(), port);
    }
 

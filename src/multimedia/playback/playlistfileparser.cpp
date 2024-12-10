@@ -23,11 +23,11 @@
 
 #include <playlistfileparser_p.h>
 
-#include <qfileinfo.h>
 #include <qdebug.h>
+#include <qfileinfo.h>
+#include <qmediametadata.h>
 #include <qnetwork_reply.h>
 #include <qnetwork_request.h>
-#include <qmediametadata.h>
 
 #include <qmediaobject_p.h>
 
@@ -102,7 +102,7 @@ class M3UParser : public ParserBase
       : ParserBase(parent), m_extendedFormat(false)
    { }
 
-   void parseLine(int lineIndex, const QString &line, const QUrl &root) {
+   void parseLine(int lineIndex, const QString &line, const QUrl &root) override {
       if (line[0] == '#' ) {
          if (m_extendedFormat) {
             if (line.startsWith("#EXTINF:")) {

@@ -69,25 +69,33 @@ class CameraBinImageCapture : public QCameraImageCaptureControl, public QGstream
    class EncoderProbe : public QGstreamerBufferProbe
    {
     public:
-      EncoderProbe(CameraBinImageCapture *capture) : capture(capture) {}
-      void probeCaps(GstCaps *caps);
-      bool probeBuffer(GstBuffer *buffer);
+      EncoderProbe(CameraBinImageCapture *capture)
+         : m_capture(capture)
+      { }
+
+      void probeCaps(GstCaps *caps) override;
+      bool probeBuffer(GstBuffer *buffer) override;
 
     private:
-      CameraBinImageCapture *const capture;
-   } m_encoderProbe;
+      CameraBinImageCapture *const m_capture;
+   };
 
    class MuxerProbe : public QGstreamerBufferProbe
    {
     public:
-      MuxerProbe(CameraBinImageCapture *capture) : capture(capture) {}
-      void probeCaps(GstCaps *caps);
-      bool probeBuffer(GstBuffer *buffer);
+      MuxerProbe(CameraBinImageCapture *capture)
+         : m_capture(capture)
+      { }
+
+      void probeCaps(GstCaps *caps) override;
+      bool probeBuffer(GstBuffer *buffer) override;
 
     private:
-      CameraBinImageCapture *const capture;
+      CameraBinImageCapture *const m_capture;
+   };
 
-   } m_muxerProbe;
+   EncoderProbe m_encoderProbe;
+   MuxerProbe m_muxerProbe;
 
    QVideoSurfaceFormat m_bufferFormat;
    QSize m_jpegResolution;

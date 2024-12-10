@@ -532,7 +532,6 @@ void QCoreApplicationPrivate::initLocale()
 #endif
 }
 
-// internal
 QCoreApplication::QCoreApplication(QCoreApplicationPrivate &p)
    : QObject(nullptr), d_ptr(&p)
 {
@@ -723,7 +722,7 @@ bool QCoreApplication::notify(QObject *receiver, QEvent *event)
       return true;
    }
 
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_CORE)
    d->checkReceiverThread(receiver);
 #endif
 
@@ -803,7 +802,7 @@ bool QCoreApplicationPrivate::sendThroughObjectEventFilters(QObject *receiver, Q
    return false;
 }
 
-// internal methods called by notify()
+// called by various other CS notify() methods
 bool QCoreApplicationPrivate::notify_helper(QObject *receiver, QEvent *event)
 {
    // send to all application event filters
@@ -998,10 +997,6 @@ void QCoreApplication::postEvent(QObject *receiver, QEvent *event, int priority)
    }
 }
 
-/*!
-  \internal
-  Returns true if event was compressed away (possibly deleted) and should not be added to the list.
-*/
 bool QCoreApplication::compressEvent(QEvent *event, QObject *receiver, QPostEventList *postedEvents)
 {
    int peCount = CSInternalEvents::get_m_PostedEvents(receiver);
@@ -1255,12 +1250,10 @@ void QCoreApplication::removePostedEvents(QObject *receiver, int eventType)
       }
    }
 
-#ifdef QT_DEBUG
-
+#if defined(CS_SHOW_DEBUG_CORE)
    if (receiver && eventType == 0) {
       Q_ASSERT(CSInternalEvents::get_m_PostedEvents(receiver) == 0);
    }
-
 #endif
 
    if (! data->postEventList.recursion) {
@@ -1287,7 +1280,7 @@ void QCoreApplicationPrivate::removePostedEvent(QEvent *event)
 
    if (data->postEventList.size() == 0) {
 
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_CORE)
       qDebug("QCoreApplication::removePostedEvent() Internal error, %p %d is posted", (void *)event, event->type());
       return;
 #endif
@@ -1298,17 +1291,15 @@ void QCoreApplicationPrivate::removePostedEvent(QEvent *event)
       const QPostEvent &pe = data->postEventList.at(i);
 
       if (pe.event == event) {
-
-#if defined(QT_DEBUG)
          qWarning("QCoreApplication::removePostedEvent() Event of type %d deleted while posted to %s %s",
                event->type(), csPrintable(pe.receiver->metaObject()->className()), csPrintable(pe.receiver->objectName()));
-#endif
 
          CSInternalEvents::decr_PostedEvents(pe.receiver);
          pe.event->posted = false;
 
          delete pe.event;
          const_cast<QPostEvent &>(pe).event = nullptr;
+
          return;
       }
    }

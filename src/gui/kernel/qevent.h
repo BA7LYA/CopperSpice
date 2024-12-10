@@ -24,21 +24,21 @@
 #ifndef QEVENT_H
 #define QEVENT_H
 
-#include <qwindowdefs.h>
+#include <qcoreevent.h>
+#include <qfile.h>
+#include <qkeysequence.h>
+#include <qmap.h>
+#include <qnamespace.h>
 #include <qobject.h>
 #include <qregion.h>
-#include <qnamespace.h>
-#include <qstring.h>
-#include <qkeysequence.h>
-#include <qcoreevent.h>
-#include <qvariant.h>
-#include <qmap.h>
 #include <qset.h>
-#include <qvector.h>
-#include <qurl.h>
-#include <qfile.h>
-#include <qvector2d.h>
+#include <qstring.h>
 #include <qtouchdevice.h>
+#include <qurl.h>
+#include <qvariant.h>
+#include <qvector.h>
+#include <qvector2d.h>
+#include <qwindowdefs.h>
 
 class QAction;
 class QScreen;
@@ -236,7 +236,7 @@ class Q_GUI_EXPORT QHoverEvent : public QInputEvent
 class Q_GUI_EXPORT QWheelEvent : public QInputEvent
 {
  public:
-   enum { DefaultDeltasPerStep = 120 };
+   static constexpr const int DefaultDeltasPerStep = 120;
 
    QWheelEvent(const QPointF &pos, int delta,
       Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Qt::Orientation orientation = Qt::Vertical);
@@ -353,7 +353,12 @@ class Q_GUI_EXPORT QTabletEvent : public QInputEvent
       RotationStylus
    };
 
-   enum PointerType { UnknownPointer, Pen, Cursor, Eraser };
+   enum PointerType {
+      UnknownPointer,
+      Pen,
+      Cursor,
+      Eraser
+   };
 
    QTabletEvent(Type type, const QPointF &pos, const QPointF &globalPos, int device, int pointerType,
          qreal pressure, int xTilt, int yTilt, qreal tangentialPressure, qreal rotation, int z,
@@ -709,7 +714,11 @@ class Q_GUI_EXPORT QHideEvent : public QEvent
 class Q_GUI_EXPORT QContextMenuEvent : public QInputEvent
 {
  public:
-   enum Reason { Mouse, Keyboard, Other };
+   enum Reason {
+      Mouse,
+      Keyboard,
+      Other
+   };
 
    QContextMenuEvent(Reason reason, const QPoint &pos, const QPoint &globalPos,
       Qt::KeyboardModifiers modifiers);
@@ -1146,7 +1155,7 @@ class Q_GUI_EXPORT QTouchEvent : public QInputEvent
    {
     public:
       enum InfoFlag {
-         Pen  = 0x0001
+         Pen = 0x0001
       };
       using InfoFlags = QFlags<InfoFlag>;
 
@@ -1206,7 +1215,6 @@ class Q_GUI_EXPORT QTouchEvent : public QInputEvent
       InfoFlags flags() const;
       QVector<QPointF> rawScreenPositions() const;
 
-      // internal
       void setId(int id);
       void setState(Qt::TouchPointStates state);
       void setPos(const QPointF &pos);
@@ -1262,7 +1270,6 @@ class Q_GUI_EXPORT QTouchEvent : public QInputEvent
       return _device;
    }
 
-   // internal
    void setWindow(QWindow *xWindow) {
       _window = xWindow;
    }

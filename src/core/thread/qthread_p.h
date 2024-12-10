@@ -43,13 +43,14 @@ class QPostEvent
    QEvent *event;
 
    int priority;
-   inline QPostEvent()
-      : receiver(nullptr), event(nullptr), priority(0) {
-   }
 
-   inline QPostEvent(QObject *r, QEvent *e, int p)
-      : receiver(r), event(e), priority(p) {
-   }
+   QPostEvent()
+      : receiver(nullptr), event(nullptr), priority(0)
+   { }
+
+   QPostEvent(QObject *r, QEvent *e, int p)
+      : receiver(r), event(e), priority(p)
+   { }
 };
 
 inline bool operator<(const QPostEvent &first, const QPostEvent &second)
@@ -57,8 +58,7 @@ inline bool operator<(const QPostEvent &first, const QPostEvent &second)
    return first.priority > second.priority;
 }
 
-// This class holds the list of posted events.
-//  The list has to be kept sorted by priority
+// this class holds the list of posted events and must be kept sorted by priority
 class QPostEventList : public QVector<QPostEvent>
 {
  public:
@@ -72,7 +72,7 @@ class QPostEventList : public QVector<QPostEvent>
 
    QMutex mutex;
 
-   inline QPostEventList()
+   QPostEventList()
       : QVector<QPostEvent>(), recursion(0), startOffset(0), insertionOffset(0)
    { }
 
@@ -218,16 +218,16 @@ class QThreadData
 
 class QScopedLoopLevelCounter
 {
-   QThreadData *threadData;
+   QThreadData *m_threadData;
 
  public:
    QScopedLoopLevelCounter(QThreadData *threadData)
-      : threadData(threadData) {
-      ++threadData->loopLevel;
+      : m_threadData(threadData) {
+      ++m_threadData->loopLevel;
    }
 
    ~QScopedLoopLevelCounter() {
-      --threadData->loopLevel;
+      --m_threadData->loopLevel;
    }
 };
 

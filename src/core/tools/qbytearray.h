@@ -119,7 +119,7 @@ struct QByteArrayDataPtr {
 
 #define QByteArrayLiteral(str) \
    ([]() -> QByteArrayDataPtr { \
-      enum { Size = sizeof(str) - 1 }; \
+      constexpr const int Size = sizeof(str) - 1; \
       static const QStaticByteArrayData<Size> qbytearray_literal = \
       { { Q_REFCOUNT_INITIALIZE_STATIC, Size, 0, 0, sizeof(QByteArrayData) }, str }; \
       QByteArrayDataPtr holder = { qbytearray_literal.data_ptr() }; \
@@ -161,10 +161,8 @@ class Q_CORE_EXPORT QByteArray
       other.d = Data::sharedNull();
    }
 
-   // internal
    QByteArray(int size, Qt::NoDataOverload dummy);
 
-   // internal
    QByteArray(QByteArrayDataPtr dd)
       : d(static_cast<Data *>(dd.ptr)) {
    }

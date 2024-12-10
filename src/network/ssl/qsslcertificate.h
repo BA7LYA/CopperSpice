@@ -36,15 +36,14 @@
 #ifdef QT_SSL
 
 class QDateTime;
+class QDebug;
 class QIODevice;
+class QSslCertificate;
+class QSslCertificateExtension;
+class QSslCertificatePrivate;
 class QSslError;
 class QSslKey;
-class QSslCertificateExtension;
 class QStringList;
-class QSslCertificatePrivate;
-class QSslCertificate;
-
-class QDebug;
 
 Q_NETWORK_EXPORT uint qHash(const QSslCertificate &key, uint seed = 0);
 
@@ -81,7 +80,7 @@ class Q_NETWORK_EXPORT QSslCertificate
    }
 
    bool operator==(const QSslCertificate &other) const;
-   inline bool operator!=(const QSslCertificate &other) const {
+   bool operator!=(const QSslCertificate &other) const {
       return !operator==(other);
    }
 
@@ -125,14 +124,15 @@ class Q_NETWORK_EXPORT QSslCertificate
    static bool importPkcs12(QIODevice *device, QSslKey *key, QSslCertificate *certificate,
                   QList<QSslCertificate> *caCertificates = nullptr, const QByteArray &passPhrase = QByteArray());
 
+   static uint hash(const QSslCertificate &key, uint seed);
+
    Qt::HANDLE handle() const;
 
  private:
    QExplicitlySharedDataPointer<QSslCertificatePrivate> d;
+
    friend class QSslCertificatePrivate;
    friend class QSslSocketBackendPrivate;
-
-   friend Q_NETWORK_EXPORT uint qHash(const QSslCertificate &key, uint seed);
 };
 
 Q_NETWORK_EXPORT QDebug operator<<(QDebug debug, const QSslCertificate &certificate);

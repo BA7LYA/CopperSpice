@@ -23,11 +23,11 @@
 
 #include <qplatform_dialoghelper.h>
 
-#include <qshareddata.h>
-#include <qsettings.h>
-#include <qurl.h>
 #include <qcolor.h>
 #include <qregularexpression.h>
+#include <qsettings.h>
+#include <qshareddata.h>
+#include <qurl.h>
 #include <qvariant.h>
 
 #include <algorithm>
@@ -237,7 +237,8 @@ void QPlatformFontDialogHelper::setOptions(const QSharedPointer<QFontDialogOptio
 class QColorDialogStaticData
 {
  public:
-   enum { CustomColorCount = 16, StandardColorCount = 6 * 8 };
+   static constexpr const int CustomColorCount   = 16;
+   static constexpr const int StandardColorCount = 6 * 8;
 
    QColorDialogStaticData();
    inline void readSettings();

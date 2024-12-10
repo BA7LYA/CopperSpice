@@ -21,13 +21,12 @@
 *
 ***********************************************************************/
 
-#include <qlocale_p.h>
-
 #include <qdatetime.h>
 #include <qdebug.h>
 #include <qstringlist.h>
 #include <qvariant.h>
 
+#include <qlocale_p.h>
 #include <qlocale_tools_p.h>
 #include <qsystemlibrary_p.h>
 
@@ -1016,8 +1015,7 @@ static const WindowsToISOListElt windows_to_iso_list[] = {
    { 0x500a, "es_PR" }
 };
 
-static const int windows_to_iso_count
-   = sizeof(windows_to_iso_list) / sizeof(WindowsToISOListElt);
+static constexpr const int windows_to_iso_count = sizeof(windows_to_iso_list) / sizeof(WindowsToISOListElt);
 
 static const char *winLangCodeToIsoName(int code)
 {

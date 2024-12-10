@@ -21,12 +21,13 @@
 *
 ***********************************************************************/
 
-#include <qeventloop.h>
 #include <qnetworksession.h>
+#include <qnetworksession_p.h>
+
+#include <qeventloop.h>
 #include <qtimer.h>
 #include <qthread.h>
 
-#include <qnetworksession_p.h>
 #include <qbearerengine_p.h>
 #include <qnetworkconfigmanager_p.h>
 
@@ -263,7 +264,6 @@ void QNetworkSessionPrivate::setUsagePolicies(QNetworkSession &session, QNetwork
    session.d->setUsagePolicies(policies);
 }
 
-// internal
 void QNetworkSession::connectNotify(const QMetaMethod &signal) const
 {
    QObject::connectNotify(signal);
@@ -283,7 +283,6 @@ void QNetworkSession::connectNotify(const QMetaMethod &signal) const
    }
 }
 
-// internal
 void QNetworkSession::disconnectNotify(const QMetaMethod &signal) const
 {
    QObject::disconnectNotify(signal);

@@ -24,19 +24,17 @@
 #ifndef QOUTLINEMAPPER_P_H
 #define QOUTLINEMAPPER_P_H
 
+#include <qpainterpath.h>
 #include <qrect.h>
 #include <qtransform.h>
-#include <qpainterpath.h>
 #include <qvector.h>
 
-#include <qrasterdefs_p.h>
 #include <qpaintengineex_p.h>
+#include <qrasterdefs_p.h>
 
 // This limitations comes from qgrayraster.c. Any higher and
 // rasterization of shapes will produce incorrect results.
-const int QT_RASTER_COORD_LIMIT = 32767;
-
-//#define QT_DEBUG_CONVERT
+static constexpr const int QT_RASTER_COORD_LIMIT = 32767;
 
 Q_GUI_EXPORT bool qt_scaleForTransform(const QTransform &transform, qreal *scale);
 
@@ -67,8 +65,9 @@ class QOutlineMapper
    }
 
    void beginOutline(Qt::FillRule fillRule) {
-#ifdef QT_DEBUG_CONVERT
-      printf("QOutlineMapper::beginOutline() rule=%d\n", fillRule);
+
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
+      qDebug("QOutlineMapper::beginOutline() rule = %d", fillRule);
 #endif
 
       m_valid = true;
@@ -79,8 +78,8 @@ class QOutlineMapper
       m_contours.clear();
 
       m_outline.flags = fillRule == Qt::WindingFill
-         ? QT_FT_OUTLINE_NONE
-         : QT_FT_OUTLINE_EVEN_ODD_FILL;
+         ? QT_FT_OUTLINE_NONE : QT_FT_OUTLINE_EVEN_ODD_FILL;
+
       m_subpath_start = 0;
    }
 
@@ -91,8 +90,9 @@ class QOutlineMapper
    void convertElements(const QPointF *points, const QPainterPath::ElementType *types, int count);
 
    void moveTo(const QPointF &pt) {
-#ifdef QT_DEBUG_CONVERT
-      printf("QOutlineMapper::moveTo() (%f, %f)\n", pt.x(), pt.y());
+
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
+      qDebug("QOutlineMapper::moveTo() pointf = (%f, %f)", pt.x(), pt.y());
 #endif
 
       closeSubpath();
@@ -102,9 +102,11 @@ class QOutlineMapper
    }
 
    void lineTo(const QPointF &pt) {
-#ifdef QT_DEBUG_CONVERT
-      printf("QOutlineMapper::lineTo() (%f, %f)\n", pt.x(), pt.y());
+
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
+      qDebug("QOutlineMapper::lineTo() pointf = (%f, %f)", pt.x(), pt.y());
 #endif
+
       m_elements.append(pt);
       m_element_types << QPainterPath::LineToElement;
    }
@@ -116,12 +118,8 @@ class QOutlineMapper
 
       if (element_count > 0) {
          if (m_elements.at(element_count - 1) != m_elements.at(m_subpath_start)) {
-#ifdef QT_DEBUG_CONVERT
-            printf(" - implicitly closing\n");
-#endif
             // Put the object on the stack to avoid the odd case where
-            // lineTo reallocs the databuffer and the QPointF & will
-            // be invalidated.
+            // lineTo reallocs the databuffer and the QPointF & will be invalidated.
             QPointF pt = m_elements.at(m_subpath_start);
 
             // only do lineTo if we have element_type array...
@@ -146,8 +144,7 @@ class QOutlineMapper
    QT_FT_Outline *convertPath(const QPainterPath &path);
    QT_FT_Outline *convertPath(const QVectorPath &path);
 
-   inline const QPainterPath::ElementType *elementTypes() const {
-
+   const QPainterPath::ElementType *elementTypes() const {
       if (m_element_types.size() == 0) {
          return nullptr;
       } else {

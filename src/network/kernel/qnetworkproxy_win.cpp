@@ -25,20 +25,19 @@
 
 #ifndef QT_NO_NETWORKPROXY
 
-#include <qnetworkinterface.h>
-
 #include <qmutex.h>
-#include <qstringlist.h>
+#include <qnetworkinterface.h>
 #include <qregularexpression.h>
+#include <qstringlist.h>
+#include <qt_windows.h>
 #include <qurl.h>
 #include <qvarlengtharray.h>
 
 #include <qsystemlibrary_p.h>
 
-#include <string.h>
-#include <qt_windows.h>
-#include <wininet.h>
 #include <lmcons.h>
+#include <string.h>
+#include <wininet.h>
 
 /*
  * Information on the WinHTTP DLL:
@@ -198,7 +197,7 @@ static bool isBypassed(const QString &host, const QStringList &bypassList)
          if (isIpAddress) {
             //exclude all local subnets
             for (const QNetworkInterface &iface : QNetworkInterface::allInterfaces()) {
-               for (const QNetworkAddressEntry netaddr : iface.addressEntries()) {
+               for (const QNetworkAddressEntry &netaddr : iface.addressEntries()) {
                   if (ipAddress.isInSubnet(netaddr.ip(), netaddr.prefixLength())) {
                      return true;
                   }

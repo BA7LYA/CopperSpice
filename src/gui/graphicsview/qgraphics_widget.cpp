@@ -57,7 +57,6 @@ QGraphicsWidget::QGraphicsWidget(QGraphicsItem *parent, Qt::WindowFlags flags)
    d->init(parent, flags);
 }
 
-// internal
 QGraphicsWidget::QGraphicsWidget(QGraphicsWidgetPrivate &dd, QGraphicsItem *parent, Qt::WindowFlags wFlags)
    : QGraphicsObject(dd, nullptr), QGraphicsLayoutItem(nullptr, false)
 {
@@ -65,7 +64,6 @@ QGraphicsWidget::QGraphicsWidget(QGraphicsWidgetPrivate &dd, QGraphicsItem *pare
    d->init(parent, wFlags);
 }
 
-// internal
 class QGraphicsWidgetStyles
 {
  public:
@@ -454,36 +452,41 @@ void QGraphicsWidget::initStyleOption(QStyleOption *option) const
    } else {
       option->palette.setCurrentColorGroup(QPalette::Inactive);
    }
+
    option->fontMetrics = QFontMetrics(font());
    option->styleObject = const_cast<QGraphicsWidget *>(this);
 }
 
-/*!
-    \reimp
-*/
 QSizeF QGraphicsWidget::sizeHint(Qt::SizeHint which, const QSizeF &constraint) const
 {
    Q_D(const QGraphicsWidget);
    QSizeF sh;
+
    if (d->layout) {
       QSizeF marginSize(0, 0);
+
       if (d->margins) {
          marginSize = QSizeF(d->margins[d->Left] + d->margins[d->Right],
                d->margins[d->Top] + d->margins[d->Bottom]);
       }
+
       sh = d->layout->effectiveSizeHint(which, constraint - marginSize);
       sh += marginSize;
+
    } else {
       switch (which) {
          case Qt::MinimumSize:
             sh = QSizeF(0, 0);
             break;
+
          case Qt::PreferredSize:
             sh = QSizeF(50, 50);    //rather arbitrary
             break;
+
          case Qt::MaximumSize:
             sh = QSizeF(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
             break;
+
          default:
             qWarning("QGraphicsWidget::sizeHint() Value for size hint is not valid");
             break;
@@ -640,11 +643,9 @@ void QGraphicsWidget::updateGeometry()
          }
 
       } else {
-         /**
-          * If this is the topmost widget, post a LayoutRequest event to the widget.
-          * When the event is received, it will start flowing all the way down to the leaf
-          * widgets in one go. This will make a relayout flicker-free.
-          */
+         // If this is the topmost widget, post a LayoutRequest event to the widget.
+         // When the event is received, it will start flowing all the way down to the leaf
+         // widgets in one go. This will make a relayout flicker-free.
 
          if (QGraphicsLayout::instantInvalidatePropagation()) {
 
@@ -732,7 +733,6 @@ QVariant QGraphicsWidget::itemChange(GraphicsItemChange change, const QVariant &
    return QGraphicsItem::itemChange(change, value);
 }
 
-// internal
 QVariant QGraphicsWidget::propertyChange(const QString &propertyName, const QVariant &value)
 {
    (void) propertyName;

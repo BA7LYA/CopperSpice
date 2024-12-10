@@ -29,9 +29,11 @@
 class QSystemConfigurationProxyFactory : public QNetworkProxyFactory
 {
  public:
-   QSystemConfigurationProxyFactory() : QNetworkProxyFactory() {}
+   QSystemConfigurationProxyFactory()
+      : QNetworkProxyFactory()
+   { }
 
-   virtual QList<QNetworkProxy> queryProxy(const QNetworkProxyQuery &query)  {
+   QList<QNetworkProxy> queryProxy(const QNetworkProxyQuery &query) override {
       QList<QNetworkProxy> proxies = QNetworkProxyFactory::systemProxyForQuery(query);
 
       // Make sure NoProxy is in the list, so that QTcpServer can work:

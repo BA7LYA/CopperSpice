@@ -22,34 +22,39 @@
 ***********************************************************************/
 
 #include <qcameraimageprocessing.h>
-#include <qmediaobject_p.h>
 
 #include <qcameracontrol.h>
 #include <qcameraexposurecontrol.h>
 #include <qcamerafocuscontrol.h>
+#include <qcameraimagecapturecontrol.h>
+#include <qcameraimageprocessingcontrol.h>
 #include <qdebug.h>
 #include <qmediarecordercontrol.h>
-#include <qcameraimageprocessingcontrol.h>
-#include <qcameraimagecapturecontrol.h>
 #include <qvideodeviceselectorcontrol.h>
+
+#include <qmediaobject_p.h>
 
 class QCameraImageProcessingFakeControl : public QCameraImageProcessingControl
 {
  public:
    QCameraImageProcessingFakeControl(QObject *parent)
-      : QCameraImageProcessingControl(parent) {
+      : QCameraImageProcessingControl(parent)
+   { }
+
+   bool isParameterSupported(ProcessingParameter) const override {
+      return false;
    }
 
-   bool isParameterSupported(ProcessingParameter) const {
+   bool isParameterValueSupported(ProcessingParameter, const QVariant &) const override {
       return false;
    }
-   bool isParameterValueSupported(ProcessingParameter, const QVariant &) const {
-      return false;
-   }
-   QVariant parameter(ProcessingParameter) const {
+
+   QVariant parameter(ProcessingParameter) const override {
       return QVariant();
    }
-   void setParameter(ProcessingParameter, const QVariant &) {}
+
+   void setParameter(ProcessingParameter, const QVariant &) override {
+   }
 };
 
 class QCameraImageProcessingPrivate : public QMediaObjectPrivate

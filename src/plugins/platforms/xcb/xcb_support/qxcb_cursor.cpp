@@ -23,13 +23,13 @@
 
 #include <qxcb_cursor.h>
 
-#include <qxcb_connection.h>
-#include <qxcb_window.h>
-#include <qxcb_image.h>
-#include <qxcb_xsettings.h>
+#include <qbitmap.h>
 #include <qlibrary.h>
 #include <qwindow.h>
-#include <qbitmap.h>
+#include <qxcb_connection.h>
+#include <qxcb_image.h>
+#include <qxcb_window.h>
+#include <qxcb_xsettings.h>
 
 #include <qapplication_p.h>
 
@@ -44,10 +44,8 @@ typedef int (*PtrXcursorLibraryGetDefaultSize)(void *);
 
 #if defined(XCB_USE_XLIB)
 #include <X11/Xlib.h>
-enum {
-   XCursorShape = CursorShape
-};
 
+static constexpr const auto XCursorShape = CursorShape;
 #undef CursorShape
 
 static PtrXcursorLibraryLoadCursor ptrXcursorLibraryLoadCursor = nullptr;

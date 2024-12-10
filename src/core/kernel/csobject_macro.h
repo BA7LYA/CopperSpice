@@ -26,7 +26,6 @@
 
 #include <cs_signal.h>
 #include <cs_slot.h>
-
 #include <qglobal.h>
 
 #include <optional>
@@ -273,9 +272,9 @@ class cs_number<0>
 
 #define CS_INTERFACES(...)                     \
  public: \
-   bool cs_interface_query(const QString &data) const override \
+   bool cs_interface_query(const QString &interfaceData) const override \
    {  \
-      if (cs_factory_interface_query<__VA_ARGS__>(data)) { \
+      if (cs_factory_interface_query<__VA_ARGS__>(interfaceData)) { \
          return true;                          \
       }  \
       return false;                            \
@@ -497,7 +496,7 @@ class cs_number<0>
    cs_regTrigger(cs_number<cntValue + 1>{} );                                                \
    }
 
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_CORE)
 
 #define CS_NUMBER_TO_STRING_INTERNAL(number)       #number
 #define CS_NUMBER_TO_STRING(number)                CS_NUMBER_TO_STRING_INTERNAL(number)
@@ -561,7 +560,8 @@ class cs_number<0>
       using T = decltype(&cs_class::method);                                          \
       const_cast<QMetaObject_T<cs_class>&>(cs_class::staticMetaObject())              \
             .register_property_write(#name,                                           \
-            new SpiceJarWrite<cs_class, cs_argType<T>::type>(&cs_class::method));     \
+            new SpiceJarWrite<cs_class, cs_argType<T>::type>(&cs_class::method),      \
+            #method);                                                                 \
       cs_regTrigger(cs_number<CS_TOKENPASTE2(cs_counter_value, __LINE__) + 1>{});     \
    }
 

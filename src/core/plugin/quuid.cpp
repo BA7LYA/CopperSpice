@@ -23,11 +23,11 @@
 
 #include <quuid.h>
 
-#include <qdebug.h>
-#include <qdatastream.h>
-#include <qendian.h>
 #include <qcryptographichash.h>
+#include <qdatastream.h>
 #include <qdatetime.h>
+#include <qdebug.h>
+#include <qendian.h>
 #include <qfile.h>
 #include <qthreadstorage.h>
 
@@ -442,6 +442,8 @@ static QThreadStorage<QFile *> *devUrandomStorage()
 
 QUuid QUuid::createUuid()
 {
+   static constexpr const int AmountToRead = 4 * sizeof(uint);
+
    QUuid result;
    uint *data = &(result.data1);
 
@@ -456,21 +458,17 @@ QUuid QUuid::createUuid()
       devUrandomStorage()->setLocalData(devUrandom);
    }
 
-   enum { AmountToRead = 4 * sizeof(uint) };
-
    if (devUrandom->isOpen() && devUrandom->read((char *) data, AmountToRead) == AmountToRead) {
-      // we got what we wanted, nothing more to do
-      ;
+      // nothing more to do
 
    } else
-
 #endif
 
    {
-      static const int intbits = sizeof(int) * 8;
+      static constexpr const int intbits = sizeof(int) * 8;
       static int randbits = 0;
 
-      if (!randbits) {
+      if (! randbits) {
          int r = 0;
          int max = RAND_MAX;
 
@@ -514,7 +512,7 @@ QUuid QUuid::createUuid()
 
    return result;
 }
-#endif // !Q_OS_WIN
+#endif
 
 QDebug operator<<(QDebug dbg, const QUuid &id)
 {

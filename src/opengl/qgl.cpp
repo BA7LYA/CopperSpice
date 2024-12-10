@@ -22,31 +22,31 @@
 ***********************************************************************/
 
 #include <qgl.h>
+#include <qgl_p.h>
 
 #include <qapplication.h>
 #include <qcolormap.h>
-#include <qdebug.h>
 #include <qdatetime.h>
+#include <qdebug.h>
 #include <qfile.h>
+#include <qglframebufferobject.h>
+#include <qglfunctions.h>
+#include <qglpixelbuffer.h>
 #include <qimage.h>
 #include <qlibrary.h>
-#include <qglfunctions.h>
 #include <qmutex.h>
 #include <qpixmap.h>
+#include <qplatform_openglcontext.h>
+#include <qplatform_openglcontext.h>
 #include <qplatform_pixmap.h>
-#include <qplatform_openglcontext.h>
 #include <qplatform_window.h>
-#include <qplatform_openglcontext.h>
 #include <qsurfaceformat.h>
 
 #include <qapplication_p.h>
+#include <qglpixelbuffer_p.h>
 #include <qimage_p.h>
 #include <qimagepixmapcleanuphooks_p.h>
-#include <qgl_p.h>
-#include <qglpixelbuffer_p.h>
 #include <qpaintengineex_opengl2_p.h>
-#include <qglpixelbuffer.h>
-#include <qglframebufferobject.h>
 
 #ifndef QT_OPENGL_ES_2
 #include <qopenglfunctions_1_1.h>
@@ -146,7 +146,7 @@ static QGLFormat *qgl_default_format()
 class QGLDefaultOverlayFormat: public QGLFormat
 {
  public:
-   inline QGLDefaultOverlayFormat() {
+   QGLDefaultOverlayFormat() {
       setOption(QGL::FormatOption(0xffff << 16)); // turn off all options
       setOption(QGL::DirectRendering);
       setPlane(1);
@@ -237,7 +237,6 @@ QGLFormat::QGLFormat(QGL::FormatOptions options, int plane)
    d->pln = plane;
 }
 
-// internal
 void QGLFormat::detach()
 {
    if (d->ref.load() != 1) {
@@ -1554,7 +1553,6 @@ static void convertToGLFormatHelper(QImage &dst, const QImage &img, GLenum textu
    }
 }
 
-/*! \internal */
 QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, GLint format,
    QGLContext::BindOptions options)
 {
@@ -1588,20 +1586,18 @@ QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, G
    return texture;
 }
 
-// #define QGL_BIND_TEXTURE_DEBUG
-
 #ifndef GL_UNSIGNED_INT_8_8_8_8_REV
 #define GL_UNSIGNED_INT_8_8_8_8_REV 0x8367
 #endif
 
-// map from Qt's ARGB endianness-dependent format to GL's big-endian RGBA layout
+// map from our ARGB endianness dependent format to GL's big-endian RGBA layout
 static inline void qgl_byteSwapImage(QImage &img, GLenum pixel_type)
 {
    const int width = img.width();
    const int height = img.height();
 
    if (pixel_type == GL_UNSIGNED_INT_8_8_8_8_REV
-      || (pixel_type == GL_UNSIGNED_BYTE && QSysInfo::ByteOrder == QSysInfo::LittleEndian)) {
+         || (pixel_type == GL_UNSIGNED_BYTE && QSysInfo::ByteOrder == QSysInfo::LittleEndian)) {
       for (int i = 0; i < height; ++i) {
          uint *p = (uint *) img.scanLine(i);
          for (int x = 0; x < width; ++x) {
@@ -1622,18 +1618,20 @@ QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, G
    const qint64 key, QGLContext::BindOptions options)
 {
    Q_Q(QGLContext);
+
    QOpenGLFunctions *funcs = qgl_functions();
 
-#ifdef QGL_BIND_TEXTURE_DEBUG
-   printf("QGLContextPrivate::bindTexture(), imageSize=(%d,%d), internalFormat =0x%x, options=%x, key=%llx\n",
+#if defined(CS_SHOW_DEBUG_OPENGL)
+   qDebug("QGLContext::bindTexture() imageSize = %dx%d, internalFormat = 0x%x, options = %x, key = %llx",
       image.width(), image.height(), internalFormat, int(options), key);
+
    QTime time;
    time.start();
-#endif
 
-#if defined(QT_DEBUG)
-   // Reset the gl error stack...git
-   while (funcs->glGetError() != GL_NO_ERROR) ;
+   // Reset the gl error stack
+   while (funcs->glGetError() != GL_NO_ERROR) {
+      // do nothing
+   }
 #endif
 
    // Scale the pixmap if needed. GL textures needs to have the
@@ -1644,14 +1642,13 @@ QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, G
 
    QImage img = image;
 
-   if (!qgl_extensions()->hasOpenGLFeature(QOpenGLFunctions::NPOTTextures)
-      && !(QGLFormat::openGLVersionFlags() & QGLFormat::OpenGL_ES_Version_2_0)
-      && (target == GL_TEXTURE_2D && (tx_w != image.width() || tx_h != image.height()))) {
+   if (! qgl_extensions()->hasOpenGLFeature(QOpenGLFunctions::NPOTTextures)
+         && !(QGLFormat::openGLVersionFlags() & QGLFormat::OpenGL_ES_Version_2_0)
+         && (target == GL_TEXTURE_2D && (tx_w != image.width() || tx_h != image.height()))) {
       img = img.scaled(tx_w, tx_h);
 
-#ifdef QGL_BIND_TEXTURE_DEBUG
-      printf(" - upscaled to %dx%d (%d ms)\n", tx_w, tx_h, time.elapsed());
-
+#if defined(CS_SHOW_DEBUG_OPENGL)
+      qDebug("QGLContext::bindTexture() Upscaled to %dx%d (%d ms)", tx_w, tx_h, time.elapsed());
 #endif
    }
 
@@ -1685,9 +1682,10 @@ QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, G
       funcs->glTexParameteri(target, GL_TEXTURE_MIN_FILTER, options & QGLContext::LinearFilteringBindOption
          ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_NEAREST);
 
-#ifdef QGL_BIND_TEXTURE_DEBUG
-      printf(" - generating mipmaps (%d ms)\n", time.elapsed());
+#if defined(CS_SHOW_DEBUG_OPENGL)
+      qDebug("QGLContext::bindTexture() Generating mipmaps (%d ms)", time.elapsed());
 #endif
+
    } else {
       funcs->glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering);
    }
@@ -1724,16 +1722,20 @@ QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, G
       case QImage::Format_ARGB32:
          if (premul) {
             img = img.convertToFormat(target_format = QImage::Format_ARGB32_Premultiplied);
-#ifdef QGL_BIND_TEXTURE_DEBUG
-            printf(" - converted ARGB32 -> ARGB32_Premultiplied (%d ms) \n", time.elapsed());
+
+#if defined(CS_SHOW_DEBUG_OPENGL)
+            qDebug("QGLContext::bindTexture() Converted ARGB32 to ARGB32_Premultiplied (%d ms)",
+                  time.elapsed());
 #endif
          }
          break;
+
       case QImage::Format_ARGB32_Premultiplied:
-         if (!premul) {
+         if (! premul) {
             img = img.convertToFormat(target_format = QImage::Format_ARGB32);
-#ifdef QGL_BIND_TEXTURE_DEBUG
-            printf(" - converted ARGB32_Premultiplied -> ARGB32 (%d ms)\n", time.elapsed());
+
+#if defined(CS_SHOW_DEBUG_OPENGL)
+            printf("Converted ARGB32_Premultiplied to ARGB32 (%d ms)\n", time.elapsed());
 #endif
          }
          break;
@@ -1741,17 +1743,21 @@ QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, G
       case QImage::Format_RGBA8888:
          if (premul) {
             img = img.convertToFormat(target_format = QImage::Format_RGBA8888_Premultiplied);
-#ifdef QGL_BIND_TEXTURE_DEBUG
-            printf(" - converted RGBA8888 -> RGBA8888_Premultiplied (%d ms) \n", time.elapsed());
+
+#if defined(CS_SHOW_DEBUG_OPENGL)
+            qDebug("QGLContext::bindTexture() Converted RGBA8888 to RGBA8888_Premultiplied (%d ms)",
+                  time.elapsed());
 #endif
          }
          break;
 
       case QImage::Format_RGBA8888_Premultiplied:
-         if (!premul) {
+         if (! premul) {
             img = img.convertToFormat(target_format = QImage::Format_RGBA8888);
-#ifdef QGL_BIND_TEXTURE_DEBUG
-            printf(" - converted RGBA8888_Premultiplied -> RGBA8888 (%d ms) \n", time.elapsed());
+
+#if defined(CS_SHOW_DEBUG_OPENGL)
+            qDebug("QGLContext::bindTexture() Converted RGBA8888_Premultiplied to RGBA8888 (%d ms)",
+                  time.elapsed());
 #endif
          }
          break;
@@ -1762,21 +1768,24 @@ QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, G
          internalFormat = GL_RGB;
          needsbyteswap = false;
          break;
+
       case QImage::Format_RGB32:
       case QImage::Format_RGBX8888:
          break;
+
       default:
          if (img.hasAlphaChannel()) {
-            img = img.convertToFormat(premul
-                  ? QImage::Format_ARGB32_Premultiplied
-                  : QImage::Format_ARGB32);
-#ifdef QGL_BIND_TEXTURE_DEBUG
-            printf(" - converted to 32-bit alpha format (%d ms)\n", time.elapsed());
+            img = img.convertToFormat(premul ? QImage::Format_ARGB32_Premultiplied : QImage::Format_ARGB32);
+
+#if defined(CS_SHOW_DEBUG_OPENGL)
+            qDebug("QGLContext::bindTexture() Converted to 32-bit alpha format (%d ms)", time.elapsed());
 #endif
+
          } else {
             img = img.convertToFormat(QImage::Format_RGB32);
-#ifdef QGL_BIND_TEXTURE_DEBUG
-            printf(" - converted to 32-bit (%d ms)\n", time.elapsed());
+
+#if defined(CS_SHOW_DEBUG_OPENGL)
+            qDebug("QGLContext::bindTexture() Converted to 32-bit (%d ms)", time.elapsed());
 #endif
          }
    }
@@ -1785,6 +1794,7 @@ QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, G
       if (img.isDetached()) {
          int ipl = img.bytesPerLine() / 4;
          int h = img.height();
+
          for (int y = 0; y < h / 2; ++y) {
             int *a = (int *) img.scanLine(y);
             int *b = (int *) img.scanLine(h - y - 1);
@@ -1792,6 +1802,7 @@ QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, G
                qSwap(a[x], b[x]);
             }
          }
+
       } else {
          // Create a new image and copy across.  If we use the
          // above in-place code then a full copy of the image is
@@ -1799,8 +1810,9 @@ QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, G
          // data twice.  This version should only do it once.
          img = img.mirrored();
       }
-#ifdef QGL_BIND_TEXTURE_DEBUG
-      printf(" - flipped bits over y (%d ms)\n", time.elapsed());
+
+#if defined(CS_SHOW_DEBUG_OPENGL)
+      qDebug("QGLContext::bindTexture() Flipped bits over y (%d ms)", time.elapsed());
 #endif
    }
 
@@ -1811,23 +1823,22 @@ QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, G
       Q_ASSERT(img.depth() == 32);
       qgl_byteSwapImage(img, pixel_type);
 
-#ifdef QGL_BIND_TEXTURE_DEBUG
-      printf(" - did byte swapping (%d ms)\n", time.elapsed());
+#if defined(CS_SHOW_DEBUG_OPENGL)
+      qDebug("QGLContext::bindTexture() Byte swapping (%d ms)", time.elapsed());
 #endif
    }
 
    if (ctx->isOpenGLES()) {
-      // OpenGL/ES requires that the internal and external formats be
-      // identical.
+      // OpenGL/ES requires that the internal and external formats be identical
       internalFormat = externalFormat;
    }
 
-#ifdef QGL_BIND_TEXTURE_DEBUG
-   printf(" - uploading, image.format=%d, externalFormat=0x%x, internalFormat=0x%x, pixel_type=0x%x\n",
-      img.format(), externalFormat, internalFormat, pixel_type);
+#if defined(CS_SHOW_DEBUG_OPENGL)
+   qDebug("QGLContext::bindTexture() Uploading, image format = %d, externalFormat = 0x%x,"
+         "internalFormat = 0x%x, pixel_type = 0x%x", img.format(), externalFormat, internalFormat, pixel_type);
 #endif
 
-   const QImage &constRef = img; // to avoid detach in bits()...
+   const QImage &constRef = img; // to avoid detach in bits()
 
    funcs->glTexImage2D(target, 0, internalFormat, img.width(), img.height(), 0, externalFormat,
       pixel_type, constRef.bits());
@@ -1836,17 +1847,19 @@ QGLTexture *QGLContextPrivate::bindTexture(const QImage &image, GLenum target, G
       q->functions()->glGenerateMipmap(target);
    }
 
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_OPENGL)
    GLenum error = funcs->glGetError();
    if (error != GL_NO_ERROR) {
-      qWarning(" - texture upload failed, error code 0x%x, enum: %d (%x)\n", error, target, target);
+      qDebug("QGLContext::bindTexture() Texture upload failed, error code = 0x%x, enum = %d (%x)",
+            error, target, target);
    }
 #endif
 
-#ifdef QGL_BIND_TEXTURE_DEBUG
+#if defined(CS_SHOW_DEBUG_OPENGL)
    static int totalUploadTime = 0;
    totalUploadTime += time.elapsed();
-   printf(" - upload done in %d ms, (accumulated: %d ms)\n", time.elapsed(), totalUploadTime);
+   qDebug("QGLContext::bindTexture() Upload done in %d msecs, accumulated time = %d msecs",
+         time.elapsed(), totalUploadTime);
 #endif
 
    // this assumes the size of a texture is always smaller than the max cache size
@@ -1869,8 +1882,8 @@ QGLTexture *QGLContextPrivate::textureCacheLookup(const qint64 key, GLenum targe
    return nullptr;
 }
 
-// internal
-QGLTexture *QGLContextPrivate::bindTexture(const QPixmap &pixmap, GLenum target, GLint format, QGLContext::BindOptions options)
+QGLTexture *QGLContextPrivate::bindTexture(const QPixmap &pixmap, GLenum target, GLint format,
+      QGLContext::BindOptions options)
 {
    Q_Q(QGLContext);
 
@@ -2240,12 +2253,12 @@ void QGLContext::setFormat(const QGLFormat &format)
    d->glFormat = d->reqFormat = format;
 }
 
-// internal
 void QGLContext::setDevice(QPaintDevice *pDev)
 {
    Q_D(QGLContext);
 
    d->paintDevice = pDev;
+
    if (d->paintDevice && (d->paintDevice->devType() != QInternal::Widget
          && d->paintDevice->devType() != QInternal::Pixmap
          && d->paintDevice->devType() != QInternal::Pbuffer)) {
@@ -2964,15 +2977,17 @@ void QGLWidget::renderText(int x, int y, const QString &str, const QFont &font)
 {
 #ifndef QT_OPENGL_ES
    Q_D(QGLWidget);
-   if (!d->glcx->contextHandle()->isOpenGLES()) {
-      Q_D(QGLWidget);
-      if (str.isEmpty() || !isValid()) {
+
+   if (! d->glcx->contextHandle()->isOpenGLES()) {
+
+      if (str.isEmpty() || ! isValid()) {
          return;
       }
 
       QOpenGLFunctions *funcs = qgl_functions();
       GLint view[4];
       bool use_scissor_testing = funcs->glIsEnabled(GL_SCISSOR_TEST);
+
       if (!use_scissor_testing) {
          funcs->glGetIntegerv(GL_VIEWPORT, &view[0]);
       }
@@ -3036,15 +3051,15 @@ void QGLWidget::renderText(int x, int y, const QString &str, const QFont &font)
 #endif
 
    qWarning("QGLWidget::renderText is not supported under OpenGL/ES");
-
 }
 
 void QGLWidget::renderText(double x, double y, double z, const QString &str, const QFont &font)
 {
 #ifndef QT_OPENGL_ES
    Q_D(QGLWidget);
-   if (!d->glcx->contextHandle()->isOpenGLES()) {
-      Q_D(QGLWidget);
+
+   if (! d->glcx->contextHandle()->isOpenGLES()) {
+
       if (str.isEmpty() || !isValid()) {
          return;
       }

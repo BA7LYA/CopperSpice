@@ -22,12 +22,12 @@
 ***********************************************************************/
 
 #include <qtimezone.h>
+#include <qtimezone_p.h>
 
 #include <qdatetime.h>
 #include <qdatastream.h>
 #include <qdebug.h>
 
-#include <qtimezone_p.h>
 #include <qtimezone_data_p.h>
 
 #include <algorithm>
@@ -61,9 +61,9 @@ static QTimeZonePrivate *newBackendTimeZone()
 }
 
 // Static utilities for looking up Windows ID tables
-static const int windowsDataTableSize = sizeof(windowsDataTable) / sizeof(QWindowsData) - 1;
-static const int zoneDataTableSize    = sizeof(zoneDataTable) / sizeof(QZoneData) - 1;
-static const int utcDataTableSize     = sizeof(utcDataTable) / sizeof(QUtcData) - 1;
+static constexpr const int windowsDataTableSize = sizeof(windowsDataTable) / sizeof(QWindowsData) - 1;
+static constexpr const int zoneDataTableSize    = sizeof(zoneDataTable) / sizeof(QZoneData) - 1;
+static constexpr const int utcDataTableSize     = sizeof(utcDataTable) / sizeof(QUtcData) - 1;
 
 static const QZoneData *zoneData(quint16 index)
 {
@@ -908,7 +908,6 @@ QTimeZone::QTimeZone(const QByteArray &ianaId, int offsetSeconds, const QString 
    }
 }
 
-// internal
 QTimeZone::QTimeZone(QTimeZonePrivate &dd)
    : d(&dd)
 {

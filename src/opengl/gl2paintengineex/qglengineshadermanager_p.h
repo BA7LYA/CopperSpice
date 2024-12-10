@@ -298,7 +298,7 @@ class Q_OPENGL_EXPORT QGLEngineSharedShaders
       TotalSnippetCount, InvalidSnippetName
    };
 
-#if defined (QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_OPENGL)
    CS_ENUM(SnippetName)
    static QString snippetNameStr(SnippetName snippetName);
 #endif
@@ -395,7 +395,14 @@ class Q_OPENGL_EXPORT QGLEngineShaderManager : public QObject
    QGLEngineShaderManager(QGLContext *context);
    ~QGLEngineShaderManager();
 
-   enum MaskType {NoMask, PixelMask, SubPixelMaskPass1, SubPixelMaskPass2, SubPixelWithGammaMask};
+   enum MaskType {
+      NoMask,
+      PixelMask,
+      SubPixelMaskPass1,
+      SubPixelMaskPass2,
+      SubPixelWithGammaMask
+   };
+
    enum PixelSrcType {
       ImageSrc = Qt::TexturePattern + 1,
       NonPremultipliedImageSrc = Qt::TexturePattern + 2,

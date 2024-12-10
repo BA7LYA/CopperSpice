@@ -22,16 +22,15 @@
 ***********************************************************************/
 
 #include <qwin_ole.h>
-#include <qwin_mime.h>
-#include <qwin_context.h>
 
-#include <qmouseevent.h>
-#include <qwindow.h>
-#include <qpainter.h>
-#include <qcursor.h>
 #include <qapplication.h>
+#include <qcursor.h>
 #include <qmimedata.h>
-#include <qdebug.h>
+#include <qmouseevent.h>
+#include <qpainter.h>
+#include <qwin_context.h>
+#include <qwin_mime.h>
+#include <qwindow.h>
 
 #include <shlobj.h>
 
@@ -101,14 +100,12 @@ STDMETHODIMP QWindowsOleDataObject::GetData(LPFORMATETC pformatetc, LPSTGMEDIUM 
 
    if (data) {
       const QWindowsMimeConverter &mc = QWindowsContext::instance()->mimeConverter();
-      if (QWindowsMime *converter = mc.converterFromMime(*pformatetc, data))
+
+      if (QWindowsMime *converter = mc.converterFromMime(*pformatetc, data)) {
          if (converter->convertFromMime(*pformatetc, data, pmedium)) {
             hr = ResultFromScode(S_OK);
          }
-   }
-
-   if (QWindowsContext::verbose > 1) {
-      qDebug() << __FUNCTION__ << *pformatetc << "returns: " << hex << showbase << quint64(hr);
+      }
    }
 
    return hr;
@@ -123,18 +120,12 @@ STDMETHODIMP QWindowsOleDataObject::QueryGetData(LPFORMATETC pformatetc)
 {
    HRESULT hr = ResultFromScode(DATA_E_FORMATETC);
 
-   if (QWindowsContext::verbose > 1) {
-      qDebug() << __FUNCTION__;
-   }
-
    if (data) {
       const QWindowsMimeConverter &mc = QWindowsContext::instance()->mimeConverter();
       hr = mc.converterFromMime(*pformatetc, data) ?
          ResultFromScode(S_OK) : ResultFromScode(S_FALSE);
    }
-   if (QWindowsContext::verbose > 1) {
-      qDebug() <<  __FUNCTION__ << " returns 0x" << hex << int(hr);
-   }
+
    return hr;
 }
 
@@ -146,10 +137,6 @@ STDMETHODIMP QWindowsOleDataObject::GetCanonicalFormatEtc(LPFORMATETC, LPFORMATE
 
 STDMETHODIMP QWindowsOleDataObject::SetData(LPFORMATETC pFormatetc, STGMEDIUM *pMedium, BOOL fRelease)
 {
-   if (QWindowsContext::verbose > 1) {
-      qDebug() << __FUNCTION__;
-   }
-
    HRESULT hr = ResultFromScode(E_NOTIMPL);
 
    if (pFormatetc->cfFormat == CF_PERFORMEDDROPEFFECT && pMedium->tymed == TYMED_HGLOBAL) {
@@ -161,18 +148,12 @@ STDMETHODIMP QWindowsOleDataObject::SetData(LPFORMATETC pFormatetc, STGMEDIUM *p
       }
       hr = ResultFromScode(S_OK);
    }
-   if (QWindowsContext::verbose > 1) {
-      qDebug() <<  __FUNCTION__ << " returns 0x" << hex << int(hr);
-   }
+
    return hr;
 }
 
 STDMETHODIMP QWindowsOleDataObject::EnumFormatEtc(DWORD dwDirection, LPENUMFORMATETC FAR *ppenumFormatEtc)
 {
-   if (QWindowsContext::verbose > 1) {
-      qDebug() << __FUNCTION__ << "dwDirection=" << dwDirection;
-   }
-
    if (!data) {
       return ResultFromScode(DATA_E_FORMATETC);
    }
@@ -221,22 +202,14 @@ STDMETHODIMP QWindowsOleDataObject::EnumDAdvise(LPENUMSTATDATA FAR *)
    return ResultFromScode(OLE_E_ADVISENOTSUPPORTED);
 }
 
-/*!
-    \class QWindowsOleEnumFmtEtc
-    \brief Enumerates the FORMATETC structures supported by QWindowsOleDataObject.
-    \internal
-    \ingroup qt-lighthouse-win
-*/
-
 QWindowsOleEnumFmtEtc::QWindowsOleEnumFmtEtc(const QVector<FORMATETC> &fmtetcs) :
-   m_dwRefs(1), m_nIndex(0), m_isNull(false)
+      m_dwRefs(1), m_nIndex(0), m_isNull(false)
 {
-   if (QWindowsContext::verbose > 1) {
-      qDebug() << __FUNCTION__ << fmtetcs;
-   }
    m_lpfmtetcs.reserve(fmtetcs.count());
+
    for (int idx = 0; idx < fmtetcs.count(); ++idx) {
       LPFORMATETC destetc = new FORMATETC();
+
       if (copyFormatEtc(destetc, &(fmtetcs.at(idx)))) {
          m_lpfmtetcs.append(destetc);
       } else {
@@ -250,10 +223,8 @@ QWindowsOleEnumFmtEtc::QWindowsOleEnumFmtEtc(const QVector<FORMATETC> &fmtetcs) 
 QWindowsOleEnumFmtEtc::QWindowsOleEnumFmtEtc(const QVector<LPFORMATETC> &lpfmtetcs) :
    m_dwRefs(1), m_nIndex(0), m_isNull(false)
 {
-   if (QWindowsContext::verbose > 1) {
-      qDebug() << __FUNCTION__;
-   }
    m_lpfmtetcs.reserve(lpfmtetcs.count());
+
    for (int idx = 0; idx < lpfmtetcs.count(); ++idx) {
       LPFORMATETC srcetc = lpfmtetcs.at(idx);
       LPFORMATETC destetc = new FORMATETC();

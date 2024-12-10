@@ -558,7 +558,7 @@ HCURSOR QWindowsCursor::createCursorFromShape(Qt::CursorShape cursorShape, const
       }
    }
 
-   qWarning("QWindowsCursor::createCursorFromShape(): Invalid cursor shape %d", cursorShape);
+   qWarning("QWindowsCursor::createCursorFromShape() Invalid cursor shape %d", cursorShape);
 
    return nullptr;
 }
@@ -641,7 +641,7 @@ void QWindowsCursor::changeCursor(QCursor *cursorIn, QWindow *window)
       QWindowsWindow::baseWindowOf(window)->setCursor(wcursor);
 
    } else {
-      qWarning("QWindowsCursor::changeCursor(): Unable to obtain system cursor for %d", cursorIn->shape());
+      qWarning("QWindowsCursor::changeCursor() Unable to obtain system cursor for %d", cursorIn->shape());
    }
 }
 
@@ -654,14 +654,17 @@ QPoint QWindowsCursor::mousePosition()
 
 QWindowsCursor::CursorState QWindowsCursor::cursorState()
 {
-   enum { cursorShowing = 0x1, cursorSuppressed = 0x2 }; // Windows 8: CURSOR_SUPPRESSED
+   static constexpr const int cursorShowing    = 0x1;
+   static constexpr const int cursorSuppressed = 0x2;    // Windows 8: CURSOR_SUPPRESSED
+
    CURSORINFO cursorInfo;
    cursorInfo.cbSize = sizeof(CURSORINFO);
 
    if (GetCursorInfo(&cursorInfo)) {
-      if (cursorInfo.flags & CursorShowing) {
+      if (cursorInfo.flags & cursorShowing) {
          return CursorShowing;
       }
+
       if (cursorInfo.flags & cursorSuppressed) {
          return CursorSuppressed;
       }

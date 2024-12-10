@@ -50,7 +50,7 @@ struct sockaddr;
       var = cmd;                              \
    } while (var == -1 && errno == EINTR)
 
-// Internal operator functions for timespecs
+// functions for timespecs
 inline timespec &normalizedTimespec(timespec &t)
 {
    while (t.tv_nsec >= 1000000000) {
@@ -61,6 +61,21 @@ inline timespec &normalizedTimespec(timespec &t)
    while (t.tv_nsec < 0) {
       --t.tv_sec;
       t.tv_nsec += 1000000000;
+   }
+
+   return t;
+}
+
+inline timeval &normalizedTimeval(timeval &t)
+{
+   while (t.tv_usec >= 1000000) {
+      ++t.tv_sec;
+      t.tv_usec -= 1000000;
+   }
+
+   while (t.tv_usec < 0) {
+      --t.tv_sec;
+      t.tv_usec += 1000000;
    }
 
    return t;
@@ -207,12 +222,13 @@ static inline int qt_safe_dup(int oldfd, int atleast = 0, int flags = FD_CLOEXEC
 #endif
 }
 
-// don't call dup2, call qt_safe_dup2
+// do not call dup2, call qt_safe_dup2
 static inline int qt_safe_dup2(int oldfd, int newfd, int flags = FD_CLOEXEC)
 {
    Q_ASSERT(flags == FD_CLOEXEC || flags == 0);
 
    int ret;
+
 #ifdef QT_THREADSAFE_CLOEXEC
    // use dup3
    EINTR_LOOP(ret, ::dup3(oldfd, newfd, flags ? O_CLOEXEC : 0));
@@ -239,6 +255,7 @@ static inline qint64 qt_safe_read(int fd, void *data, qint64 maxlen)
    EINTR_LOOP(ret, QT_READ(fd, data, maxlen));
    return ret;
 }
+
 #undef QT_READ
 #define QT_READ qt_safe_read
 
@@ -248,6 +265,7 @@ static inline qint64 qt_safe_write(int fd, const void *data, qint64 len)
    EINTR_LOOP(ret, QT_WRITE(fd, data, len));
    return ret;
 }
+
 #undef QT_WRITE
 #define QT_WRITE qt_safe_write
 
@@ -263,6 +281,7 @@ static inline int qt_safe_close(int fd)
    EINTR_LOOP(ret, QT_CLOSE(fd));
    return ret;
 }
+
 #undef QT_CLOSE
 #define QT_CLOSE qt_safe_close
 

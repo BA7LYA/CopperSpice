@@ -21,12 +21,12 @@
 *
 ***********************************************************************/
 
-#include "qtextureglyphcache_gl_p.h"
-#include "qpaintengineex_opengl2_p.h"
-#include "qglfunctions.h"
+#include <qtextureglyphcache_gl_p.h>
 
-#include "qglengineshadersource_p.h"
+#include <qglfunctions.h>
 
+#include <qglengineshadersource_p.h>
+#include <qpaintengineex_opengl2_p.h>
 
 QAtomicInt qgltextureglyphcache_serial_number = 1;
 
@@ -34,7 +34,7 @@ QGLTextureGlyphCache::QGLTextureGlyphCache(QFontEngine::GlyphFormat format, cons
     : QImageTextureGlyphCache(format, matrix), m_textureResource(nullptr), pex(nullptr), m_blitProgram(nullptr),
       m_filterMode(Nearest), m_serialNumber(qgltextureglyphcache_serial_number.fetchAndAddRelaxed(1))
 {
-#ifdef QT_GL_TEXTURE_GLYPH_CACHE_DEBUG
+#if defined(CS_SHOW_DEBUG_OPENGL)
    qDebug(" -> QGLTextureGlyphCache() %p for context %p.", this, QOpenGLContext::currentContext());
 #endif
 
@@ -59,7 +59,7 @@ QGLTextureGlyphCache::QGLTextureGlyphCache(QFontEngine::GlyphFormat format, cons
 
 QGLTextureGlyphCache::~QGLTextureGlyphCache()
 {
-#ifdef QT_GL_TEXTURE_GLYPH_CACHE_DEBUG
+#if defined(CS_SHOW_DEBUG_OPENGL)
    qDebug(" -> ~QGLTextureGlyphCache() %p.", this);
 #endif
 

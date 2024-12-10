@@ -21,20 +21,21 @@
 *
 ***********************************************************************/
 
-#include <qglobal.h>
 #include <qtexthtmlparser_p.h>
-#include <qbytearray.h>
-#include <qtextcodec.h>
-#include <qapplication.h>
-#include <qstack.h>
-#include <qdebug.h>
-#include <qthread.h>
-#include <qtextdocument.h>
 
-#include <qtextformat_p.h>
-#include <qtextdocument_p.h>
-#include <qtextcursor.h>
+#include <qapplication.h>
+#include <qbytearray.h>
+#include <qdebug.h>
+#include <qglobal.h>
+#include <qstack.h>
+#include <qtextcodec.h>
+#include <qtextdocument.h>
+#include <qthread.h>
+
 #include <qfont_p.h>
+#include <qtextcursor.h>
+#include <qtextdocument_p.h>
+#include <qtextformat_p.h>
 
 #include <algorithm>
 
@@ -464,14 +465,6 @@ int QTextHtmlParser::lookupElement(const QString &element)
    return e->id;
 }
 
-// quotes newlines as "\\n"
-static QString quoteNewline(const QString &s)
-{
-   QString n = s;
-   n.replace(QLatin1Char('\n'), QLatin1String("\\n"));
-   return n;
-}
-
 QTextHtmlParserNode::QTextHtmlParserNode()
    : parent(0), id(Html_unknown),
      cssFloat(QTextFrameFormat::InFlow), hasOwnListStyle(false),
@@ -482,20 +475,10 @@ QTextHtmlParserNode::QTextHtmlParserNode()
      borderBrush(Qt::darkGray), borderStyle(QTextFrameFormat::BorderStyle_Outset),
      userState(-1), cssListIndent(0), wsm(WhiteSpaceModeUndefined)
 {
-   margin[QTextHtmlParser::MarginLeft] = 0;
-   margin[QTextHtmlParser::MarginRight] = 0;
-   margin[QTextHtmlParser::MarginTop] = 0;
+   margin[QTextHtmlParser::MarginLeft]   = 0;
+   margin[QTextHtmlParser::MarginRight]  = 0;
+   margin[QTextHtmlParser::MarginTop]    = 0;
    margin[QTextHtmlParser::MarginBottom] = 0;
-}
-
-void QTextHtmlParser::dumpHtml()
-{
-   for (int i = 0; i < count(); ++i) {
-      qDebug().nospace() << csPrintable(QString(depth(i) * 4, QLatin1Char(' ')))
-         << csPrintable(at(i).tag) << ':'
-         << quoteNewline(at(i).text);
-      ;
-   }
 }
 
 QTextHtmlParserNode *QTextHtmlParser::newNode(int parent)
@@ -513,14 +496,15 @@ QTextHtmlParserNode *QTextHtmlParser::newNode(int parent)
       if (lastNode->text.isEmpty()) {
          reuseLastNode = true;
 
-      } else { // last node is a text node (empty tag) with some text
+      } else {
+         // last node is a text node (empty tag) with some text
 
          if (lastNode->text.length() == 1 && lastNode->text.first().isSpace()) {
 
             int lastSibling = count() - 2;
 
             while (lastSibling && at(lastSibling).parent != lastNode->parent
-               && at(lastSibling).displayMode == QTextHtmlElement::DisplayInline) {
+                  && at(lastSibling).displayMode == QTextHtmlElement::DisplayInline) {
 
                lastSibling = at(lastSibling).parent;
             }
@@ -567,7 +551,6 @@ void QTextHtmlParser::parse(const QString &text, const QTextDocument *_resourceP
    textEditMode = false;
    resourceProvider = _resourceProvider;
    parse();
-   //dumpHtml();
 }
 
 int QTextHtmlParser::depth(int i) const
@@ -784,13 +767,16 @@ void QTextHtmlParser::parseCloseTag()
 void QTextHtmlParser::parseExclamationTag()
 {
    ++pos;
+
    if (hasPrefix(QLatin1Char('-'), 1) && hasPrefix(QLatin1Char('-'), 2)) {
       pos += 3;
-      // eat comments
+
+      // consume comments
       int end = txt.indexOf(QLatin1String("-->"), pos);
       pos = (end >= 0 ? end + 3 : len);
+
    } else {
-      // eat internal tags
+      // consume tags
       while (pos < len) {
          QChar c = txt.at(pos++);
          if (c == QLatin1Char('>')) {
@@ -1906,8 +1892,9 @@ void QTextHtmlParser::applyAttributes(const QStringList &attributes)
 class QTextHtmlStyleSelector : public QCss::StyleSelector
 {
  public:
-   inline QTextHtmlStyleSelector(const QTextHtmlParser *parser)
-      : parser(parser) {
+   QTextHtmlStyleSelector(const QTextHtmlParser *parser)
+      : parser(parser)
+   {
       nameCaseSensitivity = Qt::CaseInsensitive;
    }
 

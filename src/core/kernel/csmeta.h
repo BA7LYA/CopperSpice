@@ -87,9 +87,24 @@ class Q_CORE_EXPORT QMetaEnum
 class Q_CORE_EXPORT QMetaMethod
 {
  public:
-   enum Access { Private, Protected, Public };
-   enum MethodType { Method, Signal, Slot, Constructor };
-   enum Attributes { Compatibility = 0x1, Cloned = 0x2, Scriptable = 0x4 };   // internal
+   enum Access {
+      Private,
+      Protected,
+      Public
+   };
+
+   enum MethodType {
+      Method,
+      Signal,
+      Slot,
+      Constructor
+   };
+
+   enum Attributes {
+      Compatibility = 0x1,
+      Cloned        = 0x2,
+      Scriptable    = 0x4
+   };
 
    QMetaMethod(const QString &typeName, const QString &signature, std::vector<QString> paramNames,
          Access access, MethodType methodType, Attributes attributes, QMetaObject *obj);
@@ -183,8 +198,18 @@ inline bool operator!=(const QMetaMethod &method1, const QMetaMethod &method2)
 class Q_CORE_EXPORT QMetaProperty
 {
  public:
-   enum Kind { READ, WRITE, RESET, NOTIFY, REVISION, DESIGNABLE, SCRIPTABLE,
-         STORED, USER, CONSTANT, FINAL
+   enum Kind {
+      READ,
+      WRITE,
+      RESET,
+      NOTIFY,
+      REVISION,
+      DESIGNABLE,
+      SCRIPTABLE,
+      STORED,
+      USER,
+      CONSTANT,
+      FINAL
    };
 
    QMetaProperty(const QString &name = QString(), QMetaObject *object = nullptr);
@@ -236,7 +261,7 @@ class Q_CORE_EXPORT QMetaProperty
 
    // properties
    void setReadMethod(std::type_index returnTypeId, QString (*returnTypeFuncPtr)(), JarReadAbstract *jarRead);
-   void setWriteMethod(JarWriteAbstract *method);
+   void setWriteMethod(JarWriteAbstract *method, const QString &methodName);
 
    template <class T>
    void setNotifyMethod(T method);
@@ -253,8 +278,10 @@ class Q_CORE_EXPORT QMetaProperty
    void loadTypeName() const;
 
    QMetaObject *m_metaObject;
+
    QString m_name;
    QString m_typeName;
+   QString m_writeMethodName;
 
    std::type_index m_returnTypeId;
    QString (*m_returnTypeFuncPtr)();

@@ -61,21 +61,26 @@ class Q_GUI_EXPORT QFormLayout : public QLayout
    GUI_CS_PROPERTY_WRITE(verticalSpacing, setVerticalSpacing)
 
  public:
-   enum FieldGrowthPolicy {
-      FieldsStayAtSizeHint,
-      ExpandingFieldsGrow,
-      AllNonFixedFieldsGrow
-   };
 
-   enum RowWrapPolicy {
-      DontWrapRows,
-      WrapLongRows,
-      WrapAllRows
-   };
+   GUI_CS_REGISTER_ENUM(
+      enum FieldGrowthPolicy {
+         FieldsStayAtSizeHint,
+         ExpandingFieldsGrow,
+         AllNonFixedFieldsGrow
+      };
+   )
+
+   GUI_CS_REGISTER_ENUM(
+      enum RowWrapPolicy {
+         DontWrapRows,
+         WrapLongRows,
+         WrapAllRows
+      };
+   )
 
    enum ItemRole {
-      LabelRole = 0,
-      FieldRole = 1,
+      LabelRole    = 0,
+      FieldRole    = 1,
       SpanningRole = 2
    };
 
@@ -124,7 +129,6 @@ class Q_GUI_EXPORT QFormLayout : public QLayout
    QWidget *labelForField(QWidget *field) const;
    QWidget *labelForField(QLayout *field) const;
 
-   // reimplemented from QLayout
    void addItem(QLayoutItem *item) override;
    QLayoutItem *itemAt(int index) const override;
    QLayoutItem *takeAt(int index) override;

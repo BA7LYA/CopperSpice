@@ -23,14 +23,14 @@
 
 #include <qcamera_p.h>
 
-#include <qcamerainfo.h>
 #include <qcameracontrol.h>
-#include <qcameralockscontrol.h>
 #include <qcameraexposurecontrol.h>
 #include <qcamerafocuscontrol.h>
-#include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
+#include <qcameraimageprocessingcontrol.h>
+#include <qcamerainfo.h>
 #include <qcamerainfocontrol.h>
+#include <qcameralockscontrol.h>
 #include <qcameraviewfindersettingscontrol.h>
 #include <qdebug.h>
 #include <qmediarecordercontrol.h>
@@ -38,12 +38,12 @@
 
 #include <qmediaserviceprovider_p.h>
 
-constexpr static bool qt_sizeLessThan(const QSize &s1, const QSize &s2)
+static constexpr bool qt_sizeLessThan(const QSize &s1, const QSize &s2)
 {
    return (s1.width() * s1.height()) < (s2.width() * s2.height());
 }
 
-constexpr static bool qt_frameRateRangeLessThan(const QCamera::FrameRateRange &s1, const QCamera::FrameRateRange &s2)
+static constexpr bool qt_frameRateRangeLessThan(const QCamera::FrameRateRange &s1, const QCamera::FrameRateRange &s2)
 {
    return qFuzzyCompare(s1.maximumFrameRate, s2.maximumFrameRate) ? (s1.minimumFrameRate < s2.minimumFrameRate)
           : (s1.maximumFrameRate < s2.maximumFrameRate);
@@ -267,16 +267,16 @@ void QCameraPrivate::updateLockStatus()
       }
    }
 
-   /*
-       qDebug() << "Requested locks:" << (requestedLocks & QCamera::LockExposure ? 'e' : ' ')
-               << (requestedLocks & QCamera::LockFocus ? 'f' : ' ')
-               << (requestedLocks & QCamera::LockWhiteBalance ? 'w' : ' ');
+#if defined(CS_SHOW_DEBUG_MULTIMEDIA)
+   qDebug() << "Requested locks:" << (requestedLocks & QCamera::LockExposure ? 'e' : ' ')
+         << (requestedLocks & QCamera::LockFocus ? 'f' : ' ')
+         << (requestedLocks & QCamera::LockWhiteBalance ? 'w' : ' ');
 
-       qDebug() << "Lock status: f:" << q->lockStatus(QCamera::LockFocus)
-                << " e:" << q->lockStatus(QCamera::LockExposure)
-                << " w:" << q->lockStatus(QCamera::LockWhiteBalance)
-                << " composite:" << lockStatus;
-   */
+   qDebug() << "Lock status: f:" << q->lockStatus(QCamera::LockFocus)
+         << " e:" << q->lockStatus(QCamera::LockExposure)
+         << " w:" << q->lockStatus(QCamera::LockWhiteBalance)
+         << " composite:" << lockStatus;
+#endif
 
 }
 

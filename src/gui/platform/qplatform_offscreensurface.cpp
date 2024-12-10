@@ -22,17 +22,16 @@
 ***********************************************************************/
 
 #include <qplatform_offscreensurface.h>
+
 #include <qoffscreensurface.h>
 #include <qscreen.h>
 
 class QPlatformOffscreenSurfacePrivate
 {
- public:
 };
 
 QPlatformOffscreenSurface::QPlatformOffscreenSurface(QOffscreenSurface *offscreenSurface)
-   : QPlatformSurface(offscreenSurface)
-   , d_ptr(new QPlatformOffscreenSurfacePrivate)
+   : QPlatformSurface(offscreenSurface), d_ptr(new QPlatformOffscreenSurfacePrivate)
 {
 }
 
@@ -45,27 +44,17 @@ QOffscreenSurface *QPlatformOffscreenSurface::offscreenSurface() const
    return static_cast<QOffscreenSurface *>(m_surface);
 }
 
-/*!
-    Returns the platform screen handle corresponding to this QPlatformOffscreenSurface.
-*/
 QPlatformScreen *QPlatformOffscreenSurface::screen() const
 {
    return offscreenSurface()->screen()->handle();
 }
 
-/*!
-    Returns the actual surface format of the offscreen surface.
-*/
 QSurfaceFormat QPlatformOffscreenSurface::format() const
 {
    return QSurfaceFormat();
 }
 
-/*!
-    Returns \c true if the platform offscreen surface has been allocated.
-*/
 bool QPlatformOffscreenSurface::isValid() const
 {
    return false;
 }
-

@@ -511,13 +511,6 @@ static void setup()
       return;
    }
 
-#ifdef Q_DEBUG_TEXTCODEC
-
-   if (destroying_is_ok) {
-      qWarning("QTextCodec() Creating new codec during codec cleanup");
-   }
-
-#endif
    all = new QList<QTextCodec *>;
    // create the cleanup object to cleanup all codecs on exit
    (void) createQTextCodecCleanup();
@@ -969,7 +962,7 @@ QTextCodec *QTextCodec::codecForHtml(const QByteArray &ba, QTextCodec *defaultCo
 
 QTextCodec *QTextCodec::codecForHtml(const QByteArray &ba)
 {
-   return codecForHtml(ba, QTextCodec::codecForMib(/*Latin 1*/ 4));
+   return codecForHtml(ba, QTextCodec::codecForMib(4));
 }
 
 QTextCodec *QTextCodec::codecForUtfText(const QByteArray &ba, QTextCodec *defaultCodec)
@@ -982,6 +975,7 @@ QTextCodec *QTextCodec::codecForUtfText(const QByteArray &ba, QTextCodec *defaul
             && (uchar)ba[2] == 0xFE
             && (uchar)ba[3] == 0xFF) {
          return QTextCodec::codecForMib(1018);   // utf-32 be
+
       } else if ((uchar)ba[0] == 0xFF
                  && (uchar)ba[1] == 0xFE
                  && (uchar)ba[2] == 0x00
@@ -1013,7 +1007,7 @@ QTextCodec *QTextCodec::codecForUtfText(const QByteArray &ba, QTextCodec *defaul
 
 QTextCodec *QTextCodec::codecForUtfText(const QByteArray &ba)
 {
-   return codecForUtfText(ba, QTextCodec::codecForMib(/*Latin 1*/ 4));
+   return codecForUtfText(ba, QTextCodec::codecForMib(4));
 }
 
 bool QTextDecoder::hasFailure() const

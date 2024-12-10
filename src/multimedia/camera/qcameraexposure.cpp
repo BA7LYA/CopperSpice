@@ -26,12 +26,10 @@
 #include <qcamera.h>
 #include <qcameraexposurecontrol.h>
 #include <qcameraflashcontrol.h>
-#include <qmetaobject.h>
 #include <qdebug.h>
+#include <qmetaobject.h>
 
 #include <qmediaobject_p.h>
-
-//# define DEBUG_EXPOSURE_CHANGES 1
 
 class QCameraExposurePrivate
 {
@@ -121,10 +119,10 @@ void QCameraExposurePrivate::_q_exposureParameterChanged(int parameter)
 {
    Q_Q(QCameraExposure);
 
-#if DEBUG_EXPOSURE_CHANGES
+#if defined(CS_SHOW_DEBUG_MULTIMEDIA)
    qDebug() << "Exposure parameter changed:"
-            << QCameraExposureControl::ExposureParameter(parameter)
-            << exposureControl->actualValue(QCameraExposureControl::ExposureParameter(parameter));
+         << QCameraExposureControl::ExposureParameter(parameter)
+         << exposureControl->actualValue(QCameraExposureControl::ExposureParameter(parameter));
 #endif
 
    switch (parameter) {

@@ -22,24 +22,22 @@
 ***********************************************************************/
 
 #include <qhostinfo.h>
+#include <qhostinfo_p.h>
 
-#include <qalgorithms.h>
-#include <qscopedpointer.h>
 #include <qabstracteventdispatcher.h>
+#include <qalgorithms.h>
 #include <qcoreapplication.h>
 #include <qmetaobject.h>
+#include <qscopedpointer.h>
 #include <qstringlist.h>
 #include <qthread.h>
 #include <qurl.h>
 
-#include <qhostinfo_p.h>
 #include <qnetworksession_p.h>
 
 #ifdef Q_OS_UNIX
 #  include <unistd.h>
 #endif
-
-// #define QHOSTINFO_DEBUG
 
 QHostInfoLookupManager *cs_HostInfoLookupManager()
 {
@@ -52,7 +50,7 @@ static QAtomicInt theIdCounter = 1;
 int QHostInfo::lookupHost(const QString &name, QObject *receiver, const QString &member)
 {
 
-#if defined QHOSTINFO_DEBUG
+#if defined(CS_SHOW_DEBUG_NETWORK)
    qDebug("QHostInfo::lookupHost(\"%s\", %p, %s)", csPrintable(name), receiver, csPrintable(member));
 #endif
 
@@ -136,7 +134,7 @@ QHostInfo QHostInfo::fromName(const QString &name)
 #ifndef QT_NO_BEARERMANAGEMENT
 QHostInfo QHostInfoPrivate::fromName(const QString &name, QSharedPointer<QNetworkSession> session)
 {
-#if defined QHOSTINFO_DEBUG
+#if defined(CS_SHOW_DEBUG_NETWORK)
    qDebug("QHostInfoPrivate::fromName(\"%s\") with session %p", name.toLatin1().constData(), session.data());
 #endif
 

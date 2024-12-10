@@ -27,9 +27,9 @@
 
 #include <qgraphics_layout_p.h>
 
+#include <qapplication.h>
 #include <qgraphicslayout.h>
 #include <qgraphicswidget.h>
-#include <qapplication.h>
 
 void QGraphicsLayoutPrivate::reparentChildItems(QGraphicsItem *newParent)
 {
@@ -53,8 +53,8 @@ void QGraphicsLayoutPrivate::reparentChildItems(QGraphicsItem *newParent)
       } else if (QGraphicsItem *itemChild = layoutChild->graphicsItem()) {
          QGraphicsItem *childParent = itemChild->parentItem();
 
-#ifdef QT_DEBUG
-         if (childParent && childParent != newParent && itemChild->isWidget() && qt_graphicsLayoutDebug()) {
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
+         if (childParent && childParent != newParent && itemChild->isWidget()) {
 
             QGraphicsWidget *w = static_cast<QGraphicsWidget *>(layoutChild);
 
@@ -62,6 +62,7 @@ void QGraphicsLayoutPrivate::reparentChildItems(QGraphicsItem *newParent)
                csPrintable(w->metaObject()->className()), csPrintable(w->objectName()));
          }
 #endif
+
          if (childParent != newParent) {
             itemChild->setParentItem(newParent);
          }
@@ -150,7 +151,7 @@ void QGraphicsLayoutPrivate::addChildLayoutItem(QGraphicsLayoutItem *layoutItem)
             return;
          }
 
-#ifdef QT_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
          if (oldParent && item->isWidget()) {
             QGraphicsWidget *w = static_cast<QGraphicsWidget *>(item);
             qWarning("QGraphicsLayout::addChildLayoutItem() Widget %s \"%s\" had the wrong parent, moved to correct",

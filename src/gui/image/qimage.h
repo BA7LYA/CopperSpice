@@ -27,19 +27,19 @@
 #include <qbytearray.h>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
-#include <qrgb.h>
 #include <qpaintdevice.h>
 #include <qpixelformat.h>
-#include <qtransform.h>
 #include <qrect.h>
+#include <qrgb.h>
 #include <qstring.h>
+#include <qtransform.h>
 
 class QIODevice;
-class QStringList;
+class QImageDataMisc;
 class QMatrix;
+class QStringList;
 class QTransform;
 class QVariant;
-class QImageDataMisc;
 
 struct QImageData;
 
@@ -49,7 +49,10 @@ class Q_GUI_EXPORT QImage : public QPaintDevice
 {
 
  public:
-   enum InvertMode { InvertRgb, InvertRgba };
+   enum InvertMode {
+      InvertRgb,
+      InvertRgba
+   };
 
    enum Format {
       Format_Invalid,
@@ -101,8 +104,9 @@ class Q_GUI_EXPORT QImage : public QPaintDevice
 
    QImage(const QImage &other);
 
-   inline QImage(QImage &&other)
-      : QPaintDevice(), d(nullptr) {
+   QImage(QImage &&other)
+      : QPaintDevice(), d(nullptr)
+   {
       qSwap(d, other.d);
    }
 
@@ -110,12 +114,12 @@ class Q_GUI_EXPORT QImage : public QPaintDevice
 
    QImage &operator=(const QImage &other);
 
-   inline QImage &operator=(QImage &&other) {
+   QImage &operator=(QImage &&other) {
       qSwap(d, other.d);
       return *this;
    }
 
-   inline void swap(QImage &other) {
+   void swap(QImage &other) {
       qSwap(d, other.d);
    }
 
@@ -131,7 +135,7 @@ class Q_GUI_EXPORT QImage : public QPaintDevice
    bool isDetached() const;
 
    QImage copy(const QRect &rect = QRect()) const;
-   inline QImage copy(int x, int y, int width, int height) const {
+   QImage copy(int x, int y, int width, int height) const {
       return copy(QRect(x, y, width, height));
    }
 
@@ -219,7 +223,7 @@ class Q_GUI_EXPORT QImage : public QPaintDevice
 
    QImage createMaskFromColor(QRgb color, Qt::MaskMode mode = Qt::MaskInColor) const;
 
-   inline QImage scaled(int width, int height, Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio,
+   QImage scaled(int width, int height, Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio,
       Qt::TransformationMode mode = Qt::FastTransformation) const {
       return scaled(QSize(width, height), aspectRatioMode, mode);
    }
@@ -258,7 +262,7 @@ class Q_GUI_EXPORT QImage : public QPaintDevice
    bool load(const QString &fileName, const QString &format = QString());
    bool loadFromData(const uchar *buffer, int len, const QString &format = QString());
 
-   inline bool loadFromData(const QByteArray &data, const QString &format = QString()) {
+   bool loadFromData(const QByteArray &data, const QString &format = QString()) {
       return loadFromData(reinterpret_cast<const uchar *>(data.constData()), data.size(), format);
    }
 
@@ -267,7 +271,7 @@ class Q_GUI_EXPORT QImage : public QPaintDevice
 
    static QImage fromData(const uchar *data, int size, const QString &format = QString());
 
-   static inline QImage fromData(const QByteArray &data, const QString &format = QString()) {
+   static QImage fromData(const QByteArray &data, const QString &format = QString()) {
       return fromData(reinterpret_cast<const uchar *>(data.constData()), data.size(), format);
    }
 
@@ -298,7 +302,7 @@ class Q_GUI_EXPORT QImage : public QPaintDevice
  protected:
    typedef QImageData *DataPtr;
 
-   inline DataPtr &data_ptr() {
+   DataPtr &data_ptr() {
       return d;
    }
 

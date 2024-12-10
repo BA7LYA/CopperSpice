@@ -606,30 +606,34 @@ void QMdiAreaPrivate::_q_processWindowStateChanged(Qt::WindowStates oldState, Qt
    }
 
    Q_Q(QMdiArea);
+
    QMdiSubWindow *child = qobject_cast<QMdiSubWindow *>(q->sender());
+
    if (!child) {
       return;
    }
 
-   // windowActivated
    if (!(oldState & Qt::WindowActive) && (newState & Qt::WindowActive)) {
+      // windowActivated
       emitWindowActivated(child);
-   }
 
-   // windowDeactivated
-   else if ((oldState & Qt::WindowActive) && ! (newState & Qt::WindowActive)) {
+   } else if ((oldState & Qt::WindowActive) && ! (newState & Qt::WindowActive)) {
+      // windowDeactivated
       resetActiveWindow(child);
    }
 
-   // windowMinimized
    if (!(oldState & Qt::WindowMinimized) && (newState & Qt::WindowMinimized)) {
+      // windowMinimized
       isSubWindowsTiled = false;
       arrangeMinimizedSubWindows();
-      // windowMaximized
+
    } else if (!(oldState & Qt::WindowMaximized) && (newState & Qt::WindowMaximized)) {
+      // windowMaximized
       internalRaise(child);
-      // windowRestored
+
    } else if (!(newState & (Qt::WindowMaximized | Qt::WindowMinimized))) {
+      // windowRestored
+
       internalRaise(child);
       if (oldState & Qt::WindowMinimized) {
          arrangeMinimizedSubWindows();
@@ -1223,7 +1227,7 @@ bool QMdiAreaPrivate::lastWindowAboutToBeDestroyed() const
       return false;
    }
 
-   return last->d_func()->data.is_closing;
+   return last->d_func()->m_privateData.is_closing;
 }
 
 void QMdiAreaPrivate::setChildActivationEnabled(bool enable, bool onlyNextActivationEvent) const
@@ -1435,8 +1439,6 @@ void QMdiAreaPrivate::showRubberBandFor(QMdiSubWindow *subWindow)
    rubberBand->raise();
    rubberBand->show();
 }
-
-// internal
 
 void QMdiAreaPrivate::setViewMode(QMdiArea::ViewMode mode)
 {

@@ -279,29 +279,10 @@ void qDrawShadePanel(QPainter *p, int x, int y, int w, int h,
    p->setPen(oldPen);                        // restore pen
 }
 
-
-/*!
-  \internal
-  This function draws a rectangle with two pixel line width.
-  It is called from qDrawWinButton() and qDrawWinPanel().
-
-  c1..c4 and fill are used:
-
-    1 1 1 1 1 2
-    1 3 3 3 4 2
-    1 3 F F 4 2
-    1 3 F F 4 2
-    1 4 4 4 4 2
-    2 2 2 2 2 2
-*/
-
-static void qDrawWinShades(QPainter *p,
-   int x, int y, int w, int h,
-   const QColor &c1, const QColor &c2,
-   const QColor &c3, const QColor &c4,
-   const QBrush *fill)
+static void qDrawWinShades(QPainter *p, int x, int y, int w, int h,
+      const QColor &c1, const QColor &c2, const QColor &c3, const QColor &c4, const QBrush *fill)
 {
-   if (w < 2 || h < 2) {                      // can't do anything with that
+   if (w < 2 || h < 2) {
       return;
    }
 

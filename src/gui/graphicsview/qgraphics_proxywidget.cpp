@@ -26,30 +26,27 @@
 #ifndef QT_NO_GRAPHICSVIEW
 
 #include <qgraphicsproxywidget.h>
+#include <qgraphics_proxywidget_p.h>
 
-#include <qgraphicslayout.h>
 #include <qdebug.h>
 #include <qevent.h>
+#include <qgraphicslayout.h>
 #include <qgraphicsscene.h>
 #include <qgraphicssceneevent.h>
+#include <qgraphicsview.h>
 #include <qlayout.h>
+#include <qlineedit.h>
+#include <qlistview.h>
 #include <qpainter.h>
 #include <qstyleoption.h>
-#include <qgraphicsview.h>
-#include <qlistview.h>
-#include <qlineedit.h>
 #include <qtextedit.h>
 
-#include <qgraphics_proxywidget_p.h>
 #include <qwidget_p.h>
 #include <qapplication_p.h>
-
-//#define GRAPHICSPROXYWIDGET_DEBUG
 
 extern bool qt_sendSpontaneousEvent(QObject *, QEvent *);
 Q_GUI_EXPORT extern bool qt_tab_all_widgets();
 
-// internal
 void QGraphicsProxyWidgetPrivate::init()
 {
    Q_Q(QGraphicsProxyWidget);
@@ -57,7 +54,6 @@ void QGraphicsProxyWidgetPrivate::init()
    q->setAcceptDrops(true);
 }
 
-// internal
 void QGraphicsProxyWidgetPrivate::sendWidgetMouseEvent(QGraphicsSceneHoverEvent *event)
 {
    QGraphicsSceneMouseEvent mouseEvent(QEvent::GraphicsSceneMouseMove);
@@ -70,7 +66,6 @@ void QGraphicsProxyWidgetPrivate::sendWidgetMouseEvent(QGraphicsSceneHoverEvent 
    event->setAccepted(mouseEvent.isAccepted());
 }
 
-// internal
 void QGraphicsProxyWidgetPrivate::sendWidgetMouseEvent(QGraphicsSceneMouseEvent *event)
 {
    if (! event || ! widget || ! widget->isVisible()) {
@@ -195,7 +190,6 @@ void QGraphicsProxyWidgetPrivate::sendWidgetKeyEvent(QKeyEvent *event)
    } while (receiver);
 }
 
-// internal
 void QGraphicsProxyWidgetPrivate::removeSubFocusHelper(QWidget *widget, Qt::FocusReason reason)
 {
    QFocusEvent event(QEvent::FocusOut, reason);
@@ -207,7 +201,6 @@ void QGraphicsProxyWidgetPrivate::removeSubFocusHelper(QWidget *widget, Qt::Focu
    }
 }
 
-// internal
 QWidget *QGraphicsProxyWidgetPrivate::findFocusChild(QWidget *child, bool next) const
 {
    if (! widget) {
@@ -245,7 +238,6 @@ QWidget *QGraphicsProxyWidgetPrivate::findFocusChild(QWidget *child, bool next) 
    return nullptr;
 }
 
-// internal
 void QGraphicsProxyWidgetPrivate::_q_removeWidgetSlot()
 {
    Q_Q(QGraphicsProxyWidget);
@@ -260,12 +252,10 @@ void QGraphicsProxyWidgetPrivate::_q_removeWidgetSlot()
    delete q;
 }
 
-// internal
 void QGraphicsProxyWidgetPrivate::updateWidgetGeometryFromProxy()
 {
 }
 
-// internal
 void QGraphicsProxyWidgetPrivate::updateProxyGeometryFromWidget()
 {
    Q_Q(QGraphicsProxyWidget);
@@ -302,7 +292,6 @@ void QGraphicsProxyWidgetPrivate::updateProxyGeometryFromWidget()
    sizeChangeMode = QGraphicsProxyWidgetPrivate::NoMode;
 }
 
-// internal
 void QGraphicsProxyWidgetPrivate::updateProxyInputMethodAcceptanceFromWidget()
 {
    Q_Q(QGraphicsProxyWidget);
@@ -318,7 +307,6 @@ void QGraphicsProxyWidgetPrivate::updateProxyInputMethodAcceptanceFromWidget()
       focusWidget->testAttribute(Qt::WA_InputMethodEnabled));
 }
 
-// internal
 void QGraphicsProxyWidgetPrivate::embedSubWindow(QWidget *subWin)
 {
    QWExtra *extra;
@@ -328,7 +316,6 @@ void QGraphicsProxyWidgetPrivate::embedSubWindow(QWidget *subWin)
    }
 }
 
-// internal
 void QGraphicsProxyWidgetPrivate::unembedSubWindow(QWidget *subWin)
 {
    for (QGraphicsItem *child : children) {
@@ -351,7 +338,6 @@ bool QGraphicsProxyWidgetPrivate::isProxyWidget() const
    return true;
 }
 
-// internal
 QPointF QGraphicsProxyWidgetPrivate::mapToReceiver(const QPointF &pos, const QWidget *receiver) const
 {
    QPointF p = pos;
@@ -596,9 +582,9 @@ QVariant QGraphicsProxyWidget::itemChange(GraphicsItemChange change,
             d->posChangeMode = QGraphicsProxyWidgetPrivate::ProxyToWidgetMode;
          }
          break;
+
       case ItemPositionHasChanged:
-         // Move the internal widget if we're in widget-to-proxy
-         // mode. Otherwise the widget has already moved.
+         // Move the CS widget if we are in widget-to-proxy mode, otherwise the widget has already moved.
          if (d->widget && d->posChangeMode != QGraphicsProxyWidgetPrivate::WidgetToProxyMode) {
             d->widget->move(value.toPoint());
          }
@@ -1018,7 +1004,7 @@ void QGraphicsProxyWidget::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
    Q_D(QGraphicsProxyWidget);
 
-#ifdef GRAPHICSPROXYWIDGET_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    qDebug("QGraphicsProxyWidget::hoverMoveEvent");
 #endif
 
@@ -1052,7 +1038,7 @@ void QGraphicsProxyWidget::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
    Q_D(QGraphicsProxyWidget);
 
-#ifdef GRAPHICSPROXYWIDGET_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    qDebug("QGraphicsProxyWidget::mouseMoveEvent");
 #endif
 
@@ -1063,7 +1049,7 @@ void QGraphicsProxyWidget::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
    Q_D(QGraphicsProxyWidget);
 
-#ifdef GRAPHICSPROXYWIDGET_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    qDebug("QGraphicsProxyWidget::mousePressEvent");
 #endif
 
@@ -1074,13 +1060,12 @@ void QGraphicsProxyWidget::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event
 {
    Q_D(QGraphicsProxyWidget);
 
-#ifdef GRAPHICSPROXYWIDGET_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    qDebug("QGraphicsProxyWidget::mouseDoubleClickEvent");
 #endif
 
    d->sendWidgetMouseEvent(event);
 }
-
 
 #ifndef QT_NO_WHEELEVENT
 
@@ -1088,7 +1073,7 @@ void QGraphicsProxyWidget::wheelEvent(QGraphicsSceneWheelEvent *event)
 {
    Q_D(QGraphicsProxyWidget);
 
-#ifdef GRAPHICSPROXYWIDGET_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    qDebug("QGraphicsProxyWidget::wheelEvent");
 #endif
 
@@ -1099,7 +1084,7 @@ void QGraphicsProxyWidget::wheelEvent(QGraphicsSceneWheelEvent *event)
    QPointF pos = event->pos();
    QPointer<QWidget> receiver = d->widget->childAt(pos.toPoint());
 
-   if (!receiver) {
+   if (! receiver) {
       receiver = d->widget;
    }
 
@@ -1132,7 +1117,7 @@ void QGraphicsProxyWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
    Q_D(QGraphicsProxyWidget);
 
-#ifdef GRAPHICSPROXYWIDGET_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    qDebug("QGraphicsProxyWidget::mouseReleaseEvent");
 #endif
 
@@ -1143,7 +1128,7 @@ void QGraphicsProxyWidget::keyPressEvent(QKeyEvent *event)
 {
    Q_D(QGraphicsProxyWidget);
 
-#ifdef GRAPHICSPROXYWIDGET_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    qDebug("QGraphicsProxyWidget::keyPressEvent");
 #endif
 
@@ -1154,7 +1139,7 @@ void QGraphicsProxyWidget::keyReleaseEvent(QKeyEvent *event)
 {
    Q_D(QGraphicsProxyWidget);
 
-#ifdef GRAPHICSPROXYWIDGET_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    qDebug("QGraphicsProxyWidget::keyReleaseEvent");
 #endif
 
@@ -1163,7 +1148,7 @@ void QGraphicsProxyWidget::keyReleaseEvent(QKeyEvent *event)
 
 void QGraphicsProxyWidget::focusInEvent(QFocusEvent *event)
 {
-#ifdef GRAPHICSPROXYWIDGET_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    qDebug("QGraphicsProxyWidget::focusInEvent");
 #endif
 
@@ -1204,7 +1189,7 @@ void QGraphicsProxyWidget::focusInEvent(QFocusEvent *event)
 
 void QGraphicsProxyWidget::focusOutEvent(QFocusEvent *event)
 {
-#ifdef GRAPHICSPROXYWIDGET_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    qDebug("QGraphicsProxyWidget::focusOutEvent");
 #endif
 

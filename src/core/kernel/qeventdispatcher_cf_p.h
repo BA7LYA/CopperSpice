@@ -24,8 +24,6 @@
 #ifndef QEVENTDISPATCHER_CF_P_H
 #define QEVENTDISPATCHER_CF_P_H
 
-#define DEBUG_EVENT_DISPATCHER 0
-
 #include <qabstracteventdispatcher.h>
 #include <qdebug.h>
 
@@ -48,12 +46,14 @@ class RunLoopSource
  public:
    using CallbackFunction = bool (T::*)();
 
-   enum { kHighestPriority = 0 } RunLoopSourcePriority;
+   enum EventPriority {
+      kHighestPriority = 0
+   };
 
    RunLoopSource(T *delegate, CallbackFunction callback)
       : m_delegate(delegate), m_callback(callback)
    {
-      CFRunLoopSourceContext context = {};
+      CFRunLoopSourceContext context = { };
       context.info = this;
       context.perform = RunLoopSource::process;
 
@@ -78,6 +78,8 @@ class RunLoopSource
    void signal() {
       CFRunLoopSourceSignal(m_source);
    }
+
+   EventPriority RunLoopSourcePriority;
 
  private:
    static void process(void *info) {
@@ -207,20 +209,5 @@ class Q_CORE_EXPORT QEventDispatcherCoreFoundation : public QAbstractEventDispat
    void updateTimers();
    void invalidateTimer();
 };
-
-#if DEBUG_EVENT_DISPATCHER
-extern uint g_eventDispatcherIndentationLevel;
-#define qEventDispatcherDebug() qDebug().nospace() \
-         << csPrintable(QString(QLatin1String("| ")).repeated(g_eventDispatcherIndentationLevel)) \
-         << __FUNCTION__ << "(): "
-#define qIndent() ++g_eventDispatcherIndentationLevel
-#define qUnIndent() --g_eventDispatcherIndentationLevel
-
-#else
-#define qEventDispatcherDebug() QT_NO_QDEBUG_MACRO()
-#define qIndent()
-#define qUnIndent()
-
-#endif
 
 #endif // QEVENTDISPATCHER_CF_P_H

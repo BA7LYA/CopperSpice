@@ -21,8 +21,9 @@
 *
 ***********************************************************************/
 
-#include <QDebug>
 #include <qaudioformat.h>
+
+#include <qdebug.h>
 
 class QAudioFormatPrivate : public QSharedData
 {
@@ -126,7 +127,6 @@ int QAudioFormat::channelCount() const
    return d->channels;
 }
 
-
 void QAudioFormat::setSampleSize(int sampleSize)
 {
    d->sampleSize = sampleSize;
@@ -142,58 +142,36 @@ void QAudioFormat::setCodec(const QString &codec)
    d->codec = codec;
 }
 
-/*!
-    Returns the current codec value.
-
-   \sa QAudioDeviceInfo::supportedCodecs()
-*/
-
 QString QAudioFormat::codec() const
 {
    return d->codec;
 }
-
-/*!
-   Sets the byteOrder to \a byteOrder.
-*/
 
 void QAudioFormat::setByteOrder(QAudioFormat::Endian byteOrder)
 {
    d->byteOrder = byteOrder;
 }
 
-/*!
-    Returns the current byteOrder value.
-*/
-
 QAudioFormat::Endian QAudioFormat::byteOrder() const
 {
    return d->byteOrder;
 }
-
-/*!
-   Sets the sampleType to \a sampleType.
-*/
 
 void QAudioFormat::setSampleType(QAudioFormat::SampleType sampleType)
 {
    d->sampleType = sampleType;
 }
 
-/*!
-    Returns the current SampleType value.
-*/
-
 QAudioFormat::SampleType QAudioFormat::sampleType() const
 {
    return d->sampleType;
 }
 
-
 qint32 QAudioFormat::bytesForDuration(qint64 duration) const
 {
    return bytesPerFrame() * framesForDuration(duration);
 }
+
 qint64 QAudioFormat::durationForBytes(qint32 bytes) const
 {
    if (!isValid() || bytes <= 0) {
@@ -203,10 +181,12 @@ qint64 QAudioFormat::durationForBytes(qint32 bytes) const
    // We round the byte count to ensure whole frames
    return qint64(1000000LL * (bytes / bytesPerFrame())) / sampleRate();
 }
+
 qint32 QAudioFormat::bytesForFrames(qint32 frameCount) const
 {
    return frameCount * bytesPerFrame();
 }
+
 qint32 QAudioFormat::framesForBytes(qint32 byteCount) const
 {
    int size = bytesPerFrame();
@@ -215,6 +195,7 @@ qint32 QAudioFormat::framesForBytes(qint32 byteCount) const
    }
    return 0;
 }
+
 qint32 QAudioFormat::framesForDuration(qint64 duration) const
 {
    if (!isValid()) {
@@ -223,6 +204,7 @@ qint32 QAudioFormat::framesForDuration(qint64 duration) const
 
    return qint32((duration * sampleRate()) / 1000000LL);
 }
+
 qint64 QAudioFormat::durationForFrames(qint32 frameCount) const
 {
    if (!isValid() || frameCount <= 0) {
@@ -231,6 +213,7 @@ qint64 QAudioFormat::durationForFrames(qint32 frameCount) const
 
    return (frameCount * 1000000LL) / sampleRate();
 }
+
 int QAudioFormat::bytesPerFrame() const
 {
    if (!isValid()) {
@@ -286,4 +269,3 @@ QDebug operator<<(QDebug dbg, const QAudioFormat &f)
 
    return dbg;
 }
-

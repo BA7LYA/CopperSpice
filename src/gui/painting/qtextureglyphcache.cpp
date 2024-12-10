@@ -21,13 +21,13 @@
 *
 ***********************************************************************/
 
-#include <qmath.h>
 #include <qtextureglyphcache_p.h>
+
+#include <qmath.h>
+
+#include <qfontengine_p.h>
 #include <qnativeimage_p.h>
 #include <qnumeric_p.h>
-#include <qfontengine_p.h>
-
-// #define CACHE_DEBUG
 
 QTextureGlyphCache::~QTextureGlyphCache()
 {

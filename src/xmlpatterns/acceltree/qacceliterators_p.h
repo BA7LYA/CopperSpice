@@ -36,32 +36,20 @@ class AccelIterator : public QXmlNodeModelIndex::Iterator
    QXmlNodeModelIndex current() const override;
 
  protected:
-   inline AccelIterator(const AccelTree *const doc,
-                        const AccelTree::PreNumber pre,
-                        const AccelTree::PreNumber currentPre) : m_document(doc)
-      , m_preNumber(pre)
-      , m_currentPre(currentPre)
-      , m_position(0)
-
+   AccelIterator(const AccelTree *const doc, const AccelTree::PreNumber pre, const AccelTree::PreNumber currentPre)
+      : m_document(doc), m_preNumber(pre), m_currentPre(currentPre), m_position(0)
    {
       Q_ASSERT(m_document);
       Q_ASSERT(m_preNumber >= 0);
    }
 
-   inline QXmlNodeModelIndex closedExit() {
+   QXmlNodeModelIndex closedExit() {
       m_position = -1;
       m_current.reset();
       return QXmlNodeModelIndex();
    }
 
-   /**
-    * We do not own it.
-    */
    const AccelTree *const      m_document;
-
-   /**
-    * The pre number of the node that should be navigated from.
-    */
    const AccelTree::PreNumber  m_preNumber;
    AccelTree::PreNumber        m_currentPre;
    xsInteger                   m_position;
@@ -73,14 +61,9 @@ template<const bool IncludeSelf>
 class AncestorIterator : public AccelIterator
 {
  public:
-   /**
-    * @p pre is the node from which iteration starts
-    * from. In the @c ancestor axis it is excluded,
-    * while in @c ancestor-or-self it is included. @p pre
-    * must have at least one ancestor.
-    */
-   inline AncestorIterator(const AccelTree *const doc,
-                           const AccelTree::PreNumber pre) : AccelIterator(doc, pre, IncludeSelf ? pre : doc->basicData.at(pre).parent()) {
+   AncestorIterator(const AccelTree *const doc, const AccelTree::PreNumber pre)
+         : AccelIterator(doc, pre, IncludeSelf ? pre : doc->basicData.at(pre).parent())
+   {
       Q_ASSERT(IncludeSelf || m_document->hasParent(pre));
    }
 
@@ -104,12 +87,9 @@ class AncestorIterator : public AccelIterator
 class ChildIterator : public AccelIterator
 {
  public:
-   /**
-    * @p pre must have at least one child.
-    */
-   inline ChildIterator(const AccelTree *const doc,
-                        const AccelTree::PreNumber pre) : AccelIterator(doc, pre, pre + 1),
-      m_depth(m_document->depth(m_currentPre)) {
+   ChildIterator(const AccelTree *const doc, const AccelTree::PreNumber pre)
+      : AccelIterator(doc, pre, pre + 1),m_depth(m_document->depth(m_currentPre))
+   {
       Q_ASSERT(m_document->hasChildren(pre));
 
       /* Skip the attributes, that are children in the pre/post plane, of
@@ -136,16 +116,16 @@ template<const bool IsFollowing>
 class SiblingIterator : public AccelIterator
 {
  public:
-   inline SiblingIterator(const AccelTree *const doc,
-                          const AccelTree::PreNumber pre) : AccelIterator(doc, pre, pre + (IsFollowing ? 0 : -1)),
-      m_depth(doc->depth(pre)) {
+   SiblingIterator(const AccelTree *const doc, const AccelTree::PreNumber pre)
+      : AccelIterator(doc, pre, pre + (IsFollowing ? 0 : -1)), m_depth(doc->depth(pre))
+   {
       Q_ASSERT_X(IsFollowing || pre != 0, "",
                  "When being preceding-sibling, the context node cannot be the first node in the document.");
       Q_ASSERT_X(!IsFollowing || pre != m_document->maximumPreNumber(), "",
                  "When being following-sibling, the context node cannot be the last node in the document.");
    }
 
-   virtual QXmlNodeModelIndex next()  override {
+   QXmlNodeModelIndex next() override {
       if (m_currentPre == -1) {
          return QXmlNodeModelIndex();
       }
@@ -183,7 +163,7 @@ class SiblingIterator : public AccelIterator
       }
    }
 
-   virtual QXmlNodeModelIndex::Iterator::Ptr copy() const  override {
+   QXmlNodeModelIndex::Iterator::Ptr copy() const override {
       return QXmlNodeModelIndex::Iterator::Ptr(new SiblingIterator<IsFollowing>(m_document, m_preNumber));
    }
 
@@ -195,12 +175,9 @@ template<const bool IncludeSelf>
 class DescendantIterator : public AccelIterator
 {
  public:
-   /**
-    * @p pre must have at least one child.
-    */
-   inline DescendantIterator(const AccelTree *const doc,
-                             const AccelTree::PreNumber pre) : AccelIterator(doc, pre, pre + (IncludeSelf ? 0 : 1)),
-      m_postNumber(doc->postNumber(pre)) {
+   DescendantIterator(const AccelTree *const doc, const AccelTree::PreNumber pre)
+      : AccelIterator(doc, pre, pre + (IncludeSelf ? 0 : 1)), m_postNumber(doc->postNumber(pre))
+   {
       Q_ASSERT(IncludeSelf || m_document->hasChildren(pre));
 
       /* Make sure that m_currentPre is the first node part of this axis.
@@ -260,11 +237,9 @@ class DescendantIterator : public AccelIterator
 class FollowingIterator : public AccelIterator
 {
  public:
-   /**
-    * @ pre must have at least one child.
-    */
-   inline FollowingIterator(const AccelTree *const doc,
-                            const AccelTree::PreNumber pre) : AccelIterator(doc, pre, pre) {
+   FollowingIterator(const AccelTree *const doc, const AccelTree::PreNumber pre)
+      : AccelIterator(doc, pre, pre)
+   {
    }
 
    QXmlNodeModelIndex next() override;
@@ -274,9 +249,6 @@ class FollowingIterator : public AccelIterator
 class PrecedingIterator : public AccelIterator
 {
  public:
-   /**
-    * @ pre must have at least one child.
-    */
    PrecedingIterator(const AccelTree *const doc, const AccelTree::PreNumber pre)
                   : AccelIterator(doc, pre, pre - 1 /* currentPre */),
                   m_postNumber(m_document->postNumber(m_preNumber)) {
@@ -292,12 +264,9 @@ class PrecedingIterator : public AccelIterator
 class AttributeIterator : public AccelIterator
 {
  public:
-   /**
-    * @p pre must have at least one child.
-    */
-   inline AttributeIterator(const AccelTree *const doc, const AccelTree::PreNumber pre)
-                  : AccelIterator(doc, pre, pre + 1) {
-
+   AttributeIterator(const AccelTree *const doc, const AccelTree::PreNumber pre)
+      : AccelIterator(doc, pre, pre + 1)
+   {
       Q_ASSERT(m_document->hasChildren(pre));
       Q_ASSERT(m_document->kind(m_currentPre) == QXmlNodeModelIndex::Attribute);
    }

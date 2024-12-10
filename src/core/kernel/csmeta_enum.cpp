@@ -55,15 +55,12 @@ const QString &QMetaEnum::key(int index) const
 {
    if (index < 0 || index >= m_data.size() ) {
 
-#if defined(CS_SHOW_DEBUG)
-
       if (m_data.isEmpty()) {
-         qDebug("QMetaEnum::key() Enum %s may not be registered", csPrintable(m_name));
+         qWarning("QMetaEnum::key() Enum %s may not be registered", csPrintable(m_name));
       }
 
-#endif
-
       static QString retval;
+
       return retval;
    }
 
@@ -116,7 +113,6 @@ const QString &QMetaEnum::name() const
    return m_name;
 }
 
-// internal
 void QMetaEnum::setData(QMap<QString, int> valueMap)
 {
    m_data = valueMap;

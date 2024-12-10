@@ -22,21 +22,22 @@
 ***********************************************************************/
 
 #include <qcocoawindow.h>
-#include <qcocoaintegration.h>
-#include <qnswindowdelegate.h>
+
 #include <qcocoaeventdispatcher.h>
+#include <qcocoahelpers.h>
+#include <qcocoaintegration.h>
+#include <qcocoanativeinterface.h>
+#include <qdebug.h>
+#include <qfileinfo.h>
+#include <qnsview.h>
+#include <qnswindowdelegate.h>
+#include <qplatform_screen.h>
+#include <qwindow.h>
+#include <qwindowsysteminterface.h>
 
 #ifndef QT_NO_OPENGL
 #include <qcocoaglcontext.h>
 #endif
-
-#include <qcocoahelpers.h>
-#include <qcocoanativeinterface.h>
-#include <qnsview.h>
-#include <qfileinfo.h>
-#include <qwindow.h>
-#include <qwindowsysteminterface.h>
-#include <qplatform_screen.h>
 
 #include <qcore_mac_p.h>
 #include <qwindow_p.h>
@@ -44,12 +45,8 @@
 #include <Cocoa/Cocoa.h>
 #include <Carbon/Carbon.h>
 
-#include <qdebug.h>
-
-enum {
-   defaultWindowWidth  = 160,
-   defaultWindowHeight = 160
-};
+static constexpr const int defaultWindowWidth  = 160;
+static constexpr const int defaultWindowHeight = 160;
 
 static bool isMouseEvent(NSEvent *ev)
 {
@@ -446,7 +443,7 @@ QCocoaWindow::QCocoaWindow(QWindow *tlw)
      m_topContentBorderThickness(0), m_bottomContentBorderThickness(0),
      m_normalGeometry(QRect(0, 0, -1, -1)), m_hasWindowFilePath(false)
 {
-#ifdef QT_COCOA_ENABLE_WINDOW_DEBUG
+#if defined(CS_SHOW_DEBUG_PLATFORM_WINDOW)
    qDebug() << "QCocoaWindow::QCocoaWindow" << this;
 #endif
 
@@ -488,7 +485,7 @@ QCocoaWindow::QCocoaWindow(QWindow *tlw)
 
 QCocoaWindow::~QCocoaWindow()
 {
-#ifdef QT_COCOA_ENABLE_WINDOW_DEBUG
+#if defined(CS_SHOW_DEBUG_PLATFORM_WINDOW)
    qDebug() << "QCocoaWindow::~QCocoaWindow" << this;
 #endif
 
@@ -569,7 +566,7 @@ void QCocoaWindow::setGeometry(const QRect &rectIn)
       return;
    }
 
-#ifdef QT_COCOA_ENABLE_WINDOW_DEBUG
+#if defined(CS_SHOW_DEBUG_PLATFORM_WINDOW)
    qDebug() << "QCocoaWindow::setGeometry" << this << rect;
 #endif
 
@@ -755,7 +752,7 @@ void QCocoaWindow::setVisible(bool visible)
       parentCocoaWindow = static_cast<QCocoaWindow *>(window()->transientParent()->handle());
    }
 
-#ifdef QT_COCOA_ENABLE_WINDOW_DEBUG
+#if defined(CS_SHOW_DEBUG_PLATFORM_WINDOW)
    qDebug() << "QCocoaWindow::setVisible" << window() << visible;
 #endif
 
@@ -862,7 +859,6 @@ void QCocoaWindow::setVisible(bool visible)
       }
 
    } else {
-      // qDebug() << "close" << this;
 
 #ifndef QT_NO_OPENGL
       if (m_glContext) {
@@ -1044,7 +1040,7 @@ NSUInteger QCocoaWindow::windowStyleMask(Qt::WindowFlags flags)
       styleMask |= NSWindowStyleMaskTexturedBackground;
    }
 
-#ifdef QT_COCOA_ENABLE_WINDOW_DEBUG
+#if defined(CS_SHOW_DEBUG_PLATFORM_WINDOW)
    qDebug("windowStyleMask of '%s': flags %X -> styleMask %lX", csPrintable(window()->title()), (int)flags, styleMask);
 #endif
 
@@ -1175,7 +1171,6 @@ bool QCocoaWindow::isAlertState() const
 
 void QCocoaWindow::raise()
 {
-   //qDebug() << "raise" << this;
    // ### handle spaces (see raise_sys in qwidget_mac.mm)
 
    if (! m_nsWindow) {
@@ -1277,7 +1272,7 @@ void QCocoaWindow::propagateSizeHints()
       return;
    }
 
-#ifdef QT_COCOA_ENABLE_WINDOW_DEBUG
+#if defined(CS_SHOW_DEBUG_PLATFORM_WINDOW)
    qDebug() << "QCocoaWindow::propagateSizeHints" << this;
    qDebug() << "       min/max" << windowMinimumSize() << windowMaximumSize();
    qDebug() << "size increment" << windowSizeIncrement();
@@ -1884,7 +1879,7 @@ void QCocoaWindow::syncWindowState(Qt::WindowState newState)
       }
    }
 
-#ifdef QT_COCOA_ENABLE_WINDOW_DEBUG
+#if defined(CS_SHOW_DEBUG_PLATFORM_WINDOW)
    qDebug() << "QCocoaWindow::syncWindowState" << newState << "actual" << predictedState << "was" << m_synchedWindowState <<
       "effectively maximized" << m_effectivelyMaximized;
 #endif

@@ -27,10 +27,10 @@
 #include <qcameracontrol.h>
 #include <qcameraexposurecontrol.h>
 #include <qcamerafocuscontrol.h>
+#include <qcameraimagecapturecontrol.h>
 #include <qcamerazoomcontrol.h>
 #include <qdebug.h>
 #include <qmediarecordercontrol.h>
-#include <qcameraimagecapturecontrol.h>
 #include <qvideodeviceselectorcontrol.h>
 
 #include <qmediaobject_p.h>
@@ -41,28 +41,32 @@ class QCameraFocusFakeZoomControl : public QCameraZoomControl
    QCameraFocusFakeZoomControl(QObject *parent)
       : QCameraZoomControl(parent) {}
 
-   qreal maximumOpticalZoom() const {
-      return 1.0;
-   }
-   qreal maximumDigitalZoom() const {
+   qreal maximumOpticalZoom() const override {
       return 1.0;
    }
 
-   qreal requestedOpticalZoom() const {
-      return 1.0;
-   }
-   qreal requestedDigitalZoom() const {
-      return 1.0;
-   }
-   qreal currentOpticalZoom() const {
-      return 1.0;
-   }
-   qreal currentDigitalZoom() const {
+   qreal maximumDigitalZoom() const override {
       return 1.0;
    }
 
-   void zoomTo(qreal, qreal) {
-      qWarning("This camera does not support zooming.");
+   qreal requestedOpticalZoom() const override {
+      return 1.0;
+   }
+
+   qreal requestedDigitalZoom() const override {
+      return 1.0;
+   }
+
+   qreal currentOpticalZoom() const override {
+      return 1.0;
+   }
+
+   qreal currentDigitalZoom() const override {
+      return 1.0;
+   }
+
+   void zoomTo(qreal, qreal) override {
+      qWarning("This camera does not support zooming");
    }
 };
 
@@ -70,41 +74,42 @@ class QCameraFocusFakeFocusControl : public QCameraFocusControl
 {
  public:
    QCameraFocusFakeFocusControl(QObject *parent)
-      : QCameraFocusControl(parent) {}
+      : QCameraFocusControl(parent)
+   { }
 
-   QCameraFocus::FocusModes focusMode() const {
+   QCameraFocus::FocusModes focusMode() const override {
       return QCameraFocus::AutoFocus;
    }
 
-   void setFocusMode(QCameraFocus::FocusModes) {
+   void setFocusMode(QCameraFocus::FocusModes) override {
       qWarning("Focus mode selection is not supported");
    }
 
-   bool isFocusModeSupported(QCameraFocus::FocusModes) const {
+   bool isFocusModeSupported(QCameraFocus::FocusModes) const override {
       return false;
    }
 
-   QCameraFocus::FocusPointMode focusPointMode() const {
+   QCameraFocus::FocusPointMode focusPointMode() const override {
       return QCameraFocus::FocusPointAuto;
    }
 
-   void setFocusPointMode(QCameraFocus::FocusPointMode) {
+   void setFocusPointMode(QCameraFocus::FocusPointMode) override {
       qWarning("Focus points mode selection is not supported");
    }
 
-   bool isFocusPointModeSupported(QCameraFocus::FocusPointMode) const {
+   bool isFocusPointModeSupported(QCameraFocus::FocusPointMode) const override {
       return false;
    }
 
-   QPointF customFocusPoint() const {
+   QPointF customFocusPoint() const override {
       return QPointF(0.5, 0.5);
    }
 
-   void setCustomFocusPoint(const QPointF &) {
+   void setCustomFocusPoint(const QPointF &) override {
       qWarning("Focus points selection is not supported");
    }
 
-   QCameraFocusZoneList focusZones() const {
+   QCameraFocusZoneList focusZones() const override {
       return QCameraFocusZoneList();
    }
 };
@@ -112,12 +117,14 @@ class QCameraFocusFakeFocusControl : public QCameraFocusControl
 class QCameraFocusZoneData : public QSharedData
 {
  public:
-   QCameraFocusZoneData():
-      status(QCameraFocusZone::Invalid) {
+   QCameraFocusZoneData()
+      : status(QCameraFocusZone::Invalid)
+   {
    }
 
    QCameraFocusZoneData(const QRectF &_area, QCameraFocusZone::FocusZoneStatus _status)
-      : area(_area), status(_status) {
+      : area(_area), status(_status)
+   {
    }
 
    QCameraFocusZoneData(const QCameraFocusZoneData &other)
@@ -139,10 +146,6 @@ QCameraFocusZone::QCameraFocusZone()
 {
 }
 
-/*!
- * \internal
- * Creates a new QCameraFocusZone with the supplied \a area and \a status.
- */
 QCameraFocusZone::QCameraFocusZone(const QRectF &area, QCameraFocusZone::FocusZoneStatus status)
    : d(new QCameraFocusZoneData(area, status))
 {
@@ -163,54 +166,32 @@ QCameraFocusZone &QCameraFocusZone::operator=(const QCameraFocusZone &other)
    return *this;
 }
 
-/*!
- * Returns true if this focus zone is the same as \a other.
- */
 bool QCameraFocusZone::operator==(const QCameraFocusZone &other) const
 {
    return d == other.d ||
           (d->area == other.d->area && d->status == other.d->status);
 }
 
-/*!
- * Returns true if this focus zone is not the same as \a other.
- */
 bool QCameraFocusZone::operator!=(const QCameraFocusZone &other) const
 {
    return !(*this == other);
 }
 
-/*!
- * Returns true if this focus zone has a valid area and status.
- */
 bool QCameraFocusZone::isValid() const
 {
    return d->status != Invalid && !d->area.isValid();
 }
 
-/*!
- * Returns the area of the camera frame that this focus zone encompasses.
- *
- * Coordinates are in frame relative coordinates - \c QPointF(0,0) is the top
- * left of the frame, and \c QPointF(1,1) is the bottom right.
- */
 QRectF QCameraFocusZone::area() const
 {
    return d->area;
 }
 
-/*!
- * Returns the current status of this focus zone.
- */
 QCameraFocusZone::FocusZoneStatus QCameraFocusZone::status() const
 {
    return d->status;
 }
 
-/*!
- * \internal
- * Sets the current status of this focus zone to \a status.
- */
 void QCameraFocusZone::setStatus(QCameraFocusZone::FocusZoneStatus status)
 {
    d->status = status;
@@ -264,7 +245,6 @@ void QCameraFocusPrivate::initControls()
    q->connect(zoomControl,  &QCameraZoomControl::maximumDigitalZoomChanged, q, &QCameraFocus::maximumDigitalZoomChanged);
 }
 
-// internal
 QCameraFocus::QCameraFocus(QCamera *camera)
    : QObject(camera), d_ptr(new QCameraFocusPrivate)
 {

@@ -36,8 +36,6 @@
 
 #include <qdebug.h>
 
-#define DEBUG
-
 QHttpSocketEngine::QHttpSocketEngine(QObject *parent)
    : QAbstractSocketEngine(*new QHttpSocketEnginePrivate, parent)
 {
@@ -140,10 +138,10 @@ bool QHttpSocketEngine::connectInternal()
       setState(QAbstractSocket::UnconnectedState);
    }
 
-   // Handshake isn't done. If unconnected, start connecting.
+   // Handshake is not done, if unconnected, then start connecting
    if (d->state == None && d->socket->state() == QAbstractSocket::UnconnectedState) {
       setState(QAbstractSocket::ConnectingState);
-      //limit buffer in internal socket, data is buffered in the external socket under application control
+      // limit buffer in this socket, data is buffered in the external socket under application control
       d->socket->setReadBufferSize(65536);
       d->socket->connectToHost(d->proxy.hostName(), d->proxy.port());
    }
@@ -490,10 +488,10 @@ void QHttpSocketEngine::slotSocketConnected()
 {
    Q_D(QHttpSocketEngine);
 
-   // Send the greeting.
+   // Send the greeting
    const char method[] = "CONNECT";
    QByteArray peerAddress = d->peerName.isEmpty() ?
-                            d->peerAddress.toString().toLatin1() : QUrl::toAce(d->peerName);
+         d->peerAddress.toString().toLatin1() : QUrl::toAce(d->peerName);
 
    QByteArray path = peerAddress + ':' + QByteArray::number(d->peerPort);
    QByteArray data = method;
@@ -512,7 +510,7 @@ void QHttpSocketEngine::slotSocketConnected()
    }
 
    QAuthenticatorPrivate *priv = QAuthenticatorPrivate::getPrivate(d->authenticator);
-   //qDebug() << "slotSocketConnected: priv=" << priv << (priv ? (int)priv->method : -1);
+
    if (priv && priv->method != QAuthenticatorPrivate::None) {
       d->credentialsSent = true;
       data += "Proxy-Authorization: " + priv->calculateResponse(method, path);
@@ -520,9 +518,6 @@ void QHttpSocketEngine::slotSocketConnected()
    }
 
    data += "\r\n";
-   //     qDebug() << ">>>>>>>> sending request" << this;
-   //     qDebug() << data;
-   //     qDebug() << ">>>>>>>";
    d->socket->write(data);
    d->state = ConnectSent;
 }
@@ -791,9 +786,12 @@ void QHttpSocketEngine::slotSocketError(QAbstractSocket::SocketError error)
 
    d->state = None;
    setError(error, d->socket->errorString());
+
+#if defined(CS_SHOW_DEBUG_NETWORK)
    if (error != QAbstractSocket::RemoteHostClosedError) {
       qDebug() << "QHttpSocketEngine::slotSocketError: got weird error =" << error;
    }
+#endif
 
    //read notification needs to always be emitted, otherwise the higher layer doesn't get the disconnected signal
    emitReadNotification();
@@ -807,7 +805,9 @@ void QHttpSocketEngine::slotSocketStateChanged(QAbstractSocket::SocketState stat
 void QHttpSocketEngine::emitPendingReadNotification()
 {
    Q_D(QHttpSocketEngine);
+
    d->readNotificationPending = false;
+
    if (d->readNotificationEnabled) {
       emit readNotification();
    }

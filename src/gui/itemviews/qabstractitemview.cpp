@@ -203,7 +203,6 @@ QAbstractItemView::QAbstractItemView(QWidget *parent)
    d_func()->init();
 }
 
-// internal
 QAbstractItemView::QAbstractItemView(QAbstractItemViewPrivate &dd, QWidget *parent)
    : QAbstractScrollArea(dd, parent)
 {
@@ -253,9 +252,9 @@ void QAbstractItemView::setModel(QAbstractItemModel *model)
 
    d->model = (model ? model : QAbstractItemModelPrivate::staticEmptyModel());
 
-   // sserts do basic sanity checking of the model
+   // asserts do basic sanity checking of the model
    Q_ASSERT_X(d->model->index(0, 0) == d->model->index(0, 0), "QAbstractItemView::setModel():",
-      "Model should return the exact same index (including its internal id/pointer) when asked for it twice in a row.");
+      "Model should return the exact same index (including the id pointer) when called twice in a row.");
 
    Q_ASSERT_X(! d->model->index(0, 0).parent().isValid(),
       "QAbstractItemView::setModel():", "Parent of a top level index should be invalid");
@@ -1041,12 +1040,14 @@ void QAbstractItemView::mouseMoveEvent(QMouseEvent *event)
 #ifndef QT_NO_DRAGANDDROP
    if (state() == DraggingState) {
       topLeft = d->pressedPosition - d->offset();
+
       if ((topLeft - bottomRight).manhattanLength() > QApplication::startDragDistance()) {
          d->pressedIndex = QModelIndex();
          startDrag(d->model->supportedDragActions());
          setState(NoState); // the startDrag will return when the dnd operation is done
          stopAutoScroll();
       }
+
       return;
    }
 #endif
@@ -2376,9 +2377,10 @@ void QAbstractItemView::update(const QModelIndex &index)
 
    if (index.isValid()) {
       const QRect rect = visualRect(index);
-      //this test is important for peformance reason
-      //For example in dataChanged we simply update all the cells without checking
-      //it can be a major bottleneck to update rects that aren't even part of the viewport
+      // this test is important for peformance reason
+      // For example in dataChanged we simply update all the cells without checking
+      // it can be a major bottleneck to update rects that are not even part of the viewport
+
       if (d->viewport->rect().intersects(rect)) {
          d->viewport->update(rect);
       }
@@ -2728,20 +2730,28 @@ void QAbstractItemView::currentChanged(const QModelIndex &current, const QModelI
 void QAbstractItemView::startDrag(Qt::DropActions supportedActions)
 {
    Q_D(QAbstractItemView);
+
    QModelIndexList indexes = d->selectedDraggableIndexes();
+
    if (indexes.count() > 0) {
       QMimeData *data = d->model->mimeData(indexes);
-      if (!data) {
+
+      if (! data) {
          return;
       }
+
       QRect rect;
+
       QPixmap pixmap = d->renderToPixmap(indexes, &rect);
       rect.adjust(horizontalOffset(), verticalOffset(), 0, 0);
+
       QDrag *drag = new QDrag(this);
       drag->setPixmap(pixmap);
       drag->setMimeData(data);
       drag->setHotSpot(d->pressedPosition - rect.topLeft());
+
       Qt::DropAction defaultDropAction = Qt::IgnoreAction;
+
       if (d->defaultDropAction != Qt::IgnoreAction && (supportedActions & d->defaultDropAction)) {
          defaultDropAction = d->defaultDropAction;
       } else if (supportedActions & Qt::CopyAction && dragDropMode() != QAbstractItemView::InternalMove) {
@@ -2845,20 +2855,16 @@ QPoint QAbstractItemView::dirtyRegionOffset() const
    return d->scrollDelayOffset;
 }
 
-
-// internal
 void QAbstractItemView::startAutoScroll()
 {
    d_func()->startAutoScroll();
 }
 
-// internal
 void QAbstractItemView::stopAutoScroll()
 {
    d_func()->stopAutoScroll();
 }
 
-// internal
 void QAbstractItemView::doAutoScroll()
 {
    // find how much we should scroll with

@@ -24,16 +24,16 @@
 #ifndef QDATAWIDGETMAPPER_H
 #define QDATAWIDGETMAPPER_H
 
-#include <qobject.h>
 #include <qabstractitemdelegate.h>
+#include <qobject.h>
 #include <qscopedpointer.h>
 
 #ifndef QT_NO_DATAWIDGETMAPPER
 
 class QAbstractItemDelegate;
 class QAbstractItemModel;
-class QModelIndex;
 class QDataWidgetMapperPrivate;
+class QModelIndex;
 
 class Q_GUI_EXPORT QDataWidgetMapper : public QObject
 {
@@ -52,7 +52,10 @@ class Q_GUI_EXPORT QDataWidgetMapper : public QObject
    GUI_CS_PROPERTY_WRITE(submitPolicy, setSubmitPolicy)
 
  public:
-   enum SubmitPolicy { AutoSubmit, ManualSubmit };
+   enum SubmitPolicy {
+      AutoSubmit,
+      ManualSubmit
+   };
 
    explicit QDataWidgetMapper(QObject *parent = nullptr);
 

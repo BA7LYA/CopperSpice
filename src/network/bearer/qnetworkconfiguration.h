@@ -25,9 +25,9 @@
 #define QNETWORKCONFIGURATION_H
 
 #include <qglobal.h>
+#include <qlist.h>
 #include <qshareddata.h>
 #include <qstring.h>
-#include <qlist.h>
 
 class QNetworkConfigurationPrivate;
 
@@ -85,7 +85,7 @@ class Q_NETWORK_EXPORT QNetworkConfiguration
 
    bool operator==(const QNetworkConfiguration &other) const;
 
-   inline bool operator!=(const QNetworkConfiguration &other) const {
+   bool operator!=(const QNetworkConfiguration &other) const {
       return !operator==(other);
    }
 

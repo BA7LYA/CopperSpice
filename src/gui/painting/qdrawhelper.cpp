@@ -49,7 +49,7 @@ enum {
 };
 
 // must be multiple of 4 for easier SIMD implementations
-static const int buffer_size = 2048;
+static constexpr const int buffer_size = 2048;
 
 template <QImage::Format>
 constexpr uint redWidth();
@@ -725,7 +725,7 @@ static const uint *convertARGBPMFromARGB32PM(uint *buffer, const uint *src, int 
 }
 
 template <QImage::Format Format>
-constexpr static inline QPixelLayout pixelLayoutRGB()
+static constexpr inline QPixelLayout pixelLayoutRGB()
 {
    return QPixelLayout{
       uchar(redWidth<Format>()), uchar(redShift<Format>()),
@@ -741,7 +741,7 @@ constexpr static inline QPixelLayout pixelLayoutRGB()
 }
 
 template <QImage::Format Format>
-constexpr static inline QPixelLayout pixelLayoutARGBPM()
+static constexpr inline QPixelLayout pixelLayoutARGBPM()
 {
    return QPixelLayout{
       uchar(redWidth<Format>()), uchar(redShift<Format>()),
@@ -2169,10 +2169,6 @@ static const QRgba64 *fetchTransformed64(QRgba64 *buffer, const Operator *, cons
    return buffer;
 }
 
-/** \internal
-  interpolate 4 argb pixels with the distx and disty factor.
-  distx and disty bust be between 0 and 16
- */
 static inline uint interpolate_4_pixels_16(uint tl, uint tr, uint bl, uint br, int distx, int disty)
 {
    uint distxy = distx * disty;
@@ -4403,8 +4399,13 @@ void blend_color_generic_rgb64(int count, const QSpan *spans, void *userData)
 {
    QSpanData *data = reinterpret_cast<QSpanData *>(userData);
    Operator op = getOperator(data, spans, count);
-   if (!op.funcSolid64) {
-      qDebug("unsupported 64bit blend attempted");
+
+   if (! op.funcSolid64) {
+
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
+      qDebug("blend_color_generic_rgb64() Unsupported 64-bit blend operation");
+#endif
+
       return blend_color_generic(count, spans, userData);
    }
 
@@ -4414,6 +4415,7 @@ void blend_color_generic_rgb64(int count, const QSpan *spans, void *userData)
    while (count--) {
       int x = spans->x;
       int length = spans->len;
+
       while (length) {
          int l = qMin(buffer_size, length);
          QRgba64 *dest = op.destFetch64(buffer, data->rasterBuffer, x, spans->y, l);
@@ -4646,7 +4648,10 @@ static void blend_src_generic_rgb64(int count, const QSpan *spans, void *userDat
       handleSpans(count, spans, data, blend64);
 
    } else {
-      qDebug("blend_src_generic_rgb64: unsupported 64-bit blend attempted");
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
+      qDebug("blend_src_generic_rgb64() Unsupported 64-bit blend operation");
+#endif
+
       BlendSrcGeneric blend32(data, op);
       handleSpans(count, spans, data, blend32);
    }
@@ -4962,10 +4967,15 @@ static void blend_tiled_generic_rgb64(int count, const QSpan *spans, void *userD
    QSpanData *data = reinterpret_cast<QSpanData *>(userData);
 
    Operator op = getOperator(data, spans, count);
-   if (!op.func64) {
-      qDebug("unsupported rgb64 blend");
+
+   if (! op.func64) {
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
+      qDebug("blend_tiled_generic_rgb64() Unsupported rgb64 blend operation");
+#endif
+
       return blend_tiled_generic(count, spans, userData);
    }
+
    QRgba64 buffer[buffer_size];
    QRgba64 src_buffer[buffer_size];
 

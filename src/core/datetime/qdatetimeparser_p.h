@@ -177,7 +177,7 @@ class Q_CORE_EXPORT QDateTimeParser
    }
 
    virtual QString displayText() const {
-      return text;
+      return m_text;
    }
 
  protected:
@@ -228,10 +228,15 @@ class Q_CORE_EXPORT QDateTimeParser
    */
 
    mutable int cachedDay;
-   mutable QString text;
+   mutable QString m_text;
 
    QVector<SectionNode> sectionNodes;
-   SectionNode first, last, none, popup;
+
+   SectionNode first;
+   SectionNode last;
+   SectionNode none;
+   SectionNode popup;
+
    QStringList separators;
    QString displayFormat;
    QLocale defaultLocale;

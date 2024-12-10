@@ -34,7 +34,7 @@
 #include <qopengl_extensions_p.h>
 #include <qopenglcontext_p.h>
 
-// GLES2 builds won't have these constants with the suffixless names
+// GLES2 builds will not have these constants with the suffixless names
 #ifndef GL_READ_FRAMEBUFFER
 #define GL_READ_FRAMEBUFFER 0x8CA8
 #endif
@@ -113,9 +113,11 @@ void QOpenGLWindowPrivate::initialize()
    context.reset(new QOpenGLContext);
    context->setShareContext(shareContext);
    context->setFormat(q->requestedFormat());
+
    if (!context->create()) {
       qWarning("QOpenGLWindow::initialize() Failed to create context");
    }
+
    if (!context->makeCurrent(q)) {
       qWarning("QOpenGLWindow::initialize() Failed to make context current");
    }
@@ -137,7 +139,7 @@ void QOpenGLWindowPrivate::beginPaint(const QRegion &region)
    initialize();
    context->makeCurrent(q);
 
-   const int deviceWidth = q->width() * q->devicePixelRatio();
+   const int deviceWidth  = q->width()  * q->devicePixelRatio();
    const int deviceHeight = q->height() * q->devicePixelRatio();
    const QSize deviceSize(deviceWidth, deviceHeight);
 
@@ -302,18 +304,12 @@ void QOpenGLWindow::doneCurrent()
    d->context->doneCurrent();
 }
 
-/*!
-  \return The QOpenGLContext used by this window or \c 0 if not yet initialized.
- */
 QOpenGLContext *QOpenGLWindow::context() const
 {
    Q_D(const QOpenGLWindow);
    return d->context.data();
 }
 
-/*!
-  \return The QOpenGLContext requested to be shared with this window's QOpenGLContext.
-*/
 QOpenGLContext *QOpenGLWindow::shareContext() const
 {
    Q_D(const QOpenGLWindow);
@@ -323,12 +319,16 @@ QOpenGLContext *QOpenGLWindow::shareContext() const
 GLuint QOpenGLWindow::defaultFramebufferObject() const
 {
    Q_D(const QOpenGLWindow);
+
    if (d->updateBehavior > NoPartialUpdate && d->fbo) {
       return d->fbo->handle();
+
    } else if (QOpenGLContext *ctx = QOpenGLContext::currentContext()) {
       return ctx->defaultFramebufferObject();
+
    } else {
       return 0;
+
    }
 }
 
@@ -341,6 +341,7 @@ QImage QOpenGLWindow::grabFramebuffer()
    }
 
    makeCurrent();
+
    return qt_gl_read_framebuffer(size() * devicePixelRatio(), false, false);
 }
 
@@ -383,9 +384,6 @@ void QOpenGLWindow::resizeEvent(QResizeEvent *event)
    resizeGL(width(), height());
 }
 
-/*!
-  \internal
- */
 int QOpenGLWindow::metric(PaintDeviceMetric metric) const
 {
    Q_D(const QOpenGLWindow);
@@ -402,9 +400,6 @@ int QOpenGLWindow::metric(PaintDeviceMetric metric) const
    return QPaintDeviceWindow::metric(metric);
 }
 
-/*!
-  \internal
- */
 QPaintDevice *QOpenGLWindow::redirected(QPoint *) const
 {
    Q_D(const QOpenGLWindow);

@@ -34,7 +34,6 @@
 
 #ifndef QT_NO_GRAPHICSVIEW
 
-// internal
 struct AnchorVertex {
    enum Type {
       Normal = 0,
@@ -47,7 +46,7 @@ struct AnchorVertex {
    AnchorVertex()
       : m_item(nullptr), m_edge(Qt::AnchorPoint(0)), m_type(Normal) {}
 
-#ifdef QT_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    inline QString toString() const;
 #endif
 
@@ -60,8 +59,7 @@ struct AnchorVertex {
    qreal distance;
 };
 
-// internal
-// Represents an edge (anchor) in the internal graph.
+// Represents an edge (anchor) in the CS graph.
 
 struct AnchorData : public QSimplexVariable {
    enum Type {
@@ -89,7 +87,7 @@ struct AnchorData : public QSimplexVariable {
    virtual void updateChildrenSizes() {}
    void refreshSizeHints(const QLayoutStyleInfo *styleInfo = nullptr);
 
-#ifdef QT_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    void dump(int indent = 2);
    inline QString toString() const;
    QString name;
@@ -127,13 +125,13 @@ struct AnchorData : public QSimplexVariable {
    QGraphicsAnchor *graphicsAnchor;
 
    uint type : 2;            // either Normal, Sequential or Parallel
-   uint isLayoutAnchor : 1;  // if this anchor is an internal layout anchor
+   uint isLayoutAnchor : 1;  // if this anchor is a CS layout anchor
    uint isCenterAnchor : 1;
    uint orientation : 1;
    uint dependency : 2;      // either Independent, Master or Slave
 };
 
-#ifdef QT_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
 inline QString AnchorData::toString() const
 {
    return QString("Anchor(%1)").formatArg(name);
@@ -146,7 +144,7 @@ struct SequentialAnchorData : public AnchorData {
       type = AnchorData::Sequential;
       orientation = m_edges.at(0)->orientation;
 
-#ifdef QT_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
       name = QString::fromLatin1("%1 -- %2").formatArgs(vertices.first()->toString(), vertices.last()->toString());
 #endif
    }
@@ -173,7 +171,7 @@ struct ParallelAnchorData : public AnchorData {
       from = first->from;
       to = first->to;
 
-#ifdef QT_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
       name = QString("%1 | %2").formatArgs(first->toString(), second->toString());
 #endif
 
@@ -210,7 +208,7 @@ struct AnchorVertexPair : public AnchorVertex {
    QList<AnchorData *> m_secondAnchors;
 };
 
-#ifdef QT_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
 inline QString AnchorVertex::toString() const
 {
    if (m_type == Pair) {
@@ -258,17 +256,6 @@ inline QString AnchorVertex::toString() const
 }
 #endif
 
-/*
-  internal
-
-  Representation of a valid path for a given vertex in the graph.
-  In this struct, "positives" is the set of anchors that have been
-  traversed in the forward direction, while "negatives" is the set
-  with the ones walked backwards.
-
-  This paths are compared against each other to produce LP Constraints,
-  the exact order in which the anchors were traversed is not relevant.
-*/
 class GraphPath
 {
  public:
@@ -276,16 +263,16 @@ class GraphPath
 
    QSimplexConstraint *constraint(const GraphPath &path) const;
 
-#ifdef QT_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    QString toString() const;
 #endif
+
    QSet<AnchorData *> positives;
    QSet<AnchorData *> negatives;
 };
 
 class QGraphicsAnchorLayoutPrivate;
 
-// internal
 class QGraphicsAnchorPrivate
 {
    Q_DECLARE_PUBLIC(QGraphicsAnchor)
@@ -324,6 +311,7 @@ class QGraphicsAnchorLayoutPrivate : public QGraphicsLayoutPrivate
    // of the items.
    //
    // Interval represents which interpolation interval are we operating in.
+
    enum Interval {
       MinimumToMinPreferred = 0,
       MinPreferredToPreferred,
@@ -331,10 +319,11 @@ class QGraphicsAnchorLayoutPrivate : public QGraphicsLayoutPrivate
       MaxPreferredToMaximum
    };
 
-   // Several structures internal to the layout are duplicated to handle
+   // Several structures in the layout are duplicated to handle
    // both Horizontal and Vertical restrictions.
    //
    // Orientation is used to reference the right structure in each context
+
    enum Orientation {
       Horizontal = 0,
       Vertical,
@@ -455,7 +444,6 @@ class QGraphicsAnchorLayoutPrivate : public QGraphicsLayoutPrivate
       }
    }
 
-
    AnchorVertex *addInternalVertex(QGraphicsLayoutItem *item, Qt::AnchorPoint edge);
    void removeInternalVertex(QGraphicsLayoutItem *item, Qt::AnchorPoint edge);
 
@@ -467,13 +455,11 @@ class QGraphicsAnchorLayoutPrivate : public QGraphicsLayoutPrivate
    void interpolateEdge(AnchorVertex *base, AnchorData *edge);
 
    // Linear Programming solver methods
-   bool solveMinMax(const QList<QSimplexConstraint *> &constraints,
-      GraphPath path, qreal *min, qreal *max);
-   bool solvePreferred(const QList<QSimplexConstraint *> &constraints,
-      const QList<AnchorData *> &variables);
+   bool solveMinMax(const QList<QSimplexConstraint *> &constraints, GraphPath path, qreal *min, qreal *max);
+   bool solvePreferred(const QList<QSimplexConstraint *> &constraints, const QList<AnchorData *> &variables);
    bool hasConflicts() const;
 
-#ifdef QT_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    void dumpGraph(const QString &name = QString());
 #endif
 
@@ -489,7 +475,7 @@ class QGraphicsAnchorLayoutPrivate : public QGraphicsLayoutPrivate
    // ones (Graph Vertices)
    QHash<QPair<QGraphicsLayoutItem *, Qt::AnchorPoint>, QPair<AnchorVertex *, int>> m_vertexList;
 
-   // Internal graph of anchorage points and anchors, for both orientations
+   // CS graph of anchorage points and anchors for both orientations
    Graph<AnchorVertex, AnchorData> graph[2];
 
    AnchorVertex *layoutFirstVertex[2];
@@ -513,7 +499,7 @@ class QGraphicsAnchorLayoutPrivate : public QGraphicsLayoutPrivate
    bool graphHasConflicts[2];
    QSet<QGraphicsLayoutItem *> m_floatItems[2];
 
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_GUI_GRAPHICSVIEW)
    bool lastCalculationUsedSimplex[2];
 #endif
 

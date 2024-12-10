@@ -23,6 +23,7 @@
 
 #include <qitemselectionmodel.h>
 #include <qitemselectionmodel_p.h>
+
 #include <qdebug.h>
 
 #include <algorithm>
@@ -607,12 +608,7 @@ static QItemSelection mergeRowLengths(const QVector<QPair<QPersistentModelIndex,
    }
    return result;
 }
-/*!
-    \internal
 
-    Merges \a indexes into an item selection made up of ranges.
-    Assumes that the indexes are sorted.
-*/
 static QItemSelection mergeIndexes(const QVector<QPersistentModelIndex> &indexes)
 {
    QItemSelection colSpans;
@@ -1293,6 +1289,7 @@ void QItemSelectionModel::emitSelectionChanged(const QItemSelection &newSelectio
             ++o;
          }
       }
+
       // split selected
       for (int s = 0; s < selected.count();) {
          if (selected.at(s).intersects(intersections.at(i))) {
@@ -1309,13 +1306,14 @@ void QItemSelectionModel::emitSelectionChanged(const QItemSelection &newSelectio
    }
 }
 
-QDebug operator<<(QDebug dbg, const QItemSelectionRange &range)
+QDebug operator<<(QDebug debug, const QItemSelectionRange &range)
 {
-   QDebugStateSaver saver(dbg);
-   dbg.nospace() << "QItemSelectionRange(" << range.topLeft()
-      << ',' << range.bottomRight() << ')';
-   return dbg;
+   QDebugStateSaver saver(debug);
+   debug.nospace();
 
+   debug << "QItemSelectionRange(" << range.topLeft() << ", " << range.bottomRight() << ')';
+
+   return debug;
 }
 
 void QItemSelectionModel::_q_columnsAboutToBeRemoved(const QModelIndex &parent, int start, int end)

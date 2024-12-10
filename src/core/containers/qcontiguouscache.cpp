@@ -22,17 +22,6 @@
 ***********************************************************************/
 
 #include <qcontiguouscache.h>
-#include <qdebug.h>
-
-#ifdef QT_QCONTIGUOUSCACHE_DEBUG
-void QContiguousCacheData::dump() const
-{
-   qDebug() << "capacity:" << alloc;
-   qDebug() << "count:" << count;
-   qDebug() << "start:" << start;
-   qDebug() << "offset:" << offset;
-}
-#endif
 
 QContiguousCacheData *QContiguousCacheData::allocate(int size, int alignment)
 {

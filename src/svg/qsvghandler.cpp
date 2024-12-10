@@ -23,28 +23,28 @@
 
 #include <qsvghandler_p.h>
 
-#include <qplatformdefs.h>
-#include <qpen.h>
-#include <qpainterpath.h>
 #include <qbrush.h>
 #include <qcolor.h>
-#include <qtextformat.h>
-#include <qvector.h>
-#include <qfileinfo.h>
-#include <qfile.h>
 #include <qdebug.h>
+#include <qfile.h>
+#include <qfileinfo.h>
 #include <qmath.h>
 #include <qnumeric.h>
+#include <qpainterpath.h>
+#include <qpen.h>
+#include <qplatformdefs.h>
+#include <qtextformat.h>
 #include <qvarlengtharray.h>
+#include <qvector.h>
 
 #include <qmath_p.h>
-#include <qsvgtinydocument_p.h>
-#include <qsvgstructure_p.h>
+#include <qsvgfont_p.h>
 #include <qsvggraphics_p.h>
 #include <qsvgnode_p.h>
-#include <qsvgfont_p.h>
+#include <qsvgstructure_p.h>
+#include <qsvgtinydocument_p.h>
 
-#include "float.h"
+#include <float.h>
 
 Q_CORE_EXPORT double qstrtod(const char *s00, char const **se, bool *ok);
 
@@ -484,15 +484,15 @@ class QSvgStyleSelector : public QCss::StyleSelector
    {
    }
 
-   inline QString nodeToName(QSvgNode *node) const {
+   QString nodeToName(QSvgNode *node) const {
       return QString::fromLatin1(QSvgStyleSelector_nodeString[node->type()]);
    }
 
-   inline QSvgNode *svgNode(NodePtr node) const {
+   QSvgNode *svgNode(NodePtr node) const {
       return (QSvgNode *)node.ptr;
    }
 
-   inline QSvgStructureNode *nodeToStructure(QSvgNode *n) const {
+   QSvgStructureNode *nodeToStructure(QSvgNode *n) const {
       if (n &&
             (n->type() == QSvgNode::DOC ||
              n->type() == QSvgNode::G ||
@@ -504,7 +504,7 @@ class QSvgStyleSelector : public QCss::StyleSelector
       return nullptr;
    }
 
-   inline QSvgStructureNode *svgStructure(NodePtr node) const {
+   QSvgStructureNode *svgStructure(NodePtr node) const {
       QSvgNode *n = svgNode(node);
       QSvgStructureNode *st = nodeToStructure(n);
       return st;
@@ -868,10 +868,6 @@ static QString idFromUrl(const QString &url)
    return id;
 }
 
-/**
- * returns true when successfuly set the color. false signifies
- * that the color should be inherited
- */
 static bool resolveColor(QStringView colorStr, QColor &color, QSvgHandler *handler)
 {
    QStringView colorStrTr = colorStr.trimmed();
@@ -883,7 +879,7 @@ static bool resolveColor(QStringView colorStr, QColor &color, QSvgHandler *handl
    switch (colorStrTr.at(0).unicode()) {
 
       case '#': {
-         // #rrggbb is very common, so let's tackle it here  rather than falling back to QColor
+         // #rrggbb is very common so handle it here rather than falling back to QColor
 
          QRgb rgb;
          bool ok = qsvg_get_hex_rgb(colorStrTr, &rgb);
@@ -1467,7 +1463,15 @@ static void parseFont(QSvgNode *node, const QSvgAttributes &attributes, QSvgHand
       static const qreal sizeTable[] = { qreal(6.9), qreal(8.3), qreal(10.0),
                   qreal(12.0), qreal(14.4), qreal(17.3), qreal(20.7) };
 
-      enum AbsFontSize { XXSmall, XSmall, Small, Medium, Large, XLarge, XXLarge };
+      enum AbsFontSize {
+         XXSmall,
+         XSmall,
+         Small,
+         Medium,
+         Large,
+         XLarge,
+         XXLarge
+      };
 
       switch (attributes.fontSize.at(0).unicode()) {
          case 'x':
@@ -2977,20 +2981,25 @@ static QSvgNode *createImageNode(QSvgNode *parent, const QXmlStreamAttributes &a
    }
 
    if (nwidth <= 0 || nheight <= 0) {
-        qWarning() << "QSvgHandler: Width or height for" << filename << "image was not greater than 0";
-        return nullptr;
+      qWarning() << "QSvgHandler: Width or height for" << filename << "image was not greater than 0";
+      return nullptr;
    }
    QImage image;
 
    if (filename.startsWith(QString("data"))) {
       int idx = filename.lastIndexOf(QString("base64,"));
+
       if (idx != -1) {
          idx += 7;
          QString dataStr = filename.mid(idx);
          QByteArray data = QByteArray::fromBase64(dataStr.toLatin1());
          image = QImage::fromData(data);
+
       } else {
+
+#if defined(CS_SHOW_DEBUG_SVG)
          qDebug() << "QSvgHandler::createImageNode: Unrecognized inline image format!";
+#endif
       }
 
    } else {
@@ -2998,7 +3007,10 @@ static QSvgNode *createImageNode(QSvgNode *parent, const QXmlStreamAttributes &a
    }
 
    if (image.isNull()) {
+#if defined(CS_SHOW_DEBUG_SVG)
       qDebug() << "Unable to create image from " << filename;
+#endif
+
       return nullptr;
    }
 
@@ -3051,8 +3063,6 @@ static void parseBaseGradient(QSvgNode *node, const QXmlStreamAttributes &attrib
 
    if (!link.isEmpty()) {
       QSvgStyleProperty *prop = node->styleProperty(link);
-
-      //qDebug()<<"inherited "<<prop<<" ("<<link<<")";
 
       if (prop && prop->type() == QSvgStyleProperty::GRADIENT) {
          QSvgGradientStyle *inherited =  static_cast<QSvgGradientStyle *>(prop);
@@ -4206,7 +4216,6 @@ bool QSvgHandler::startElement(const QString &localName, const QXmlStreamAttribu
       }
 
    } else {
-      //qWarning()<<"Skipping unknown element!"<<namespaceURI<<"::"<<localName;
       m_skipNodes.push(Unknown);
       return true;
    }
@@ -4215,7 +4224,6 @@ bool QSvgHandler::startElement(const QString &localName, const QXmlStreamAttribu
       m_nodes.push(node);
       m_skipNodes.push(Graphics);
    } else {
-      //qDebug()<<"Skipping "<<localName;
       m_skipNodes.push(Style);
    }
 

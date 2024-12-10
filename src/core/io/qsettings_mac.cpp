@@ -35,7 +35,7 @@
 #include <Security/SecRequirement.h>
 
 static const CFStringRef hostNames[2] = { kCFPreferencesCurrentHost, kCFPreferencesAnyHost };
-static const int numHostNames = 2;
+static constexpr const int numHostNames = 2;
 
 /*
     On the Mac, it is more natural to use '.' as the key separator
@@ -45,12 +45,16 @@ static const int numHostNames = 2;
     becomes "4<middot>0.BrowserCommand".
 */
 
-enum RotateShift { Macify = 1, Qtify = 2 };
+enum RotateShift {
+   Macify = 1,
+   Qtify = 2
+};
 
 static QString rotateSlashesDotsAndMiddots(const QString &key, int shift)
 {
-   static const int NumKnights = 3;
-   static const char knightsOfTheRoundTable[NumKnights] = { '/', '.', '\xb7' };
+   static constexpr const int NumKnights = 3;
+   static constexpr const char knightsOfTheRoundTable[NumKnights] = { '/', '.', '\xb7' };
+
    QString result = key;
 
    for (int i = 0; i < result.size(); ++i) {
@@ -598,7 +602,7 @@ void QMacSettingsPrivate::sync()
                domains[i].userName, hostNames[j]);
 
          // only report failures for the primary file (the one we write to)
-         if (! ok && i == 0 && hostNames[j] == hostName.toCFStringRef() && status == QSettings::NoError) {
+         if (! ok && i == 0 && hostNames[j] == hostName.toCFStringRef() && m_status == QSettings::NoError) {
             setStatus(QSettings::AccessError);
          }
       }
@@ -615,16 +619,16 @@ bool QMacSettingsPrivate::isWritable() const
    QMacSettingsPrivate *that = const_cast<QMacSettingsPrivate *>(this);
    QString impossibleKey("qt_internal/");
 
-   QSettings::Status oldStatus = that->status;
-   that->status = QSettings::NoError;
+   QSettings::Status oldStatus = that->m_status;
+   that->m_status = QSettings::NoError;
 
    that->set(impossibleKey, QVariant());
    that->sync();
-   bool writable = (status == QSettings::NoError) && that->get(impossibleKey, nullptr);
+   bool writable = (m_status == QSettings::NoError) && that->get(impossibleKey, nullptr);
    that->remove(impossibleKey);
    that->sync();
 
-   that->status = oldStatus;
+   that->m_status = oldStatus;
 
    return writable;
 }

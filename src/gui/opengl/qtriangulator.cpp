@@ -25,31 +25,41 @@
 #include <qtriangulator_p.h>
 
 #include <qalgorithms.h>
+#include <qbitarray.h>
+#include <qdialog.h>
 #include <qevent.h>
+#include <qglobal.h>
+#include <qmath.h>
 #include <qpainter.h>
 #include <qpainterpath.h>
-#include <qvector.h>
-#include <qbitarray.h>
-#include <qvarlengtharray.h>
-#include <qqueue.h>
-#include <qglobal.h>
 #include <qpoint.h>
+#include <qqueue.h>
+#include <qvarlengtharray.h>
+#include <qvector.h>
 
 #include <qbezier_p.h>
 #include <qopengl_extensions_p.h>
 #include <qopenglcontext_p.h>
 #include <qrbtree_p.h>
 
-//#define Q_TRIANGULATOR_DEBUG
-
 #define Q_FIXED_POINT_SCALE 32
 
 template <typename T>
 struct QVertexSet
 {
-    inline QVertexSet() { }
-    inline QVertexSet(const QVertexSet<T> &other) : vertices(other.vertices), indices(other.indices) { }
-    QVertexSet<T> &operator = (const QVertexSet<T> &other) {vertices = other.vertices; indices = other.indices; return *this;}
+    QVertexSet()
+    { }
+
+    QVertexSet(const QVertexSet<T> &other)
+      : vertices(other.vertices), indices(other.indices)
+    { }
+
+    QVertexSet<T> &operator = (const QVertexSet<T> &other) {
+      vertices = other.vertices;
+      indices  = other.indices;
+
+      return *this;
+    }
 
     // The vertices of a triangle are given by: (x[i[n]], y[i[n]]), (x[j[n]], y[j[n]]), (x[k[n]], y[k[n]]), n = 0, 1, ...
     QVector<qreal> vertices; // [x[0], y[0], x[1], y[1], x[2], ...]
@@ -64,12 +74,26 @@ struct QFraction
     // Comparison operators must not be called on invalid fractions.
     inline bool operator < (const QFraction &other) const;
     inline bool operator == (const QFraction &other) const;
-    inline bool operator != (const QFraction &other) const {return !(*this == other);}
-    inline bool operator > (const QFraction &other) const {return other < *this;}
-    inline bool operator >= (const QFraction &other) const {return !(*this < other);}
-    inline bool operator <= (const QFraction &other) const {return !(*this > other);}
 
-    inline bool isValid() const {return denominator != 0;}
+    bool operator != (const QFraction &other) const {
+       return !(*this == other);
+    }
+
+    bool operator > (const QFraction &other) const {
+       return other < *this;
+    }
+
+    bool operator >= (const QFraction &other) const {
+       return !(*this < other);
+    }
+
+    bool operator <= (const QFraction &other) const {
+       return !(*this > other);
+    }
+
+    bool isValid() const {
+       return denominator != 0;
+    }
 
     // numerator and denominator must not have common denominators.
     quint64 numerator, denominator;
@@ -150,26 +174,56 @@ inline bool QFraction::operator == (const QFraction &other) const
 // ***
 struct QPodPoint
 {
-    inline bool operator < (const QPodPoint &other) const
-    {
-        if (y != other.y)
-            return y < other.y;
-        return x < other.x;
-    }
+   bool operator < (const QPodPoint &other) const {
+      if (y != other.y) {
+         return y < other.y;
+      }
 
-    inline bool operator > (const QPodPoint &other) const {return other < *this;}
-    inline bool operator <= (const QPodPoint &other) const {return !(*this > other);}
-    inline bool operator >= (const QPodPoint &other) const {return !(*this < other);}
-    inline bool operator == (const QPodPoint &other) const {return x == other.x && y == other.y;}
-    inline bool operator != (const QPodPoint &other) const {return x != other.x || y != other.y;}
+      return x < other.x;
+   }
 
-    inline QPodPoint &operator += (const QPodPoint &other) {x += other.x; y += other.y; return *this;}
-    inline QPodPoint &operator -= (const QPodPoint &other) {x -= other.x; y -= other.y; return *this;}
-    inline QPodPoint operator + (const QPodPoint &other) const {QPodPoint result = {x + other.x, y + other.y}; return result;}
-    inline QPodPoint operator - (const QPodPoint &other) const {QPodPoint result = {x - other.x, y - other.y}; return result;}
+   bool operator > (const QPodPoint &other) const {
+      return other < *this;
+   }
 
-    int x;
-    int y;
+   bool operator <= (const QPodPoint &other) const {
+      return !(*this > other);
+   }
+
+   bool operator >= (const QPodPoint &other) const {
+      return !(*this < other);
+   }
+
+   bool operator == (const QPodPoint &other) const {
+      return x == other.x && y == other.y;
+   }
+
+   bool operator != (const QPodPoint &other) const {
+      return x != other.x || y != other.y;
+   }
+
+   QPodPoint &operator += (const QPodPoint &other) {
+      x += other.x; y += other.y;
+      return *this;
+   }
+
+   QPodPoint &operator -= (const QPodPoint &other) {
+      x -= other.x; y -= other.y;
+      return *this;
+   }
+
+   QPodPoint operator + (const QPodPoint &other) const {
+      QPodPoint result = {x + other.x, y + other.y};
+      return result;
+   }
+
+   QPodPoint operator - (const QPodPoint &other) const {
+      QPodPoint result = {x - other.x, y - other.y};
+      return result;
+   }
+
+   int x;
+   int y;
 };
 
 static inline qint64 qCross(const QPodPoint &u, const QPodPoint &v)
@@ -177,7 +231,7 @@ static inline qint64 qCross(const QPodPoint &u, const QPodPoint &v)
     return qint64(u.x) * qint64(v.y) - qint64(u.y) * qint64(v.x);
 }
 
-#ifdef Q_TRIANGULATOR_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_OPENGL)
 static inline qint64 qDot(const QPodPoint &u, const QPodPoint &v)
 {
     return qint64(u.x) * qint64(v.x) + qint64(u.y) * qint64(v.y);
@@ -201,16 +255,37 @@ static inline bool qPointIsLeftOfLine(const QPodPoint &p, const QPodPoint &v1, c
 // ***
 struct QIntersectionPoint
 {
-    inline bool isValid() const {return xOffset.isValid() && yOffset.isValid();}
+    bool isAccurate() const {
+       return xOffset.numerator == 0 && yOffset.numerator == 0;
+    }
+
+    bool isOnLine(const QPodPoint &u, const QPodPoint &v) const;
+
+    bool isValid() const {
+       return xOffset.isValid() && yOffset.isValid();
+    }
+
     QPodPoint round() const;
-    inline bool isAccurate() const {return xOffset.numerator == 0 && yOffset.numerator == 0;}
+
     bool operator < (const QIntersectionPoint &other) const;
     bool operator == (const QIntersectionPoint &other) const;
-    inline bool operator != (const QIntersectionPoint &other) const {return !(*this == other);}
-    inline bool operator > (const QIntersectionPoint &other) const {return other < *this;}
-    inline bool operator >= (const QIntersectionPoint &other) const {return !(*this < other);}
-    inline bool operator <= (const QIntersectionPoint &other) const {return !(*this > other);}
-    bool isOnLine(const QPodPoint &u, const QPodPoint &v) const;
+
+    bool operator != (const QIntersectionPoint &other) const {
+       return !(*this == other);
+    }
+
+    bool operator > (const QIntersectionPoint &other) const {
+       return other < *this;
+    }
+
+    bool operator >= (const QIntersectionPoint &other) const {
+       return !(*this < other);
+    }
+
+    bool operator <= (const QIntersectionPoint &other) const {
+       return !(*this > other);
+    }
+
 
     QPodPoint upperLeft;
     QFraction xOffset;
@@ -361,17 +436,36 @@ public:
     QMaxHeap()
     { }
 
-    inline int size() const {return m_data.size();}
-    inline bool empty() const {return m_data.isEmpty();}
-    inline bool isEmpty() const {return m_data.isEmpty();}
+    int size() const {
+       return m_data.size();
+    }
+
+    bool empty() const {
+       return m_data.isEmpty();
+    }
+
+    bool isEmpty() const {
+       return m_data.isEmpty();
+    }
+
     void push(const T &x);
     T pop();
-    inline const T &top() const {return m_data.first();}
+
+    const T &top() const {
+       return m_data.first();
+    }
 
 private:
-    static inline int parent(int i) {return (i - 1) / 2;}
-    static inline int left(int i) {return 2 * i + 1;}
-    static inline int right(int i) {return 2 * i + 2;}
+    static int parent(int i) {
+       return (i - 1) / 2;
+    }
+
+    static int left(int i) {
+       return 2 * i + 1;
+    }
+
+    static int right(int i) {return 2 * i + 2;
+    }
 
     QVector<T> m_data;
 };
@@ -452,8 +546,17 @@ class QInt64Set
 {
 public:
     inline QInt64Set(int capacity = 64);
-    inline ~QInt64Set() {if (m_array) delete[] m_array;}
-    inline bool isValid() const {return m_array;}
+
+    ~QInt64Set() {
+       if (m_array) {
+          delete[] m_array;
+       }
+    }
+
+    bool isValid() const {
+       return m_array;
+    }
+
     void insert(quint64 key);
     bool contains(quint64 key) const;
     inline void clear();
@@ -561,7 +664,7 @@ public:
 
     class ComplexToSimple {
     public:
-        inline ComplexToSimple(QTriangulator<T> *parent)
+        ComplexToSimple(QTriangulator<T> *parent)
            : m_parent(parent)
         {
         }
@@ -571,10 +674,21 @@ public:
     private:
         struct Edge
         {
-            inline int &upper() {return pointingUp ? to : from;}
-            inline int &lower() {return pointingUp ? from : to;}
-            inline int upper() const {return pointingUp ? to : from;}
-            inline int lower() const {return pointingUp ? from : to;}
+            int &upper() {
+               return pointingUp ? to : from;
+            }
+
+            int &lower() {
+               return pointingUp ? from : to;
+            }
+
+            int upper() const {
+               return pointingUp ? to : from;
+            }
+
+            int lower() const {
+               return pointingUp ? from : to;
+            }
 
             QRBTree<int>::Node *node;
             int from, to; // vertex
@@ -611,19 +725,22 @@ public:
             int edge;
         };
 
-#ifdef Q_TRIANGULATOR_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_OPENGL)
         friend class DebugDialog;
         friend class QTriangulator;
+
         class DebugDialog : public QDialog
         {
-        public:
+         public:
             DebugDialog(ComplexToSimple *parent, int currentVertex);
-        protected:
-            void paintEvent(QPaintEvent *);
-            void wheelEvent(QWheelEvent *);
-            void mouseMoveEvent(QMouseEvent *);
-            void mousePressEvent(QMouseEvent *);
-        private:
+
+         protected:
+            void paintEvent(QPaintEvent *) override;
+            void wheelEvent(QWheelEvent *) override;
+            void mouseMoveEvent(QMouseEvent *) override;
+            void mousePressEvent(QMouseEvent *) override;
+
+         private:
             ComplexToSimple *m_parent;
             QRectF m_window;
             QPoint m_lastMousePos;
@@ -662,7 +779,7 @@ public:
         int m_initialPointCount;
     };
 
-#ifdef Q_TRIANGULATOR_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_OPENGL)
     friend class ComplexToSimple::DebugDialog;
 #endif
 
@@ -671,7 +788,7 @@ public:
     class SimpleToMonotone
     {
     public:
-        inline SimpleToMonotone(QTriangulator<T> *parent)
+        SimpleToMonotone(QTriangulator<T> *parent)
            : m_parent(parent)
         {
         }
@@ -731,7 +848,7 @@ public:
     class MonotoneToTriangles
     {
     public:
-        inline MonotoneToTriangles(QTriangulator<T> *parent)
+        MonotoneToTriangles(QTriangulator<T> *parent)
            : m_parent(parent)
         {
         }
@@ -739,18 +856,23 @@ public:
         void decompose();
 
     private:
-        inline T indices(int index) const {return m_parent->m_indices.at(index + m_first);}
-        inline int next(int index) const {return (index + 1) % m_length;}
+        T indices(int index) const {
+           return m_parent->m_indices.at(index + m_first);
+        }
 
-        inline int previous(int index) const {
+        int next(int index) const {
+           return (index + 1) % m_length;
+        }
+
+        int previous(int index) const {
            return (index + m_length - 1) % m_length;
         }
 
-        inline bool less(int i, int j) const {
+        bool less(int i, int j) const {
            return m_parent->m_vertices.at((qint32)indices(i)) < m_parent->m_vertices.at(indices(j));
         }
 
-        inline bool leftOfEdge(int i, int j, int k) const {
+        bool leftOfEdge(int i, int j, int k) const {
             return qPointIsLeftOfLine(m_parent->m_vertices.at((qint32)indices(i)),
                 m_parent->m_vertices.at((qint32)indices(j)), m_parent->m_vertices.at((qint32)indices(k)));
         }
@@ -760,7 +882,7 @@ public:
         int m_length;
     };
 
-    inline QTriangulator() {
+    QTriangulator() {
     }
 
     // Call this only once.
@@ -1292,7 +1414,7 @@ void QTriangulator<T>::ComplexToSimple::sortEdgeList(const QPodPoint eventPoint)
         while (!m_topIntersection.isEmpty() && m_topIntersection.top().intersectionPoint <= currentIntersectionPoint)
             m_topIntersection.pop();
 
-#ifdef Q_TRIANGULATOR_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_OPENGL)
         DebugDialog dialog(this, intersection.vertex);
         dialog.exec();
 #endif
@@ -1363,9 +1485,13 @@ void QTriangulator<T>::ComplexToSimple::calculateIntersections()
                 QRBTree<int>::Node *left  = m_edgeList.previous(m_edges[i].node);
                 QRBTree<int>::Node *right = m_edgeList.next(m_edges[i].node);
                 m_edgeList.deleteNode(m_edges[i].node);
-                if (!left || !right)
+
+                if (! left || ! right) {
                     continue;
+                }
+
                 calculateIntersection(left->data, right->data);
+
             } else {
                 // Insert edge into edge list.
                 Q_ASSERT(event.type == Event::Upper);
@@ -1373,19 +1499,28 @@ void QTriangulator<T>::ComplexToSimple::calculateIntersections()
                 m_edgeList.attachAfter(left, m_edges[i].node = m_edgeList.newNode());
                 m_edges[i].node->data = i;
                 QRBTree<int>::Node *right = m_edgeList.next(m_edges[i].node);
-                if (left)
+
+                if (left) {
                     calculateIntersection(left->data, i);
-                if (right)
+                }
+
+                if (right) {
                     calculateIntersection(i, right->data);
+                }
             }
         }
-        while (!m_topIntersection.isEmpty() && m_topIntersection.top().intersectionPoint <= eventPoint)
+
+        while (! m_topIntersection.isEmpty() && m_topIntersection.top().intersectionPoint <= eventPoint) {
             m_topIntersection.pop();
-#ifdef Q_TRIANGULATOR_DEBUG
+        }
+
+#if defined(CS_SHOW_DEBUG_GUI_OPENGL)
         DebugDialog dialog(this, vertex);
         dialog.exec();
 #endif
+
     }
+
     m_processedEdgePairs.clear();
 }
 
@@ -1504,8 +1639,13 @@ void QTriangulator<T>::ComplexToSimple::removeUnwantedEdgesAndConnect()
             while (current != b.second) {
                 Q_ASSERT(current);
                 Q_ASSERT(m_edges.at(current->data).node == current);
-                Q_ASSERT(QT_PREPEND_NAMESPACE(qIntersectionPoint)(event.point).isOnLine(m_parent->m_vertices.at(m_edges.at(current->data).from), m_parent->m_vertices.at(m_edges.at(current->data).to)));
-                Q_ASSERT(m_parent->m_vertices.at(m_edges.at(current->data).from) == event.point || m_parent->m_vertices.at(m_edges.at(current->data).to) == event.point);
+
+                Q_ASSERT(QT_PREPEND_NAMESPACE(qIntersectionPoint)(event.point).isOnLine(
+                      m_parent->m_vertices.at(m_edges.at(current->data).from), m_parent->m_vertices.at(m_edges.at(current->data).to)));
+
+                Q_ASSERT(m_parent->m_vertices.at(m_edges.at(current->data).from) ==
+                      event.point || m_parent->m_vertices.at(m_edges.at(current->data).to) == event.point);
+
                 insertEdgeIntoVectorIfWanted(orderedEdges, current->data);
                 current = m_edgeList.next(current);
             }
@@ -1651,26 +1791,28 @@ inline bool QTriangulator<T>::ComplexToSimple::Event::operator < (const Event &o
     return other.point < point;
 }
 
-
-#ifdef Q_TRIANGULATOR_DEBUG
+#if defined(CS_SHOW_DEBUG_GUI_OPENGL)
 
 template <typename T>
 QTriangulator<T>::ComplexToSimple::DebugDialog::DebugDialog(ComplexToSimple *parent, int currentVertex)
     : m_parent(parent), m_vertex(currentVertex)
 {
     QVector<QPodPoint> &vertices = m_parent->m_parent->m_vertices;
+
     if (vertices.isEmpty())
         return;
 
     int minX, maxX, minY, maxY;
     minX = maxX = vertices.at(0).x;
     minY = maxY = vertices.at(0).y;
+
     for (int i = 1; i < vertices.size(); ++i) {
         minX = qMin(minX, vertices.at(i).x);
         maxX = qMax(maxX, vertices.at(i).x);
         minY = qMin(minY, vertices.at(i).y);
         maxY = qMax(maxY, vertices.at(i).y);
     }
+
     int w = maxX - minX;
     int h = maxY - minY;
     qreal border = qMin(w, h) / 10.0;
@@ -1724,20 +1866,25 @@ void QTriangulator<T>::ComplexToSimple::DebugDialog::paintEvent(QPaintEvent *)
 
     p.setPen(Qt::gray);
     QVector<Split> &splits = m_parent->m_splits;
+
     for (int i = 0; i < splits.size(); ++i) {
         QPodPoint q = vertices.at(splits.at(i).vertex);
         QPodPoint u = vertices.at(edges.at(splits.at(i).edge).from) - q;
         QPodPoint v = vertices.at(edges.at(splits.at(i).edge).to) - q;
+
         qreal uLen = qSqrt(qDot(u, u));
         qreal vLen = qSqrt(qDot(v, v));
+
         if (uLen) {
             u.x *= 2 * halfPointSize / uLen;
             u.y *= 2 * halfPointSize / uLen;
         }
+
         if (vLen) {
             v.x *= 2 * halfPointSize / vLen;
             v.y *= 2 * halfPointSize / vLen;
         }
+
         u += q;
         v += q;
         p.drawLine(u.x, u.y, v.x, v.y);
@@ -1776,7 +1923,6 @@ void QTriangulator<T>::ComplexToSimple::DebugDialog::mousePressEvent(QMouseEvent
         m_lastMousePos = event->pos();
     event->accept();
 }
-
 
 #endif
 
@@ -2072,7 +2218,7 @@ void QTriangulator<T>::SimpleToMonotone::monotoneDecomposition()
     classifyVertices();
     fillPriorityQueue();
 
-    // debug: set helpers explicitly (shouldn't be necessary)
+    // debug: set helpers explicitly (should not be necessary)
     //for (int i = 0; i < m_edges.size(); ++i)
     //    m_edges.at(i).helper = m_edges.at(i).upper();
 

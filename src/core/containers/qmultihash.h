@@ -250,12 +250,12 @@ class QMultiHash
    QMultiHash(QMultiHash<Key, Val, Hash, KeyEqual> &&other) = default;
 
    QMultiHash(std::initializer_list<std::pair<const Key, Val>> list, const Hash &hash = Hash(),
-         const KeyEqual &key_equal = KeyEqual())
-      : m_data(list, bucket_count, hash, key_equal)
+         const KeyEqual &key = KeyEqual())
+      : m_data(list, bucket_count, hash, key)
    { }
 
-   explicit QMultiHash(const Hash &hash, const KeyEqual &key_equal = KeyEqual())
-      : m_data(hash, key_equal)
+   explicit QMultiHash(const Hash &hash, const KeyEqual &key = KeyEqual())
+      : m_data(hash, key)
    { }
 
    explicit QMultiHash(const std::unordered_multimap<Key, Val, Hash, KeyEqual> &other)
@@ -268,8 +268,8 @@ class QMultiHash
 
    template <typename Input_Iterator>
    QMultiHash(Input_Iterator first, Input_Iterator last, const Hash &hash = Hash(),
-         const KeyEqual &key_equal = KeyEqual())
-      : m_data(first, last, hash, key_equal)
+         const KeyEqual &key = KeyEqual())
+      : m_data(first, last, hash, key)
    { }
 
    ~QMultiHash() = default;
@@ -321,6 +321,10 @@ class QMultiHash
 
    QPair<const_iterator, const_iterator> equal_range(const Key &key) const {
       return m_data.equal_range(key);
+   }
+
+   size_type erase(const Key &key) {
+      return m_data.erase(key);
    }
 
    iterator erase(const_iterator iter) {
@@ -376,9 +380,18 @@ class QMultiHash
       return insertMulti(key, value);
    }
 
+   iterator insert(const Key &key, Val &&value) {
+      return insertMulti(key, std::move(value));
+   }
+
    iterator insertMulti(const Key &key, const Val &value)  {
       // emplace returns an iterator
       return m_data.emplace(key, value);
+   }
+
+   iterator insertMulti(const Key &key, Val &&value)  {
+      // emplace returns an iterator
+      return m_data.emplace(key, std::move(value));
    }
 
    const Key key(const Val &value) const;

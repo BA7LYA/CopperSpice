@@ -112,6 +112,7 @@ class Q_GUI_EXPORT QGraphicsItemPrivate
    static const QGraphicsItemPrivate *get(const QGraphicsItem *item) {
       return item->d_ptr.data();
    }
+
    static QGraphicsItemPrivate *get(QGraphicsItem *item) {
       return item->d_ptr.data();
    }
@@ -125,7 +126,7 @@ class Q_GUI_EXPORT QGraphicsItemPrivate
    void remapItemPos(QEvent *event, QGraphicsItem *item);
    QPointF genericMapFromScene(const QPointF &pos, const QWidget *viewport) const;
 
-   inline bool itemIsUntransformable() const {
+   bool itemIsUntransformable() const {
       return (itemFlags & QGraphicsItem::ItemIgnoresTransformations) || (ancestorFlags & AncestorIgnoresTransformations);
    }
 
@@ -186,35 +187,37 @@ class Q_GUI_EXPORT QGraphicsItemPrivate
 
    virtual bool isProxyWidget() const;
 
-   inline QVariant extra(Extra type) const {
+   QVariant extra(Extra type) const {
       for (int i = 0; i < extras.size(); ++i) {
          const ExtraStruct &extra = extras.at(i);
-         if (extra.type == type) {
-            return extra.value;
+
+         if (extra.m_type == type) {
+            return extra.m_value;
          }
       }
       return QVariant();
    }
 
-   inline void setExtra(Extra type, const QVariant &value) {
-      int index = -1;
+   void setExtra(Extra type, const QVariant &value) {
+      int key = -1;
+
       for (int i = 0; i < extras.size(); ++i) {
-         if (extras.at(i).type == type) {
-            index = i;
+         if (extras.at(i).m_type == type) {
+            key = i;
             break;
          }
       }
 
-      if (index == -1) {
+      if (key == -1) {
          extras << ExtraStruct(type, value);
       } else {
-         extras[index].value = value;
+         extras[key].m_value = value;
       }
    }
 
-   inline void unsetExtra(Extra type) {
+   void unsetExtra(Extra type) {
       for (int i = 0; i < extras.size(); ++i) {
-         if (extras.at(i).type == type) {
+         if (extras.at(i).m_type == type) {
             extras.removeAt(i);
             return;
          }
@@ -222,17 +225,18 @@ class Q_GUI_EXPORT QGraphicsItemPrivate
    }
 
    struct ExtraStruct {
-      ExtraStruct() {}
+      ExtraStruct()
+      { }
 
       ExtraStruct(Extra type, QVariant value)
-         : type(type), value(value) {
+         : m_type(type), m_value(value) {
       }
 
-      Extra type;
-      QVariant value;
+      Extra m_type;
+      QVariant m_value;
 
       bool operator<(Extra extra) const {
-         return type < extra;
+         return m_type < extra;
       }
    };
 
@@ -244,23 +248,24 @@ class Q_GUI_EXPORT QGraphicsItemPrivate
 
    void updatePaintedViewBoundingRects(bool updateChildren);
    void ensureSceneTransformRecursive(QGraphicsItem **topMostDirtyItem);
-   inline void ensureSceneTransform() {
+
+   void ensureSceneTransform() {
       QGraphicsItem *that = q_func();
       ensureSceneTransformRecursive(&that);
    }
 
-   inline bool hasTranslateOnlySceneTransform() {
+   bool hasTranslateOnlySceneTransform() {
       ensureSceneTransform();
       return sceneTransformTranslateOnly;
    }
 
-   inline void invalidateChildrenSceneTransform() {
+   void invalidateChildrenSceneTransform() {
       for (int i = 0; i < children.size(); ++i) {
          children.at(i)->d_ptr->dirtySceneTransform = 1;
       }
    }
 
-   inline qreal calcEffectiveOpacity() const {
+   qreal calcEffectiveOpacity() const {
       qreal retval = opacity;
       int myFlags  = itemFlags;
 
@@ -287,15 +292,15 @@ class Q_GUI_EXPORT QGraphicsItemPrivate
       return retval;
    }
 
-   inline bool isOpacityNull() const {
+   bool isOpacityNull() const {
       return (opacity < qreal(0.001));
    }
 
-   static inline bool isOpacityNull(qreal opacity) {
+   static bool isOpacityNull(qreal opacity) {
       return (opacity < qreal(0.001));
    }
 
-   inline bool isFullyTransparent() const {
+   bool isFullyTransparent() const {
       if (isOpacityNull()) {
          return true;
       }
@@ -306,7 +311,7 @@ class Q_GUI_EXPORT QGraphicsItemPrivate
       return isOpacityNull(calcEffectiveOpacity());
    }
 
-   inline qreal effectiveOpacity() const {
+   qreal effectiveOpacity() const {
       if (! parent || ! opacity) {
          return opacity;
       }
@@ -314,7 +319,7 @@ class Q_GUI_EXPORT QGraphicsItemPrivate
       return calcEffectiveOpacity();
    }
 
-   inline qreal combineOpacityFromParent(qreal parentOpacity) const {
+   qreal combineOpacityFromParent(qreal parentOpacity) const {
       if (parent && ! (itemFlags & QGraphicsItem::ItemIgnoresParentOpacity)
             && ! (parent->d_ptr->itemFlags & QGraphicsItem::ItemDoesntPropagateOpacityToChildren)) {
          return parentOpacity * opacity;
@@ -322,7 +327,7 @@ class Q_GUI_EXPORT QGraphicsItemPrivate
       return opacity;
    }
 
-   inline bool childrenCombineOpacity() const {
+   bool childrenCombineOpacity() const {
       if (! children.size()) {
          return true;
       }
@@ -339,15 +344,15 @@ class Q_GUI_EXPORT QGraphicsItemPrivate
       return true;
    }
 
-   inline bool childrenClippedToShape() const {
+   bool childrenClippedToShape() const {
       return (itemFlags & QGraphicsItem::ItemClipsChildrenToShape) || children.isEmpty();
    }
 
-   inline bool isInvisible() const {
+   bool isInvisible() const {
       return !visible || (childrenCombineOpacity() && isFullyTransparent());
    }
 
-   inline void markParentDirty(bool updateBoundingRect = false);
+   void markParentDirty(bool updateBoundingRect = false);
 
    void setFocusHelper(Qt::FocusReason focusReason, bool climb, bool focusFromHide);
    void clearFocusHelper(bool giveFocusToParent, bool hiddenByParentPanel);
@@ -514,10 +519,8 @@ struct QGraphicsItemPrivate::TransformData {
 };
 
 struct QGraphicsItemPaintInfo {
-   inline QGraphicsItemPaintInfo(const QTransform *const xform1, const QTransform *const xform2,
-      const QTransform *const xform3,
-      QRegion *r, QWidget *w, QStyleOptionGraphicsItem *opt,
-      QPainter *p, qreal o, bool b1, bool b2)
+   QGraphicsItemPaintInfo(const QTransform *const xform1, const QTransform *const xform2, const QTransform *const xform3,
+         QRegion *r, QWidget *w, QStyleOptionGraphicsItem *opt, QPainter *p, qreal o, bool b1, bool b2)
       : viewTransform(xform1), transformPtr(xform2), effectTransform(xform3), exposedRegion(r), widget(w),
         option(opt), painter(p), opacity(o), wasDirtySceneTransform(b1), drawItem(b2) {
    }
@@ -678,9 +681,6 @@ inline bool qt_notclosestLeaf(const QGraphicsItem *item1, const QGraphicsItem *i
    return qt_closestLeaf(item2, item1);
 }
 
-/*
-   return the full transform of the item to the parent.  This include the position and all the transform data
-*/
 inline QTransform QGraphicsItemPrivate::transformToParent() const
 {
    QTransform matrix;
@@ -688,7 +688,6 @@ inline QTransform QGraphicsItemPrivate::transformToParent() const
    return matrix;
 }
 
-// internal
 inline void QGraphicsItemPrivate::ensureSortedChildren()
 {
    if (needSortChildren) {
@@ -708,7 +707,6 @@ inline void QGraphicsItemPrivate::ensureSortedChildren()
    }
 }
 
-// internal
 inline bool QGraphicsItemPrivate::insertionOrder(QGraphicsItem *a, QGraphicsItem *b)
 {
    return a->d_ptr->siblingIndex < b->d_ptr->siblingIndex;
@@ -717,6 +715,7 @@ inline bool QGraphicsItemPrivate::insertionOrder(QGraphicsItem *a, QGraphicsItem
 inline void QGraphicsItemPrivate::markParentDirty(bool updateBoundingRect)
 {
    QGraphicsItemPrivate *parentp = this;
+
 #ifndef QT_NO_GRAPHICSEFFECT
    if (updateBoundingRect && parentp->graphicsEffect && !parentp->inSetPosHelper) {
       parentp->notifyInvalidated = 1;
@@ -724,6 +723,7 @@ inline void QGraphicsItemPrivate::markParentDirty(bool updateBoundingRect)
          ->source->d_func())->invalidateCache();
    }
 #endif
+
    while (parentp->parent) {
       parentp = parentp->parent->d_ptr.data();
       parentp->dirtyChildren = 1;
@@ -748,7 +748,6 @@ inline void QGraphicsItemPrivate::markParentDirty(bool updateBoundingRect)
 #endif
    }
 }
-
 
 #endif // QT_NO_GRAPHICSVIEW
 

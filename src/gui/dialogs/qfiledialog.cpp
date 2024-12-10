@@ -28,12 +28,13 @@
 #include <qmessagebox.h>
 #include <qstylepainter.h>
 
+#include <qfiledialog_p.h>
+
+#include <ui_qfiledialog.h>
+
 #if ! defined(QT_NO_MIMETYPE)
 // emerald   #include <qmimedatabase.h>
 #endif
-
-#include <qfiledialog_p.h>
-#include <ui_qfiledialog.h>
 
 #if defined(Q_OS_UNIX)
 #include <pwd.h>
@@ -48,7 +49,7 @@ QUrl *cs_internal_lastVisitedDir() {
    return &retval;
 }
 
-static const qint32 QFileDialogMagic = 0xbe;
+static constexpr const qint32 QFileDialogMagic = 0xbe;
 
 QFileDialog::QFileDialog(QWidget *parent, Qt::WindowFlags flags)
    : QDialog(*new QFileDialogPrivate, parent, flags)
@@ -64,7 +65,6 @@ QFileDialog::QFileDialog(QWidget *parent, const QString &caption, const QString 
    d->init(QUrl::fromLocalFile(directory), filter, caption);
 }
 
-// internal
 QFileDialog::QFileDialog(const QFileDialogArgs &args)
    : QDialog(*new QFileDialogPrivate, args.parent, Qt::EmptyFlag)
 {
@@ -1033,7 +1033,6 @@ QStringList QFileDialog::history() const
    return currentHistory;
 }
 
-
 void QFileDialog::setItemDelegate(QAbstractItemDelegate *delegate)
 {
    Q_D(QFileDialog);
@@ -1044,9 +1043,6 @@ void QFileDialog::setItemDelegate(QAbstractItemDelegate *delegate)
    d->qFileDialogUi->treeView->setItemDelegate(delegate);
 }
 
-/*!
-  Returns the item delegate used to render the items in the views in the filedialog.
-*/
 QAbstractItemDelegate *QFileDialog::itemDelegate() const
 {
    Q_D(const QFileDialog);
@@ -1056,9 +1052,6 @@ QAbstractItemDelegate *QFileDialog::itemDelegate() const
    return d->qFileDialogUi->listView->itemDelegate();
 }
 
-/*!
-    Sets the icon provider used by the filedialog to the specified \a provider.
-*/
 void QFileDialog::setIconProvider(QFileIconProvider *provider)
 {
    Q_D(QFileDialog);
@@ -1070,9 +1063,6 @@ void QFileDialog::setIconProvider(QFileIconProvider *provider)
    d->qFileDialogUi->sidebar->setUrls(d->qFileDialogUi->sidebar->urls());
 }
 
-/*!
-    Returns the icon provider used by the filedialog.
-*/
 QFileIconProvider *QFileDialog::iconProvider() const
 {
    Q_D(const QFileDialog);
@@ -1715,10 +1705,9 @@ QSize QFileDialogTreeView::sizeHint() const
    return QSize(sizeHint.width() * 4, height * 30);
 }
 
-/*!
-    // FIXME: this is a hack to avoid propagating key press events
-    // to the dialog and from there to the "Ok" button
-*/
+// design a better solution to avoid propagating key press events to the dialog
+// and from there to the "Ok" button
+
 void QFileDialogLineEdit::keyPressEvent(QKeyEvent *e)
 {
 #ifdef QT_KEYPAD_NAVIGATION
@@ -1726,7 +1715,7 @@ void QFileDialogLineEdit::keyPressEvent(QKeyEvent *e)
       QLineEdit::keyPressEvent(e);
       return;
    }
-#endif // QT_KEYPAD_NAVIGATION
+#endif
 
    int key = e->key();
    QLineEdit::keyPressEvent(e);

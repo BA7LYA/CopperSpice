@@ -40,10 +40,6 @@ class QListViewPrivate;
 
 class QListViewItem
 {
-   friend class QListViewPrivate;
-   friend class QListModeViewBase;
-   friend class QIconModeViewBase;
-
  public:
    QListViewItem()
       : x(-1), y(-1), w(0), h(0), indexHint(-1), visited(0xffff)
@@ -92,6 +88,10 @@ class QListViewItem
    }
 
  private:
+   friend class QListViewPrivate;
+   friend class QListModeViewBase;
+   friend class QIconModeViewBase;
+
    QRect rect() const {
       return QRect(x, y, w, h);
    }
@@ -118,7 +118,10 @@ struct QListViewLayoutInfo {
 class QCommonListViewBase
 {
  public:
-   inline QCommonListViewBase(QListView *q, QListViewPrivate *d) : dd(d), qq(q), batchStartRow(0), batchSavedDeltaSeg(0) {}
+   QCommonListViewBase(QListView *q, QListViewPrivate *d)
+      : dd(d), qq(q), batchStartRow(0), batchSavedDeltaSeg(0)
+   { }
+
    virtual ~QCommonListViewBase() {}
 
    //common interface
@@ -168,7 +171,6 @@ class QCommonListViewBase
    }
 #endif
 
-   //other inline members
    inline int spacing() const;
    inline bool isWrapping() const;
    inline QSize gridSize() const;
@@ -223,7 +225,6 @@ class QListModeViewBase : public QCommonListViewBase
    // used when laying out in batches
    int batchSavedPosition;
 
-   //reimplementations
    int itemIndex(const QListViewItem &item) const override {
       return item.indexHint;
    }
@@ -288,7 +289,6 @@ class QIconModeViewBase : public QCommonListViewBase
    // used when laying out in batches
    QVector<QModelIndex> *interSectingVector; //used from within intersectingSet
 
-   //reimplementations
    int itemIndex(const QListViewItem &item) const override;
    QListViewItem indexToListViewItem(const QModelIndex &index) const override;
    bool doBatchedItemLayout(const QListViewLayoutInfo &info, int max) override;
@@ -337,7 +337,7 @@ class QListViewPrivate: public QAbstractItemViewPrivate
 
    bool doItemsLayout(int num);
 
-   inline QVector<QModelIndex> intersectingSet(const QRect &area, bool doLayout = true) const {
+   QVector<QModelIndex> intersectingSet(const QRect &area, bool doLayout = true) const {
       if (doLayout) {
          executePostedLayout();
       }
@@ -346,30 +346,35 @@ class QListViewPrivate: public QAbstractItemViewPrivate
       return commonListView->intersectingSet(a);
    }
 
-   inline void resetBatchStartRow() {
+   void resetBatchStartRow() {
       commonListView->batchStartRow = 0;
    }
-   inline int batchStartRow() const {
+
+   int batchStartRow() const {
       return commonListView->batchStartRow;
    }
-   inline QSize contentsSize() const {
+
+   QSize contentsSize() const {
       return commonListView->contentsSize;
    }
-   inline void setContentsSize(int w, int h) {
+
+   void setContentsSize(int w, int h) {
       commonListView->contentsSize = QSize(w, h);
    }
 
-   inline int flipX(int x) const {
+   int flipX(int x) const {
       return qMax(viewport->width(), contentsSize().width()) - x;
    }
-   inline QPoint flipX(const QPoint &p) const {
+
+   QPoint flipX(const QPoint &p) const {
       return QPoint(flipX(p.x()), p.y());
    }
-   inline QRect flipX(const QRect &r) const {
+
+   QRect flipX(const QRect &r) const {
       return QRect(flipX(r.x()) - r.width(), r.y(), r.width(), r.height());
    }
 
-   inline QRect viewItemRect(const QListViewItem &item) const {
+   QRect viewItemRect(const QListViewItem &item) const {
       if (q_func()->isRightToLeft()) {
          return flipX(item.rect());
       }
@@ -377,7 +382,7 @@ class QListViewPrivate: public QAbstractItemViewPrivate
    }
 
    QListViewItem indexToListViewItem(const QModelIndex &index) const;
-   inline QModelIndex listViewItemToIndex(const QListViewItem &item) const {
+   QModelIndex listViewItemToIndex(const QListViewItem &item) const {
       return model->index(commonListView->itemIndex(item), column, root);
    }
 
@@ -420,45 +425,52 @@ class QListViewPrivate: public QAbstractItemViewPrivate
    bool dropOn(QDropEvent *event, int *row, int *col, QModelIndex *index) override;
 #endif
 
-   inline void setGridSize(const QSize &size) {
+   void setGridSize(const QSize &size) {
       grid = size;
    }
-   inline QSize gridSize() const {
+
+   QSize gridSize() const {
       return grid;
    }
-   inline void setWrapping(bool b) {
+
+   void setWrapping(bool b) {
       wrap = b;
    }
-   inline bool isWrapping() const {
+
+   bool isWrapping() const {
       return wrap;
    }
-   inline void setSpacing(int s) {
+
+   void setSpacing(int s) {
       space = s;
    }
-   inline int spacing() const {
+
+   int spacing() const {
       return space;
    }
-   inline void setSelectionRectVisible(bool visible) {
+
+   void setSelectionRectVisible(bool visible) {
       showElasticBand = visible;
    }
-   inline bool isSelectionRectVisible() const {
+
+   bool isSelectionRectVisible() const {
       return showElasticBand;
    }
 
-   inline QModelIndex modelIndex(int row) const {
+   QModelIndex modelIndex(int row) const {
       return model->index(row, column, root);
    }
 
-   inline bool isHidden(int row) const {
+   bool isHidden(int row) const {
       QModelIndex idx = model->index(row, 0, root);
       return isPersistent(idx) && hiddenRows.contains(idx);
    }
 
-   inline bool isHiddenOrDisabled(int row) const {
+   bool isHiddenOrDisabled(int row) const {
       return isHidden(row) || !isIndexEnabled(modelIndex(row));
    }
 
-   inline void removeCurrentAndDisabled(QVector<QModelIndex> *indexes, const QModelIndex &current) const {
+   void removeCurrentAndDisabled(QVector<QModelIndex> *indexes, const QModelIndex &current) const {
       QVector<QModelIndex>::iterator it = indexes->begin();
       while (it != indexes->end()) {
          if (!isIndexEnabled(*it) || (*it) == current) {
@@ -520,24 +532,26 @@ class QListViewPrivate: public QAbstractItemViewPrivate
    bool showElasticBand;
 };
 
-// inline implementations
-
 inline int QCommonListViewBase::spacing() const
 {
    return dd->spacing();
 }
+
 inline bool QCommonListViewBase::isWrapping() const
 {
    return dd->isWrapping();
 }
+
 inline QSize QCommonListViewBase::gridSize() const
 {
    return dd->gridSize();
 }
+
 inline QListView::Flow QCommonListViewBase::flow() const
 {
    return dd->flow;
 }
+
 inline QListView::Movement QCommonListViewBase::movement() const
 {
    return dd->movement;
@@ -547,14 +561,17 @@ inline QPoint QCommonListViewBase::offset() const
 {
    return dd->offset();
 }
+
 inline QPoint QCommonListViewBase::pressedPosition() const
 {
    return dd->pressedPosition;
 }
+
 inline bool QCommonListViewBase::uniformItemSizes() const
 {
    return dd->uniformItemSizes;
 }
+
 inline int QCommonListViewBase::column() const
 {
    return dd->column;
@@ -564,10 +581,12 @@ inline QScrollBar *QCommonListViewBase::verticalScrollBar() const
 {
    return qq->verticalScrollBar();
 }
+
 inline QScrollBar *QCommonListViewBase::horizontalScrollBar() const
 {
    return qq->horizontalScrollBar();
 }
+
 inline QListView::ScrollMode QCommonListViewBase::verticalScrollMode() const
 {
    return qq->verticalScrollMode();
@@ -581,6 +600,7 @@ inline QModelIndex QCommonListViewBase::modelIndex(int row) const
 {
    return dd->model->index(row, dd->column, dd->root);
 }
+
 inline int QCommonListViewBase::rowCount() const
 {
    return dd->model->rowCount(dd->root);

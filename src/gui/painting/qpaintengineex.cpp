@@ -23,15 +23,15 @@
 
 #include <qpaintengineex_p.h>
 
-#include <qvarlengtharray.h>
 #include <qdebug.h>
+#include <qvarlengtharray.h>
 
-#include <qpainter_p.h>
-#include <qstroker_p.h>
 #include <qbezier_p.h>
-#include <qpainterpath_p.h>
 #include <qfontengine_p.h>
+#include <qpainter_p.h>
+#include <qpainterpath_p.h>
 #include <qstatictext_p.h>
+#include <qstroker_p.h>
 
 #if ! defined(QT_MAX_CACHED_GLYPH_SIZE)
 #  define QT_MAX_CACHED_GLYPH_SIZE 64
@@ -367,7 +367,7 @@ Q_GUI_EXPORT extern bool qt_scaleForTransform(const QTransform &transform, qreal
 
 void QPaintEngineEx::stroke(const QVectorPath &path, const QPen &pen)
 {
-#ifdef QT_DEBUG_DRAW
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
    qDebug() << "QPaintEngineEx::stroke()" << pen;
 #endif
 
@@ -984,7 +984,7 @@ void QPaintEngineEx::drawTiledPixmap(const QRectF &r, const QPixmap &pixmap, con
 }
 
 void QPaintEngineEx::drawPixmapFragments(const QPainter::PixmapFragment *fragments, int fragmentCount,
-   const QPixmap &pixmap, QPainter::PixmapFragmentHints /*hints*/)
+      const QPixmap &pixmap, QPainter::PixmapFragmentHints)
 {
    if (pixmap.isNull()) {
       return;

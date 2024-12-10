@@ -24,8 +24,8 @@
 #ifndef QSTRING_PARSER_H
 #define QSTRING_PARSER_H
 
-#include <qglobal.h>
 #include <qchar32.h>
+#include <qglobal.h>
 #include <qlist.h>
 #include <qlocale.h>
 #include <qlog.h>
@@ -77,7 +77,10 @@ class Q_CORE_EXPORT QStringParser
       };
       using SectionFlags = QFlags<SectionFlag>;
 
-      enum SplitBehavior { KeepEmptyParts, SkipEmptyParts };
+      enum SplitBehavior {
+         KeepEmptyParts,
+         SkipEmptyParts
+      };
 
       // V is data type quint64, long, short, etc
       template <typename T, typename V, typename = typename std::enable_if<std::is_integral<V>::value>::type>

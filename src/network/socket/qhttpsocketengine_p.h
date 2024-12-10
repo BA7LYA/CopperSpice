@@ -24,18 +24,17 @@
 #ifndef QHTTPSOCKETENGINE_P_H
 #define QHTTPSOCKETENGINE_P_H
 
-#include <qabstractsocketengine_p.h>
-
 #include <qabstractsocket.h>
 #include <qnetworkproxy.h>
 
+#include <qabstractsocketengine_p.h>
 #include <qauthenticator_p.h>
 
 #if ! defined(QT_NO_NETWORKPROXY)
 
-class QTcpSocket;
 class QHttpNetworkReply;
 class QHttpSocketEnginePrivate;
+class QTcpSocket;
 
 class QHttpSocketEngine : public QAbstractSocketEngine
 {
@@ -179,10 +178,10 @@ class QHttpSocketEnginePrivate : public QAbstractSocketEnginePrivate
 class QHttpSocketEngineHandler : public QSocketEngineHandler
 {
  public:
-   virtual QAbstractSocketEngine *createSocketEngine(QAbstractSocket::SocketType socketType,
-                  const QNetworkProxy &, QObject *parent) override;
+   QAbstractSocketEngine *createSocketEngine(QAbstractSocket::SocketType socketType,
+         const QNetworkProxy &, QObject *parent) override;
 
-   virtual QAbstractSocketEngine *createSocketEngine(qintptr socketDescriptor, QObject *parent) override;
+   QAbstractSocketEngine *createSocketEngine(qintptr socketDescriptor, QObject *parent) override;
 };
 #endif
 

@@ -24,14 +24,15 @@
 #ifndef QABSTRACTSCROLLAREA_P_H
 #define QABSTRACTSCROLLAREA_P_H
 
-#include <qframe_p.h>
 #include <qabstractscrollarea.h>
+
+#include <qframe_p.h>
 
 #ifndef QT_NO_SCROLLAREA
 
-class QScrollBar;
 class QAbstractScrollAreaScrollBarContainer;
 class QBoxLayout;
+class QScrollBar;
 
 class Q_GUI_EXPORT QAbstractScrollAreaPrivate: public QFramePrivate
 {
@@ -75,7 +76,7 @@ class Q_GUI_EXPORT QAbstractScrollAreaPrivate: public QFramePrivate
 
    virtual QPoint contentsOffset() const;
 
-   inline bool viewportEvent(QEvent *event) {
+   bool viewportEvent(QEvent *event) {
       return q_func()->viewportEvent(event);
    }
 

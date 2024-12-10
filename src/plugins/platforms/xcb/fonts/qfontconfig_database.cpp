@@ -21,19 +21,19 @@
 *
 ***********************************************************************/
 
-#include <qfontengine_multifontconfig_p.h>
+#include <qfontconfig_database_p.h>
 
 #include <qapplication.h>
-#include <qlist.h>
 #include <qelapsedtimer.h>
+#include <qlist.h>
+#include <qplatform_integration.h>
 #include <qplatform_nativeinterface.h>
 #include <qplatform_screen.h>
-#include <qplatform_integration.h>
 #include <qplatform_services.h>
 
 #include <qapplication_p.h>
 #include <qfontengine_ft_p.h>
-#include <qfontconfig_database_p.h>
+#include <qfontengine_multifontconfig_p.h>
 #include <qhighdpiscaling_p.h>
 
 // unix library
@@ -572,8 +572,6 @@ static void populateFromPattern(FcPattern *pattern)
    QPlatformFontDatabase::registerFont(familyName, styleName, QString::fromUtf8((const char *)foundry_value), weight, style,
       stretch, antialias, scalable, pixel_size, fixedPitch, writingSystems, fontFile);
 
-   //  qDebug() << familyName << (const char *)foundry_value << weight << style << &writingSystems << scalable << true << pixel_size;
-
    for (int k = 1; FcPatternGetString(pattern, FC_FAMILY, k, &value) == FcResultMatch; ++k) {
       QPlatformFontDatabase::registerAliasToFontFamily(familyName, QString::fromUtf8((const char *)value));
    }
@@ -884,8 +882,6 @@ QStringList QFontconfigDatabase::fallbacksForFamily(const QString &family, QFont
       }
       FcFontSetDestroy(fontSet);
    }
-
-   //  qDebug() << "fallbackFamilies for:" << family << style << styleHint << script << fallbackFamilies;
 
    return fallbackFamilies;
 }

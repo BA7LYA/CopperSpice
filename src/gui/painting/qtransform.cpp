@@ -22,15 +22,17 @@
 ***********************************************************************/
 
 #include <qtransform.h>
+
 #include <qdatastream.h>
 #include <qdebug.h>
 #include <qhashfunc.h>
-#include <qmatrix.h>
-#include <qregion.h>
-#include <qpainterpath.h>
-#include <qvariant.h>
 #include <qmath.h>
+#include <qmatrix.h>
 #include <qnumeric.h>
+#include <qpainterpath.h>
+#include <qregion.h>
+#include <qvariant.h>
+
 #include <qbezier_p.h>
 #include <qpainterpath_p.h>
 
@@ -184,9 +186,9 @@ QTransform &QTransform::translate(qreal dx, qreal dy)
       return *this;
    }
 
-#if defined(QT_DEBUG)
-   if (qIsNaN(dx) | qIsNaN(dy)) {
-      qWarning("QTransform::translate() Value for x or y is invalid");
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
+   if (qIsNaN(dx) || qIsNaN(dy)) {
+      qDebug("QTransform::translate() Value for x or y is invalid");
       return *this;
    }
 #endif
@@ -226,9 +228,9 @@ QTransform &QTransform::translate(qreal dx, qreal dy)
 
 QTransform QTransform::fromTranslate(qreal dx, qreal dy)
 {
-#if defined(QT_DEBUG)
-   if (qIsNaN(dx) | qIsNaN(dy)) {
-      qWarning("QTransform::fromTranslate() Value for x or y is invalid");
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
+   if (qIsNaN(dx) || qIsNaN(dy)) {
+      qDebug("QTransform::fromTranslate() Value for x or y is invalid");
       return QTransform();
    }
 #endif
@@ -252,9 +254,9 @@ QTransform &QTransform::scale(qreal sx, qreal sy)
       return *this;
    }
 
-#if defined(QT_DEBUG)
-   if (qIsNaN(sx) | qIsNaN(sy)) {
-      qWarning("QTransform::scale() Value for x or y is invalid");
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
+   if (qIsNaN(sx) || qIsNaN(sy)) {
+      qDebug("QTransform::scale() Value for x or y is invalid");
       return *this;
    }
 #endif
@@ -292,9 +294,9 @@ QTransform &QTransform::scale(qreal sx, qreal sy)
 
 QTransform QTransform::fromScale(qreal sx, qreal sy)
 {
-#if defined(QT_DEBUG)
-   if (qIsNaN(sx) | qIsNaN(sy)) {
-      qWarning("QTransform::fromScale() Value for x or y is invalid");
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
+   if (qIsNaN(sx) || qIsNaN(sy)) {
+      qDebug("QTransform::fromScale() Value for x or y is invalid");
       return QTransform();
    }
 #endif
@@ -318,9 +320,9 @@ QTransform &QTransform::shear(qreal sh, qreal sv)
       return *this;
    }
 
-#if defined(QT_DEBUG)
-   if (qIsNaN(sh) | qIsNaN(sv)) {
-      qWarning("QTransform::shear() Value for horizontal or vertical is invalid");
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
+   if (qIsNaN(sh) || qIsNaN(sv)) {
+      qDebug("QTransform::shear() Value for horizontal or vertical is invalid");
       return *this;
    }
 #endif
@@ -375,9 +377,9 @@ QTransform &QTransform::rotate(qreal a, Qt::Axis axis)
       return *this;
    }
 
-#if defined(CS_DEBUG)
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
    if (qIsNaN(a)) {
-      qWarning() << "QTransform::rotate() Value is invalid";
+      qDebug() << "QTransform::rotate() Value is invalid";
       return *this;
    }
 #endif
@@ -468,9 +470,9 @@ QTransform &QTransform::rotate(qreal a, Qt::Axis axis)
 
 QTransform &QTransform::rotateRadians(qreal a, Qt::Axis axis)
 {
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
    if (qIsNaN(a)) {
-      qWarning("QTransform::rotateRadians() Value is invalid");
+      qDebug("QTransform::rotateRadians() Value is invalid");
       return *this;
    }
 #endif
@@ -1417,7 +1419,6 @@ bool QTransform::quadToQuad(const QPolygonF &one, const QPolygonF &two, QTransfo
 
    trans *= stq;
 
-   //qDebug()<<"Final = "<<trans;
    return true;
 }
 

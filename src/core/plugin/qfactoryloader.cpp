@@ -23,10 +23,10 @@
 
 #include <qfactoryloader_p.h>
 
+#include <qdebug.h>
+#include <qdir.h>
 #include <qfactoryinterface.h>
 #include <qmap.h>
-#include <qdir.h>
-#include <qdebug.h>
 #include <qmutex.h>
 #include <qplugin.h>
 #include <qpluginloader.h>
@@ -247,9 +247,9 @@ void QFactoryLoader::setup()
 #else
    Q_D(QFactoryLoader);
 
-   if (qt_debug_component()) {
-      qDebug() << "QFactoryLoader::QFactoryLoader() ignoring" << d->iid << "since plugins are disabled in static builds";
-   }
+#if defined(CS_SHOW_DEBUG_CORE_PLUGIN)
+   qDebug() << "QFactoryLoader::QFactoryLoader() ignoring" << d->iid << "since plugins are disabled in static builds";
+#endif
 
 #endif
 }

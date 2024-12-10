@@ -21,8 +21,6 @@
 *
 ***********************************************************************/
 
-static const int QTEXTSTREAM_BUFFERSIZE = 16384;
-
 #include <qtextstream.h>
 
 #include <qbuffer.h>
@@ -41,8 +39,7 @@ static const int QTEXTSTREAM_BUFFERSIZE = 16384;
 #include <new>
 #include <stdlib.h>
 
-#define Q_VOID
-// #define QTEXTSTREAM_DEBUG
+static constexpr const int QTEXTSTREAM_BUFFERSIZE = 16384;
 
 #define CHECK_VALID_STREAM(x) do { \
       if (! d->m_string && ! d->device) { \
@@ -84,29 +81,29 @@ class QDeviceClosedNotifier : public QObject
    CORE_CS_OBJECT(QDeviceClosedNotifier)
 
  public:
-   QDeviceClosedNotifier() {
-   }
+   QDeviceClosedNotifier()
+   { }
 
-   void setupDevice(QTextStream *stream, QIODevice *device) {
+   void setupDevice(QTextStream *newStream, QIODevice *device) {
       disconnect();
 
-      if (device) {
+      if (device != nullptr) {
          connect(device, &QIODevice::aboutToClose, this, &QDeviceClosedNotifier::flushStream);
       }
 
-      this->stream = stream;
+      m_stream = newStream;
    }
 
    CORE_CS_SLOT_1(Public, void flushStream())
    CORE_CS_SLOT_2(flushStream)
 
  private:
-   QTextStream *stream;
+   QTextStream *m_stream;
 };
 
 void  QDeviceClosedNotifier::flushStream()
 {
-   stream->flush();
+   m_stream->flush();
 }
 
 class QTextStreamPrivate
@@ -114,7 +111,13 @@ class QTextStreamPrivate
    Q_DECLARE_PUBLIC(QTextStream)
 
  public:
-   QTextStreamPrivate(QTextStream *q_ptr);
+   enum TokenDelimiter {
+      Space,
+      NotSpace,
+      EndOfLine
+   };
+
+   QTextStreamPrivate(QTextStream *stream);
    ~QTextStreamPrivate();
 
    void reset();
@@ -136,13 +139,6 @@ class QTextStreamPrivate
    QTextCodec::ConverterState *readConverterSavedState;
    bool autoDetectUnicode;
 #endif
-
-   // i/o
-   enum TokenDelimiter {
-      Space,
-      NotSpace,
-      EndOfLine
-   };
 
    QString read(int maxlen);
    bool scan(QString *newToken, int maxlen, TokenDelimiter delimiter);
@@ -196,7 +192,7 @@ class QTextStreamPrivate
    QTextStream *q_ptr;
 };
 
-QTextStreamPrivate::QTextStreamPrivate(QTextStream *q_ptr)
+QTextStreamPrivate::QTextStreamPrivate(QTextStream *stream)
 
 #ifndef QT_NO_TEXTCODEC
    :  readConverterSavedState(nullptr), readConverterSavedStateOffset(0), locale(QLocale::c())
@@ -205,7 +201,7 @@ QTextStreamPrivate::QTextStreamPrivate(QTextStream *q_ptr)
 #endif
 
 {
-   this->q_ptr = q_ptr;
+   this->q_ptr = stream;
    reset();
 }
 
@@ -397,13 +393,12 @@ void QTextStreamPrivate::resetReadBuffer()
 
 void QTextStreamPrivate::flushWriteBuffer()
 {
-   // no buffer next to the QString itself; this function should only be called internally, for devices.
+   // no buffer next to the QString itself, should only be called internally for devices.
    if (m_string || ! device) {
       return;
    }
 
-   // Stream went bye-bye already. Appending further data may succeed again,
-   // but would create a corrupted stream anyway.
+   // Stream is gone, appending further data may succeed but would create a damaged stream
    if (status != QTextStream::Ok) {
       return;
    }
@@ -779,8 +774,7 @@ QTextStream::QTextStream()
 QTextStream::QTextStream(QIODevice *device)
    : d_ptr(new QTextStreamPrivate(this))
 {
-
-#if defined (QTEXTSTREAM_DEBUG)
+#if defined(CS_SHOW_DEBUG_CORE_IO)
    qDebug("QTextStream::QTextStream(QIODevice *device == *%p)", device);
 #endif
 
@@ -829,7 +823,7 @@ QTextStream::QTextStream(const QByteArray &array, QIODevice::OpenMode openMode)
 QTextStream::QTextStream(FILE *fileHandle, QIODevice::OpenMode openMode)
    : d_ptr(new QTextStreamPrivate(this))
 {
-#if defined (QTEXTSTREAM_DEBUG)
+#if defined(CS_SHOW_DEBUG_CORE_IO)
    qDebug("QTextStream::QTextStream(FILE *fileHandle = %p, openMode = %d)", fileHandle, int(openMode));
 #endif
 
@@ -848,10 +842,6 @@ QTextStream::QTextStream(FILE *fileHandle, QIODevice::OpenMode openMode)
 QTextStream::~QTextStream()
 {
    Q_D(QTextStream);
-
-#if defined (QTEXTSTREAM_DEBUG)
-   qDebug("QTextStream::~QTextStream()");
-#endif
 
    if (! d->writeBuffer.isEmpty()) {
       d->flushWriteBuffer();
@@ -974,7 +964,6 @@ qint64 QTextStream::pos() const
 void QTextStream::skipWhiteSpace()
 {
    Q_D(QTextStream);
-   CHECK_VALID_STREAM(Q_VOID);
 
    d->scan(nullptr, 0, QTextStreamPrivate::NotSpace);
    d->consumeLastToken();
@@ -2169,8 +2158,8 @@ void QTextStream::setCodec(QTextCodec *codec)
    Q_D(QTextStream);
    qint64 seekPos = -1;
 
-   if (!d->readBuffer.isEmpty()) {
-      if (!d->device->isSequential()) {
+   if (! d->readBuffer.isEmpty()) {
+      if (! d->device->isSequential()) {
          seekPos = pos();
       }
    }

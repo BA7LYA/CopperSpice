@@ -62,23 +62,21 @@ union EnumUnion {
 class TokenSource : public QSharedData
 {
  public:
-   /**
-    * typedef for the enum Bison generates that contains the token symbols.
-    */
    typedef yytokentype TokenType;
 
-   /**
-    * Represents a token by carrying its name and value.
-    */
    class Token
    {
     public:
-      /**
-       * Constructs an invalid Token. This default constructor is need in the container classes.
-       */
-      inline Token() {}
-      inline Token(const TokenType t) : type(t) {}
-      inline Token(const TokenType t, const QString &val) : type(t), value(val) {}
+      Token()
+      { }
+
+      Token(const TokenType t)
+         : type(t)
+      { }
+
+      Token(const TokenType t, const QString &val)
+         : type(t), value(val)
+      { }
 
       bool hasError() const {
          return type == ERROR;

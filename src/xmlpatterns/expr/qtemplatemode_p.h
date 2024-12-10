@@ -36,8 +36,9 @@ class TemplateMode : public QSharedData
  public:
    typedef QExplicitlySharedDataPointer<TemplateMode> Ptr;
 
-   inline TemplateMode(const QXmlName &modeName) : m_modeName(modeName) {
-   }
+   TemplateMode(const QXmlName &modeName)
+      : m_modeName(modeName)
+   { }
 
    TemplatePattern::Vector templatePatterns;
 
@@ -52,9 +53,6 @@ class TemplateMode : public QSharedData
    TemplateMode(const TemplateMode &) = delete;
    TemplateMode &operator=(const TemplateMode &) = delete;
 
-   /**
-    * Operator for std::sort()
-    */
    static inline bool lessThanByPriority(const TemplatePattern::Ptr &t1, const TemplatePattern::Ptr &t2);
 };
 

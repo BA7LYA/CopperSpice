@@ -220,7 +220,7 @@ void QFileDialogPrivate::retranslateStrings()
       return;
    }
 
-   QList<QAction *> actions = qFileDialogUi->treeView->header()->actions();
+   QList<QAction *> newActions = qFileDialogUi->treeView->header()->actions();
    QAbstractItemModel *abstractModel = model;
 
 #ifndef QT_NO_PROXYMODEL
@@ -229,9 +229,10 @@ void QFileDialogPrivate::retranslateStrings()
    }
 #endif
 
-   int total = qMin(abstractModel->columnCount(QModelIndex()), actions.count() + 1);
+   int total = qMin(abstractModel->columnCount(QModelIndex()), newActions.count() + 1);
+
    for (int i = 1; i < total; ++i) {
-      actions.at(i - 1)->setText(QFileDialog::tr("Show ") + abstractModel->headerData(i, Qt::Horizontal,
+      newActions.at(i - 1)->setText(QFileDialog::tr("Show ") + abstractModel->headerData(i, Qt::Horizontal,
             Qt::DisplayRole).toString());
    }
 
@@ -739,7 +740,7 @@ bool QFileDialogPrivate::restoreWidgetState(QStringList &history, int splitterPo
       return false;
    }
 
-   QList<QAction *> actions = headerView->actions();
+   QList<QAction *> newActions = headerView->actions();
    QAbstractItemModel *abstractModel = model;
 
 #ifndef QT_NO_PROXYMODEL
@@ -748,9 +749,9 @@ bool QFileDialogPrivate::restoreWidgetState(QStringList &history, int splitterPo
    }
 #endif
 
-   int total = qMin(abstractModel->columnCount(QModelIndex()), actions.count() + 1);
+   int total = qMin(abstractModel->columnCount(QModelIndex()), newActions.count() + 1);
    for (int i = 1; i < total; ++i) {
-      actions.at(i - 1)->setChecked(!headerView->isSectionHidden(i));
+      newActions.at(i - 1)->setChecked(!headerView->isSectionHidden(i));
    }
 
    return true;
@@ -1237,9 +1238,6 @@ void QFileDialogPrivate::_q_showContextMenu(const QPoint &position)
 #endif // QT_NO_MENU
 }
 
-/*!
-    \internal
-*/
 void QFileDialogPrivate::_q_renameCurrent()
 {
    Q_Q(QFileDialog);
@@ -1347,9 +1345,6 @@ void QFileDialogPrivate::_q_autoCompleteFileName(const QString &text)
    }
 }
 
-/*!
-    \internal
-*/
 void QFileDialogPrivate::_q_updateOkButton()
 {
    Q_Q(QFileDialog);
@@ -1456,21 +1451,12 @@ void QFileDialogPrivate::_q_updateOkButton()
    updateOkButtonText(isOpenDirectory);
 }
 
-/*!
-    \internal
-*/
 void QFileDialogPrivate::_q_currentChanged(const QModelIndex &index)
 {
    _q_updateOkButton();
    emit q_func()->currentChanged(index.data(QFileSystemModel::FilePathRole).toString());
 }
 
-/*!
-    \internal
-
-    This is called when the user double clicks on a file with the corresponding
-    model item \a index.
-*/
 void QFileDialogPrivate::_q_enterDirectory(const QModelIndex &index)
 {
    Q_Q(QFileDialog);
@@ -1593,11 +1579,6 @@ void QFileDialogPrivate::_q_selectionChanged()
    }
 }
 
-/*!
-    \internal
-
-    Includes hidden files and directories in the items displayed in the dialog.
-*/
 void QFileDialogPrivate::_q_showHidden()
 {
    Q_Q(QFileDialog);
@@ -1610,12 +1591,6 @@ void QFileDialogPrivate::_q_showHidden()
    q->setFilter(dirFilters);
 }
 
-/*!
-    \internal
-
-    When parent is root and rows have been inserted when none was there before
-    then select the first one.
-*/
 void QFileDialogPrivate::_q_rowsInserted(const QModelIndex &parent)
 {
    if (!qFileDialogUi->treeView

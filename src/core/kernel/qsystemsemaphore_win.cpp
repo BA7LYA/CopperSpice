@@ -23,12 +23,11 @@
 
 #include <qsystemsemaphore.h>
 #include <qsystemsemaphore_p.h>
+
 #include <qcoreapplication.h>
 #include <qdebug.h>
 
 #ifndef QT_NO_SYSTEMSEMAPHORE
-
-// #define QSYSTEMSEMAPHORE_DEBUG
 
 QSystemSemaphorePrivate::QSystemSemaphorePrivate() :
    semaphore(nullptr), error(QSystemSemaphore::NoError)
@@ -56,10 +55,11 @@ void QSystemSemaphorePrivate::setErrorString(const QString &function)
          break;
 
       default:
-         errorString = QCoreApplication::translate("QSystemSemaphore", "%1: unknown error %2").formatArg(function).formatArg(windowsError);
+         errorString = QCoreApplication::translate("QSystemSemaphore", "%1: unknown error %2")
+               .formatArg(function).formatArg(windowsError);
          error = QSystemSemaphore::UnknownError;
 
-#ifdef QSYSTEMSEMAPHORE_DEBUG
+#if defined(CS_SHOW_DEBUG_CORE)
          qDebug() << errorString << "key" << key;
 #endif
          break;
@@ -89,7 +89,7 @@ void QSystemSemaphorePrivate::cleanHandle()
 {
    if (semaphore && !CloseHandle(semaphore)) {
 
-#if defined QSYSTEMSEMAPHORE_DEBUG
+#if defined(CS_SHOW_DEBUG_CORE)
       qDebug() << QLatin1String("QSystemSemaphorePrivate::CloseHandle: sem failed");
 #endif
 
@@ -108,7 +108,7 @@ bool QSystemSemaphorePrivate::modifySemaphore(int count)
       if (ReleaseSemaphore(semaphore, count, nullptr) == 0) {
          setErrorString(QLatin1String("QSystemSemaphore::modifySemaphore"));
 
-#if defined QSYSTEMSEMAPHORE_DEBUG
+#if defined(CS_SHOW_DEBUG_CORE)
          qDebug() << QLatin1String("QSystemSemaphore::modifySemaphore ReleaseSemaphore failed");
 #endif
          return false;
@@ -118,7 +118,7 @@ bool QSystemSemaphorePrivate::modifySemaphore(int count)
       if (WAIT_OBJECT_0 != WaitForSingleObject(semaphore, INFINITE)) {
          setErrorString(QLatin1String("QSystemSemaphore::modifySemaphore"));
 
-#if defined QSYSTEMSEMAPHORE_DEBUG
+#if defined(CS_SHOW_DEBUG_CORE)
          qDebug() << QLatin1String("QSystemSemaphore::modifySemaphore WaitForSingleObject failed");
 #endif
          return false;

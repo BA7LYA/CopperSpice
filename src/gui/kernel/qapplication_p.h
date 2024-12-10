@@ -202,7 +202,7 @@ class Q_GUI_EXPORT QApplicationPrivate : public QCoreApplicationPrivate
 
    static void sendQWindowEventToQPlatformWindow(QWindow *window, QEvent *event);
 
-   static inline Qt::Alignment visualAlignment(Qt::LayoutDirection direction, Qt::Alignment alignment) {
+   static Qt::Alignment visualAlignment(Qt::LayoutDirection direction, Qt::Alignment alignment) {
       if (! (alignment & Qt::AlignHorizontal_Mask)) {
          alignment |= Qt::AlignLeft;
       }
@@ -391,7 +391,6 @@ class Q_GUI_EXPORT QApplicationPrivate : public QCoreApplicationPrivate
 #endif
 
    static int enabledAnimations;            // Combination of QPlatformTheme::UiEffect
-   static bool widgetCount;                  // Coupled with -widgetcount switch
 
    static void setSystemPalette(const QPalette &pal);
    static void setPalette_helper(const QPalette &palette, const QString &className, bool clearWidgetPaletteHash);

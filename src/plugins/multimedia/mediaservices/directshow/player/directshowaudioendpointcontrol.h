@@ -24,7 +24,7 @@
 #ifndef DIRECTSHOWAUDIOENDPOINTCONTROL_H
 #define DIRECTSHOWAUDIOENDPOINTCONTROL_H
 
-#include "qaudiooutputselectorcontrol.h"
+#include <qaudiooutputselectorcontrol.h>
 
 #include <dshow.h>
 
@@ -38,14 +38,14 @@ class DirectShowAudioEndpointControl : public QAudioOutputSelectorControl
    DirectShowAudioEndpointControl(DirectShowPlayerService *service, QObject *parent = nullptr);
    ~DirectShowAudioEndpointControl();
 
-   QList<QString> availableOutputs() const;
+   QList<QString> availableOutputs() const override;
 
-   QString outputDescription(const QString &name) const;
+   QString outputDescription(const QString &name) const override;
 
-   QString defaultOutput() const;
-   QString activeOutput() const;
+   QString defaultOutput() const override;
+   QString activeOutput() const override;
 
-   void setActiveOutput(const QString &name);
+   void setActiveOutput(const QString &name) override;
 
  private:
    void updateEndpoints();

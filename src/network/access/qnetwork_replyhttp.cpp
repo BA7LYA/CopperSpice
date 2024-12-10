@@ -173,18 +173,19 @@ QNetworkReplyHttpImpl::QNetworkReplyHttpImpl(QNetworkAccessManager *const manage
    d->sslConfiguration = request.sslConfiguration();
 #endif
 
-   // FIXME Later maybe set to Unbuffered, especially if it is zerocopy or from cache?
+   // FIXME - maybe set to Unbuffered, especially if it is zerocopy or from cache?
    QIODevice::open(QIODevice::ReadOnly);
 
-   // Internal code that does a HTTP reply for the synchronous Ajax in WebKit.
+   // does an HTTP reply for the synchronous Ajax in WebKit
    QVariant synchronousHttpAttribute = request.attribute(
-                                          static_cast<QNetworkRequest::Attribute>(QNetworkRequest::SynchronousRequestAttribute));
+         static_cast<QNetworkRequest::Attribute>(QNetworkRequest::SynchronousRequestAttribute));
 
    if (synchronousHttpAttribute.isValid()) {
       d->synchronous = synchronousHttpAttribute.toBool();
+
       if (d->synchronous && outgoingData) {
-         // The synchronous HTTP is a corner case, we will put all upload data in one big QByteArray in the outgoingDataBuffer.
-         // Yes, this is not the most efficient thing to do, but on the other hand synchronous XHR needs to die anyway.
+         // synchronous HTTP is a corner case, put all uploaded data in one big QByteArray in the outgoingDataBuffer.
+         // most efficient way to do this, however synchronous XHR is a slow protocol
          d->outgoingDataBuffer = QSharedPointer<QRingBuffer>::create();
          qint64 previousDataSize = 0;
 
@@ -585,7 +586,7 @@ bool QNetworkReplyHttpImplPrivate::loadFromCacheIfAllowed(QHttpNetworkRequest &h
       return false;
    }
 
-#if defined(QNETWORKACCESSHTTPBACKEND_DEBUG)
+#if defined(CS_SHOW_DEBUG_NETWORK)
    qDebug() << "response_is_fresh" << CacheLoadControlAttribute;
 #endif
 
@@ -1041,10 +1042,9 @@ void QNetworkReplyHttpImplPrivate::replyDownloadData(const QByteArray &data)
    for (int i = 0; i < pendingDownloadDataCopy.bufferCount(); i++) {
       QByteArray const &item = pendingDownloadDataCopy[i];
 
-      // this may look a bit strange. When downloading data while a
-      // HTTP redirect is happening and enabled we write the redirect
-      // response to the cache. However, we do not append it to our internal
-      // buffer as that will contain the response data only for the final response
+      // When downloading data during an HTTP redirect, write the redirect response to the cache.
+      // However, we do not append it to our CS buffer since the buffer should contain the
+      // data only for the final response
 
       if (cacheSaveDevice != nullptr) {
          cacheSaveDevice->write(item.constData(), item.size());
@@ -1260,7 +1260,7 @@ void QNetworkReplyHttpImplPrivate::replyDownloadMetaData
    }
 
    if (statusCode == 304) {
-#if defined(QNETWORKACCESSHTTPBACKEND_DEBUG)
+#if defined(CS_SHOW_DEBUG_NETWORK)
       qDebug() << "Received a 304 from" << request.url();
 #endif
 
@@ -1356,8 +1356,7 @@ void QNetworkReplyHttpImplPrivate::proxyAuthenticationRequired(const QNetworkPro
 
 void QNetworkReplyHttpImplPrivate::httpError(QNetworkReply::NetworkError errorCode, const QString &errorMsg)
 {
-
-#if defined(QNETWORKACCESSHTTPBACKEND_DEBUG)
+#if defined(CS_SHOW_DEBUG_NETWORK)
    qDebug() << "http error!" << errorCode << errorMsg;
 #endif
 
@@ -1458,16 +1457,12 @@ void QNetworkReplyHttpImplPrivate::uploadByteDeviceReadyReadSlot()
    }
 }
 
-
-/*
-    A simple web page that can be used to test us: http://www.procata.com/cachetest/
- */
 bool QNetworkReplyHttpImplPrivate::sendCacheContents(const QNetworkCacheMetaData &metaData)
 {
    Q_Q(QNetworkReplyHttpImpl);
 
    setCachingEnabled(false);
-   if (!metaData.isValid()) {
+   if (! metaData.isValid()) {
       return false;
    }
 
@@ -1475,10 +1470,10 @@ bool QNetworkReplyHttpImplPrivate::sendCacheContents(const QNetworkCacheMetaData
    Q_ASSERT(nc);
    QIODevice *contents = nc->data(url);
 
-   if (!contents) {
+   if (! contents) {
 
-#if defined(QNETWORKACCESSHTTPBACKEND_DEBUG)
-      qDebug() << "Can not send cache, the contents are 0" << url;
+#if defined(CS_SHOW_DEBUG_NETWORK)
+      qDebug() << "Can not send cache, contents are 0" << url;
 #endif
       return false;
    }
@@ -1523,7 +1518,7 @@ bool QNetworkReplyHttpImplPrivate::sendCacheContents(const QNetworkCacheMetaData
    QMetaObject::invokeMethod(q, "_q_metaDataChanged",    Qt::QueuedConnection);
    QMetaObject::invokeMethod(q, "_q_cacheLoadReadyRead", Qt::QueuedConnection);
 
-#if defined(QNETWORKACCESSHTTPBACKEND_DEBUG)
+#if defined(CS_SHOW_DEBUG_NETWORK)
    qDebug() << "Successfully sent cache:" << url << contents->size() << "bytes";
 #endif
 
@@ -1531,7 +1526,7 @@ bool QNetworkReplyHttpImplPrivate::sendCacheContents(const QNetworkCacheMetaData
    if (httpRequest.isFollowRedirects() && QHttpNetworkReply::isHttpRedirect(status)) {
 
       QMetaObject::invokeMethod(q, "onRedirected", Qt::QueuedConnection, Q_ARG(QUrl, redirectUrl),
-                  Q_ARG(int, status), Q_ARG(int, httpRequest.redirectCount() - 1));
+            Q_ARG(int, status), Q_ARG(int, httpRequest.redirectCount() - 1));
    }
 
    // Set the following flag so we can ignore some signals from HTTP thread
@@ -1605,7 +1600,7 @@ QNetworkCacheMetaData QNetworkReplyHttpImplPrivate::fetchCacheMetaData(const QNe
          }
       }
 
-#if defined(QNETWORKACCESSHTTPBACKEND_DEBUG)
+#if defined(CS_SHOW_DEBUG_NETWORK)
       QByteArray n = q->rawHeader(header);
       QByteArray o;
 
@@ -1745,11 +1740,6 @@ void QNetworkReplyHttpImplPrivate::setResumeOffset(quint64 offset)
    resumeOffset = offset;
 }
 
-/*!
-    Starts the backend.  Returns \c true if the backend is started.  Returns \c false if the backend
-    could not be started due to an unopened or roaming session.  The caller should recall this
-    function once the session has been opened or the roaming process has finished.
-*/
 bool QNetworkReplyHttpImplPrivate::start(const QNetworkRequest &newHttpRequest)
 {
 
@@ -1802,11 +1792,16 @@ void QNetworkReplyHttpImplPrivate::_q_startOperation()
 {
    Q_Q(QNetworkReplyHttpImpl);
 
-   // ensure this function is only being called once
+   // ensure this method is only called once
+
    if (state == Working) {
+#if defined(CS_SHOW_DEBUG_NETWORK)
       qDebug("QNetworkReplyImpl::_q_startOperation was called more than once");
+#endif
+
       return;
    }
+
    state = Working;
 
 #ifndef QT_NO_BEARERMANAGEMENT
@@ -2311,16 +2306,19 @@ bool QNetworkReplyHttpImplPrivate::isCachingEnabled() const
 
 void QNetworkReplyHttpImplPrivate::setCachingEnabled(bool enable)
 {
-   if (!enable && !cacheEnabled) {
+   if (! enable && ! cacheEnabled) {
       return;
    }
+
    if (enable && cacheEnabled) {
       return;
    }
 
    if (enable) {
       if (bytesDownloaded) {
+#if defined(CS_SHOW_DEBUG_NETWORK)
          qDebug() << "setCachingEnabled: " << bytesDownloaded << " bytesDownloaded";
+#endif
 
          // refuse to enable in this case
          qCritical("QNetworkReplyImpl: backend error: caching was enabled after some bytes had been written");
@@ -2330,7 +2328,10 @@ void QNetworkReplyHttpImplPrivate::setCachingEnabled(bool enable)
       createCache();
 
    } else {
+#if defined(CS_SHOW_DEBUG_NETWORK)
       qDebug("QNetworkReplyImpl: setCachingEnabled(true) called after setCachingEnabled(false)");
+#endif
+
       managerPrivate->networkCache->remove(url);
       cacheSaveDevice = nullptr;
       cacheEnabled = false;

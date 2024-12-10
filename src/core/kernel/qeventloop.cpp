@@ -22,9 +22,11 @@
 ***********************************************************************/
 
 #include <qeventloop.h>
+
 #include <qabstracteventdispatcher.h>
 #include <qcoreapplication.h>
 #include <qelapsedtimer.h>
+
 #include <qthread_p.h>
 
 class QEventLoopPrivate
@@ -32,7 +34,7 @@ class QEventLoopPrivate
    Q_DECLARE_PUBLIC(QEventLoop)
 
  public:
-   inline QEventLoopPrivate()
+   QEventLoopPrivate()
       : exit(true), inExec(false), returnCode(-1)
    { }
 
@@ -205,4 +207,3 @@ void QEventLoop::quit()
 {
    exit(0);
 }
-

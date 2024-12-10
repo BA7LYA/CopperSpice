@@ -159,6 +159,7 @@ class QHashableLatin1Literal
 };
 
 bool operator==(const QHashableLatin1Literal &l1, const QHashableLatin1Literal &l2);
+
 inline bool operator!=(const QHashableLatin1Literal &l1, const QHashableLatin1Literal &l2)
 {
    return !operator==(l1, l2);
@@ -452,13 +453,13 @@ class QGtkStylePrivate : public QCommonStylePrivate
  protected:
    typedef QHash<QHashableLatin1Literal, GtkWidget *> WidgetMap;
 
-   static inline void destroyWidgetMap() {
+   static void destroyWidgetMap() {
       cleanupGtkWidgets();
       delete widgetMap;
       widgetMap = 0;
    }
 
-   static inline WidgetMap *gtkWidgetMap() {
+   static WidgetMap *gtkWidgetMap() {
       if (!widgetMap) {
          widgetMap = new WidgetMap();
          qAddPostRoutine(destroyWidgetMap);

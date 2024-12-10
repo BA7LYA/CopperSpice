@@ -41,17 +41,11 @@ void QPaintDevice::initPainter(QPainter *) const
 {
 }
 
-/*!
-    \internal
-*/
 QPaintDevice *QPaintDevice::redirected(QPoint *) const
 {
    return nullptr;
 }
 
-/*!
-    \internal
-*/
 QPainter *QPaintDevice::sharedPainter() const
 {
    return nullptr;
@@ -64,8 +58,9 @@ Q_GUI_EXPORT int qt_paint_device_metric(const QPaintDevice *device, QPaintDevice
 
 int QPaintDevice::metric(PaintDeviceMetric m) const
 {
-   // Fallback: A subclass has not implemented PdmDevicePixelRatioScaled but might
-   // have implemented PdmDevicePixelRatio.
+   // Fallback: subclass has not implemented
+   // PdmDevicePixelRatioScaled but might have implemented PdmDevicePixelRatio
+
    if (m == PdmDevicePixelRatioScaled) {
       return this->metric(PdmDevicePixelRatio) * devicePixelRatioFScale();
    }
@@ -74,15 +69,22 @@ int QPaintDevice::metric(PaintDeviceMetric m) const
 
    if (m == PdmDpiX) {
       return 72;
+
    } else if (m == PdmDpiY) {
       return 72;
+
    } else if (m == PdmNumColors) {
-      // FIXME: does this need to be a real value?
+      // does this need to be a real value?
       return 256;
+
    } else if (m == PdmDevicePixelRatio) {
       return 1;
+
    } else {
-      qDebug("Unrecognised metric %d!", m);
+
+#if defined(CS_SHOW_DEBUG_GUI_PAINTING)
+      qDebug("Unrecognised metric %d", m);
+#endif
       return 0;
    }
 }

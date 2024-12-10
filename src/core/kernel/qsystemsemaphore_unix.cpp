@@ -43,23 +43,22 @@
 
 #include <qcore_unix_p.h>
 
-// OpenBSD 4.2 doesn't define EIDRM, see BUGS section:
+// OpenBSD 4.2 does not define EIDRM, refer to BUGS section
 // http://www.openbsd.org/cgi-bin/man.cgi?query=semop&manpath=OpenBSD+4.2
-#if defined(Q_OS_OPENBSD) && !defined(EIDRM)
+#if defined(Q_OS_OPENBSD) && ! defined(EIDRM)
 #define EIDRM EINVAL
 #endif
 
-//#define QSYSTEMSEMAPHORE_DEBUG
-
-QSystemSemaphorePrivate::QSystemSemaphorePrivate() :
 #ifndef QT_POSIX_IPC
-   unix_key(-1), semaphore(-1), createdFile(false),
+   QSystemSemaphorePrivate::QSystemSemaphorePrivate()
+      : unix_key(-1), semaphore(-1), createdFile(false), createdSemaphore(false),
+        error(QSystemSemaphore::NoError)
+   { }
 #else
-   semaphore(SEM_FAILED),
+   QSystemSemaphorePrivate::QSystemSemaphorePrivate()
+      : semaphore(SEM_FAILED), createdSemaphore(false), error(QSystemSemaphore::NoError)
+   { }
 #endif
-   createdSemaphore(false), error(QSystemSemaphore::NoError)
-{
-}
 
 void QSystemSemaphorePrivate::setErrorString(const QString &function)
 {
@@ -99,7 +98,8 @@ void QSystemSemaphorePrivate::setErrorString(const QString &function)
       default:
          errorString = QCoreApplication::translate("QSystemSemaphore", "%1: unknown error %2").formatArg(function).formatArg(errno);
          error = QSystemSemaphore::UnknownError;
-#ifdef QSYSTEMSEMAPHORE_DEBUG
+
+#if defined(CS_SHOW_DEBUG_CORE_SEMAPHORE)
          qDebug() << errorString << "key" << key << "errno" << errno << EINVAL;
 #endif
          break;
@@ -252,7 +252,7 @@ void QSystemSemaphorePrivate::cleanHandle()
          if (-1 == semctl(semaphore, 0, IPC_RMID, 0)) {
             setErrorString("QSystemSemaphore::cleanHandle");
 
-#ifdef QSYSTEMSEMAPHORE_DEBUG
+#if defined(CS_SHOW_DEBUG_CORE_SEMAPHORE)
             qDebug("QSystemSemaphore::cleanHandle semctl failed.");
 #endif
          }
@@ -268,7 +268,8 @@ void QSystemSemaphorePrivate::cleanHandle()
    if (semaphore != SEM_FAILED) {
       if (sem_close(semaphore) == -1) {
          setErrorString("QSystemSemaphore::cleanHandle (sem_close)");
-#ifdef QSYSTEMSEMAPHORE_DEBUG
+
+#if defined(CS_SHOW_DEBUG_CORE_SEMAPHORE)
          qDebug() << QString("QSystemSemaphore::cleanHandle sem_close failed.");
 #endif
       }
@@ -280,7 +281,7 @@ void QSystemSemaphorePrivate::cleanHandle()
       if (sem_unlink(QFile::encodeName(fileName).constData()) == -1 && errno != ENOENT) {
          setErrorString("QSystemSemaphore::cleanHandle (sem_unlink)");
 
-#ifdef QSYSTEMSEMAPHORE_DEBUG
+#if defined(CS_SHOW_DEBUG_CORE_SEMAPHORE)
          qDebug() << QString("QSystemSemaphore::cleanHandle sem_unlink failed.");
 #endif
       }
@@ -320,7 +321,7 @@ bool QSystemSemaphorePrivate::modifySemaphore(int count)
 
       setErrorString("QSystemSemaphore::modifySemaphore");
 
-#ifdef QSYSTEMSEMAPHORE_DEBUG
+#if defined(CS_SHOW_DEBUG_CORE_SEMAPHORE)
       qDebug() << QString("QSystemSemaphore::modify failed") << count << semctl(semaphore, 0, GETVAL)
             << errno << EIDRM << EINVAL;
 #endif
@@ -340,7 +341,7 @@ bool QSystemSemaphorePrivate::modifySemaphore(int count)
          if (sem_post(semaphore) == -1) {
             setErrorString("QSystemSemaphore::modifySemaphore (sem_post)");
 
-#ifdef QSYSTEMSEMAPHORE_DEBUG
+#if defined(CS_SHOW_DEBUG_CORE_SEMAPHORE)
             qDebug() << QString("QSystemSemaphore::modify sem_post failed") << count << errno;
 #endif
 
@@ -369,7 +370,7 @@ bool QSystemSemaphorePrivate::modifySemaphore(int count)
 
          setErrorString("QSystemSemaphore::modifySemaphore (sem_wait)");
 
-#ifdef QSYSTEMSEMAPHORE_DEBUG
+#if defined(CS_SHOW_DEBUG_CORE_SEMAPHORE)
          qDebug() << QString("QSystemSemaphore::modify sem_wait failed") << count << errno;
 #endif
          return false;

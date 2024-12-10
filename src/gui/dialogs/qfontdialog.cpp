@@ -26,6 +26,7 @@
 #ifndef QT_NO_FONTDIALOG
 
 #include <qfontdialog.h>
+#include <qdialog_p.h>
 
 #include <qapplication.h>
 #include <qcheckbox.h>
@@ -40,11 +41,10 @@
 #include <qlineedit.h>
 #include <qlistview.h>
 #include <qpushbutton.h>
-#include <qstyle.h>
 #include <qstringlistmodel.h>
+#include <qstyle.h>
 #include <qvalidator.h>
 
-#include <qdialog_p.h>
 #include <qfont_p.h>
 #include <qfontdialog_p.h>
 
@@ -99,7 +99,7 @@ QFontListView::QFontListView(QWidget *parent)
    setEditTriggers(NoEditTriggers);
 }
 
-static const Qt::WindowFlags DefaultWindowFlags =
+static constexpr const Qt::WindowFlags DefaultWindowFlags =
    Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint;
 
 QFontDialogPrivate::QFontDialogPrivate()
@@ -300,7 +300,6 @@ void QFontDialogPrivate::init()
    sampleEdit->setObjectName("qt_fontDialog_sampleEdit");
 }
 
-// internal
 QFontDialog::~QFontDialog()
 {
 }
@@ -408,15 +407,16 @@ void QFontDialogPrivate::helperPrepareShow(QPlatformDialogHelper *)
    options->setWindowTitle(q_func()->windowTitle());
 }
 
-/*
-    Updates the contents of the "font family" list box. This
-    function can be reimplemented if you have special requirements.
-*/
 void QFontDialogPrivate::updateFamilies()
 {
    Q_Q(QFontDialog);
 
-   enum match_t { MATCH_NONE = 0, MATCH_LAST_RESORT = 1, MATCH_APP = 2, MATCH_FAMILY = 3 };
+   enum match_t {
+      MATCH_NONE        = 0,
+      MATCH_LAST_RESORT = 1,
+      MATCH_APP         = 2,
+      MATCH_FAMILY      = 3
+   };
 
    const QFontDialog::FontDialogOptions scalableMask = (QFontDialog::ScalableFonts | QFontDialog::NonScalableFonts);
    const QFontDialog::FontDialogOptions spacingMask = (QFontDialog::ProportionalFonts | QFontDialog::MonospacedFonts);
@@ -507,13 +507,10 @@ void QFontDialogPrivate::updateFamilies()
    updateStyles();
 }
 
-/*
-    Updates the contents of the "font style" list box. This
-    function can be reimplemented if you have special requirements.
-*/
 void QFontDialogPrivate::updateStyles()
 {
    Q_Q(QFontDialog);
+
    QStringList styles = fdb.styles(familyList->currentText());
    styleList->model()->setStringList(styles);
 

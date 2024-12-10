@@ -66,11 +66,11 @@ class QItemDelegatePrivate : public QAbstractItemDelegatePrivate
    {
    }
 
-   inline const QItemEditorFactory *editorFactory() const {
+   const QItemEditorFactory *editorFactory() const {
       return f ? f : QItemEditorFactory::defaultFactory();
    }
 
-   inline QIcon::Mode iconMode(QStyle::State state) const {
+   QIcon::Mode iconMode(QStyle::State state) const {
       if (! (state & QStyle::State_Enabled)) {
          return QIcon::Disabled;
       }
@@ -82,11 +82,11 @@ class QItemDelegatePrivate : public QAbstractItemDelegatePrivate
       return QIcon::Normal;
    }
 
-   inline QIcon::State iconState(QStyle::State state) const {
+   QIcon::State iconState(QStyle::State state) const {
       return state & QStyle::State_Open ? QIcon::On : QIcon::Off;
    }
 
-   static inline QString replaceNewLine(QString text) {
+   static QString replaceNewLine(QString text) {
       const QChar ch = QChar::LineSeparator;
       text.replace('\n', ch);
 
@@ -689,10 +689,9 @@ void QItemDelegate::doLayout(const QStyleOptionViewItem &option,
    }
 
    if (! hint) {
-      // only need to do the internal layout if we are going to paint
+      // only need to do the layout if we are going to paint
 
-      *checkRect = QStyle::alignedRect(option.direction, Qt::AlignCenter,
-            checkRect->size(), check);
+      *checkRect = QStyle::alignedRect(option.direction, Qt::AlignCenter, checkRect->size(), check);
 
       *pixmapRect = QStyle::alignedRect(option.direction, option.decorationAlignment,
             pixmapRect->size(), decoration);
@@ -850,7 +849,7 @@ QRect QItemDelegate::doCheck(const QStyleOptionViewItem &option,
    return QRect();
 }
 
-QRect QItemDelegate::textRectangle(QPainter * /*painter*/, const QRect &rect,
+QRect QItemDelegate::textRectangle(QPainter *, const QRect &rect,
    const QFont &font, const QString &text) const
 {
    Q_D(const QItemDelegate);

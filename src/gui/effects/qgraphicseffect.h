@@ -24,26 +24,25 @@
 #ifndef QGRAPHICSEFFECT_H
 #define QGRAPHICSEFFECT_H
 
+#include <qbrush.h>
+#include <qcolor.h>
 #include <qobject.h>
 #include <qpoint.h>
 #include <qrect.h>
-#include <qcolor.h>
-#include <qbrush.h>
 #include <qscopedpointer.h>
 
 #ifndef QT_NO_GRAPHICSEFFECT
 
+class QGraphicsBlurEffectPrivate;
+class QGraphicsColorizeEffectPrivate;
+class QGraphicsDropShadowEffectPrivate;
+class QGraphicsEffectPrivate;
+class QGraphicsEffectSource;
 class QGraphicsItem;
-class QStyleOption;
+class QGraphicsOpacityEffectPrivate;
 class QPainter;
 class QPixmap;
-
-class QGraphicsEffectSource;
-class QGraphicsEffectPrivate;
-class QGraphicsColorizeEffectPrivate;
-class QGraphicsBlurEffectPrivate;
-class QGraphicsDropShadowEffectPrivate;
-class QGraphicsOpacityEffectPrivate;
+class QStyleOption;
 
 class Q_GUI_EXPORT QGraphicsEffect : public QObject
 {
@@ -81,7 +80,7 @@ class Q_GUI_EXPORT QGraphicsEffect : public QObject
 
    bool isEnabled() const;
 
-   QGraphicsEffectSource *source() const; // internal
+   QGraphicsEffectSource *source() const;
 
    GUI_CS_SLOT_1(Public, void setEnabled(bool enable))
    GUI_CS_SLOT_2(setEnabled)

@@ -149,10 +149,10 @@ static QFontDatabase::WritingSystem writingSystemFromLocale()
 
    return writingSystemFromScript(script);
 }
+
 static QFontDatabase::WritingSystem writingSystemForFont(const QFont &font, bool *hasLatin)
 {
    QList<QFontDatabase::WritingSystem> writingSystems = QFontDatabase().writingSystems(font.family());
-   //     qDebug() << font.family() << writingSystems;
 
    // this just confuses the algorithm below. Vietnamese is Latin with lots of special chars
    writingSystems.removeOne(QFontDatabase::Vietnamese);
@@ -319,7 +319,7 @@ QSize QFontFamilyDelegate::sizeHint(const QStyleOptionViewItem &option, const QM
 class QFontComboBoxPrivate : public QComboBoxPrivate
 {
  public:
-   inline QFontComboBoxPrivate() {
+   QFontComboBoxPrivate() {
       filters = QFontComboBox::AllFonts;
    }
 

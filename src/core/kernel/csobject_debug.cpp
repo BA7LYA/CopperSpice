@@ -26,8 +26,7 @@
 static void dumpRecursive(int level, QObject *object)
 {
 
-#if defined(QT_DEBUG)
-
+#if defined(CS_SHOW_DEBUG_CORE)
    if (object) {
       QByteArray buffer;
 
@@ -48,7 +47,9 @@ static void dumpRecursive(int level, QObject *object)
          }
       }
    }
-
+#else
+   (void) level;
+   (void) object;
 #endif
 
 }
@@ -63,7 +64,7 @@ void QObject::dumpObjectTree()
 void QObject::dumpObjectInfo()
 {
 
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_CORE)
    qDebug("\n--  dumpObjectInfo  --\n");
    qDebug("  OBJECT %s::%s", csPrintable(this->metaObject()->className()), objectName().isEmpty() ? "unnamed" :
          csPrintable(objectName()) );
@@ -124,9 +125,6 @@ void QObject::dumpObjectInfo()
          qDebug("          <-- %s::%s", csPrintable(senderMetaObject->className()),
                obj->objectName().isEmpty() ? "unnamed" : csPrintable(obj->objectName()));
 
-         //   qDebug("          <-- %s::%s  %s",
-         //   slot.methodSignature().constData());
-
       } else {
          // sender does not inherit from QObject
          qDebug("          --> %s", typeid (*sender).name() );
@@ -135,7 +133,6 @@ void QObject::dumpObjectInfo()
    }
 
    qDebug("--\n");
-
 #endif
 
 }

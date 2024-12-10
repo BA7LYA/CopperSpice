@@ -22,19 +22,19 @@
 ***********************************************************************/
 
 #include <qwin_mousehandler.h>
-#include <qwin_keymapper.h>
-#include <qwin_context.h>
-#include <qwin_window.h>
-#include <qwin_integration.h>
-#include <qwin_screen.h>
 
-#include <qwindowsysteminterface.h>
 #include <qapplication.h>
-#include <qscreen.h>
-#include <qwindow.h>
 #include <qcursor.h>
 #include <qdebug.h>
 #include <qscopedarraypointer.h>
+#include <qscreen.h>
+#include <qwin_context.h>
+#include <qwin_integration.h>
+#include <qwin_keymapper.h>
+#include <qwin_screen.h>
+#include <qwin_window.h>
+#include <qwindow.h>
+#include <qwindowsysteminterface.h>
 
 #include <windowsx.h>
 
@@ -107,9 +107,14 @@ static inline void compressMouseMove(MSG *msg)
 
 static inline QTouchDevice *createTouchDevice()
 {
-   enum { QT_SM_TABLETPC = 86, QT_SM_DIGITIZER = 94, QT_SM_MAXIMUMTOUCHES = 95,
-      QT_NID_INTEGRATED_TOUCH = 0x1, QT_NID_EXTERNAL_TOUCH = 0x02,
-      QT_NID_MULTI_INPUT = 0x40, QT_NID_READY = 0x80
+   enum {
+      QT_SM_TABLETPC          = 86,
+      QT_SM_DIGITIZER         = 94,
+      QT_SM_MAXIMUMTOUCHES    = 95,
+      QT_NID_INTEGRATED_TOUCH = 0x1,
+      QT_NID_EXTERNAL_TOUCH   = 0x02,
+      QT_NID_MULTI_INPUT      = 0x40,
+      QT_NID_READY            = 0x80
    };
 
    if (QSysInfo::windowsVersion() < QSysInfo::WV_WINDOWS7) {
@@ -124,10 +129,10 @@ static inline QTouchDevice *createTouchDevice()
 
    const int maxTouchPoints = GetSystemMetrics(QT_SM_MAXIMUMTOUCHES);
 
-#if defined(CS_SHOW_DEBUG)
+#if defined(CS_SHOW_DEBUG_PLATFORM)
    const int tabletPc = GetSystemMetrics(QT_SM_TABLETPC);
 
-   qDebug() << "Digitizers:" << hex << showbase << (digitizers & ~QT_NID_READY) << "\n  "
+   qDebug() << "createTouchDevice() Digitizers =" << hex << showbase << (digitizers & ~QT_NID_READY) << "\n  "
       << "Ready =" << (digitizers & QT_NID_READY) << dec << noshowbase
       << "Tablet PC =" << tabletPc << "Max touch points =" << maxTouchPoints;
 #endif
@@ -149,7 +154,6 @@ static inline QTouchDevice *createTouchDevice()
    return result;
 }
 
-// internal
 QWindowsMouseHandler::QWindowsMouseHandler()
    : m_windowUnderMouse(nullptr), m_trackedWindow(nullptr), m_touchDevice(nullptr),
      m_leftButtonDown(false), m_previousCaptureWindow(nullptr)
@@ -196,12 +200,8 @@ Qt::MouseButtons QWindowsMouseHandler::queryMouseButtons()
 bool QWindowsMouseHandler::translateMouseEvent(QWindow *window, HWND hwnd,
       QtWindows::WindowsEventType et, MSG msg, LRESULT *result)
 {
-#ifdef Q_COMPILER_CLASS_ENUM
-   enum : quint64 { signatureMask = 0xffffff00, miWpSignature = 0xff515700 };
-#else
-   static const quint64 signatureMask = 0xffffff00;
-   static const quint64 miWpSignature = 0xff515700;
-#endif // !Q_COMPILER_CLASS_ENUM
+   static constexpr const quint64 signatureMask = 0xffffff00;
+   static constexpr const quint64 miWpSignature = 0xff515700;
 
    if (et == QtWindows::MouseWheelEvent) {
       return translateMouseWheelEvent(window, hwnd, msg, result);
@@ -212,6 +212,7 @@ bool QWindowsMouseHandler::translateMouseEvent(QWindow *window, HWND hwnd,
    // Check for events synthesized from touch. Lower byte is touch index, 0 means pen.
    static const bool passSynthesizedMouseEvents =
       !(QWindowsIntegration::instance()->options() & QWindowsIntegration::DontPassOsMouseEventsSynthesizedFromTouch);
+
    // Check for events synthesized from touch. Lower 7 bits are touch/pen index, bit 8 indicates touch.
    // However, when tablet support is active, extraInfo is a packet serial number. This is not a problem
    // since we do not want to ignore mouse events coming from a tablet.
@@ -222,7 +223,7 @@ bool QWindowsMouseHandler::translateMouseEvent(QWindow *window, HWND hwnd,
          // Bit 7 indicates touch event, else tablet pen.
          source = Qt::MouseEventSynthesizedBySystem;
 
-         if (!passSynthesizedMouseEvents) {
+         if (! passSynthesizedMouseEvents) {
             return false;
          }
       }
@@ -340,9 +341,10 @@ bool QWindowsMouseHandler::translateMouseEvent(QWindow *window, HWND hwnd,
       tme.cbSize = sizeof(TRACKMOUSEEVENT);
       tme.dwFlags = TME_LEAVE;
       tme.hwndTrack = hwnd;
-      tme.dwHoverTime = HOVER_DEFAULT; //
+      tme.dwHoverTime = HOVER_DEFAULT;
+
       if (!TrackMouseEvent(&tme)) {
-         qWarning("TrackMouseEvent failed.");
+         qWarning("QWindowsMouseHandler::translateMouseEvent() TrackMouseEvent failed");
       }
       m_trackedWindow =  window;
    }
@@ -512,7 +514,7 @@ bool QWindowsMouseHandler::translateTouchEvent(QWindow *window, HWND,
    typedef QList<QWindowSystemInterface::TouchPoint> QTouchPointList;
 
    if (! QWindowsContext::instance()->initTouch()) {
-      qWarning("Unable to initialize touch handling.");
+      qWarning("QWindowsMouseHandler::translateTouchEvent() Unable to initialize touch handling");
       return true;
    }
 

@@ -37,9 +37,15 @@
 class QFileInfoPrivate : public QSharedData
 {
  public:
-   enum { CachedFileFlags = 0x01, CachedLinkTypeFlag = 0x02, CachedBundleTypeFlag = 0x04,
-         CachedMTime = 0x10, CachedCTime = 0x20, CachedATime = 0x40,
-         CachedSize = 0x08, CachedPerms = 0x80
+   enum CachedFlags {
+      CachedFileFlags      = 0x01,
+      CachedLinkTypeFlag   = 0x02,
+      CachedBundleTypeFlag = 0x04,
+      CachedMTime          = 0x10,
+      CachedCTime          = 0x20,
+      CachedATime          = 0x40,
+      CachedSize           = 0x08,
+      CachedPerms          = 0x80
    };
 
    QFileInfoPrivate()
@@ -90,7 +96,7 @@ class QFileInfoPrivate : public QSharedData
    }
 
    void clearFlags() const {
-      fileFlags = 0;
+      fileFlags   = 0;
       cachedFlags = 0;
 
       if (fileEngine) {
@@ -123,15 +129,21 @@ class QFileInfoPrivate : public QSharedData
    mutable QString fileNames[QAbstractFileEngine::NFileNames];
    mutable QString fileOwners[2];
 
-   mutable uint cachedFlags : 30;
-   bool const isDefaultConstructed : 1; // QFileInfo is a default constructed instance
+   mutable uint cachedFlags;
+
+   bool const isDefaultConstructed : 1;
    bool cache_enabled : 1;
+
    mutable uint fileFlags;
    mutable qint64 fileSize;
    mutable QDateTime fileTimes[3];
 
    bool getCachedFlag(uint c) const {
-      return cache_enabled ? (cachedFlags & c) : 0;
+      if (cache_enabled) {
+         return (cachedFlags & c);
+      } else {
+         return false;
+      }
    }
 
    void setCachedFlag(uint c) const {

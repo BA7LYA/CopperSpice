@@ -25,6 +25,7 @@
 #define QFREELIST_P_H
 
 #include <qatomic.h>
+#include <qglobal.h>
 
 template <typename T>
 struct QFreeListElement {
@@ -59,13 +60,13 @@ struct QFreeListElement<void> {
 
 struct QFreeListDefaultConstants {
    // used by QFreeList, make sure to define all of when customizing
-   enum {
+   enum FreeListFlags {
       InitialNextValue = 0,
-      IndexMask = 0x00ffffff,
-      SerialMask = ~IndexMask & ~0x80000000,
-      SerialCounter = IndexMask + 1,
-      MaxIndex = IndexMask,
-      BlockCount = 4,
+      IndexMask        = 0x00ffffff,
+      SerialMask       = ~IndexMask & ~0x80000000,
+      SerialCounter    = IndexMask + 1,
+      MaxIndex         = IndexMask,
+      BlockCount       = 4,
    };
 
    static const int Sizes[BlockCount];
@@ -96,7 +97,6 @@ class QFreeList
 
    // allocate a block of the given \a size, initialized starting with the given \a offset
    static ElementType *allocate(int offset, int size) {
-      // qDebug("QFreeList: allocating %d elements (%ld bytes) with offset %d", size, size * sizeof(ElementType), offset);
       ElementType *v = new ElementType[size];
 
       for (int i = 0; i < size; ++i) {
@@ -108,7 +108,6 @@ class QFreeList
 
    // take the current serial number from \a o, increment it, and store it in \a n
    static int incrementserial(int o, int n) {
-      using uint = unsigned int;
       return int((uint(n) & ConstantsType::IndexMask) | ((uint(o) + ConstantsType::SerialCounter) & ConstantsType::SerialMask));
    }
 
@@ -197,11 +196,6 @@ inline int QFreeList<T, ConstantsType>::next()
 
    } while (! _next.compareExchange(id, newid, std::memory_order_relaxed));
 
-   // qDebug("QFreeList::next(): returning %d (_next now %d, serial %d)",
-   //        id & ConstantsType::IndexMask,
-   //        newid & ConstantsType::IndexMask,
-   //        (newid & ~ConstantsType::IndexMask) >> 24);
-
    return id & ConstantsType::IndexMask;
 }
 
@@ -223,12 +217,6 @@ inline void QFreeList<T, ConstantsType>::release(int id)
       newid = incrementserial(x, id);
 
    } while (! _next.compareExchange(x, newid, std::memory_order_release, std::memory_order_acquire));
-
-   // qDebug("QFreeList::release(%d): _next now %d (was %d), serial %d",
-   //        id & ConstantsType::IndexMask,
-   //        newid & ConstantsType::IndexMask,
-   //        x & ConstantsType::IndexMask,
-   //        (newid & ~ConstantsType::IndexMask) >> 24);
 }
 
 #endif // QFREELIST_P_H

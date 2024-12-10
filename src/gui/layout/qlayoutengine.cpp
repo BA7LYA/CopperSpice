@@ -30,8 +30,6 @@
 
 #include <algorithm>
 
-//#define QLAYOUT_EXTRA_DEBUG
-
 typedef qint64 Fixed64;
 
 static inline Fixed64 toFixed(int i)
@@ -361,22 +359,22 @@ void qGeomCalc(QVector<QLayoutStruct> &chain, int start, int count, int pos, int
       }
    }
 
-#ifdef QLAYOUT_EXTRA_DEBUG
-   qDebug() << "qGeomCalc" << "start" << start <<  "count" << count <<  "pos" << pos
-      <<  "space" << space <<  "spacer" << spacer;
+#if defined(CS_SHOW_DEBUG_GUI)
+   qDebug() << "qGeomCalc()" << "start =" << start << " count =" << count << " pos =" << pos
+      <<  " space =" << space << " spacer =" << spacer;
+
    for (i = start; i < start + count; ++i) {
-      qDebug() << i << ':' << chain[i].minimumSize << chain[i].smartSizeHint()
-         << chain[i].maximumSize << "stretch" << chain[i].stretch
-         << "empty" << chain[i].empty << "expansive" << chain[i].expansive
-         << "spacing" << chain[i].spacing;
-      qDebug() << "result pos" << chain[i].pos << "size" << chain[i].size;
+      qDebug() << "   " << i << ':' << chain[i].minimumSize << chain[i].smartSizeHint()
+         << chain[i].maximumSize << " stretch =" << chain[i].stretch
+         << " empty =" << chain[i].empty << " expansive =" << chain[i].expansive
+         << " spacing =" << chain[i].spacing << " Result: pos ="
+         << chain[i].pos << "size =" << chain[i].size;
    }
 #endif
 }
 
 Q_GUI_EXPORT QSize qSmartMinSize(const QSize &sizeHint, const QSize &minSizeHint,
-   const QSize &minSize, const QSize &maxSize,
-   const QSizePolicy &sizePolicy)
+   const QSize &minSize, const QSize &maxSize, const QSizePolicy &sizePolicy)
 {
    QSize s(0, 0);
 

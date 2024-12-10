@@ -22,13 +22,13 @@
 ***********************************************************************/
 
 #include <qthread.h>
+#include <qthread_p.h>
 
 #include <qdebug.h>
 #include <qplatformdefs.h>
 #include <qthreadstorage.h>
 
 #include <qcoreapplication_p.h>
-#include <qthread_p.h>
 
 #if defined(Q_OS_DARWIN)
 #  include <qeventdispatcher_cf_p.h>
@@ -49,38 +49,27 @@
 #include <sys/sysctl.h>
 #endif
 
-#if defined(Q_OS_DARWIN)
-# ifdef qDebug
-#   define old_qDebug qDebug
-#   undef qDebug
-# endif
-
-#if ! defined(Q_OS_IOS)
-# include <CoreServices/CoreServices.h>    // emerald, may delete
+#if defined(Q_OS_DARWIN) && ! defined(Q_OS_IOS)
+#  include <CoreServices/CoreServices.h>    // emerald, may delete
 #endif
 
-# ifdef old_qDebug
-#   undef qDebug
-#   define qDebug QT_NO_QDEBUG_MACRO
-#   undef old_qDebug
-# endif
-#endif
-
-#if defined(Q_OS_LINUX) && !defined(QT_LINUXBASE)
+#if defined(Q_OS_LINUX) && ! defined(QT_LINUXBASE)
 #include <sys/prctl.h>
 #endif
 
-#if defined(Q_OS_LINUX) && !defined(SCHED_IDLE)
+#if defined(Q_OS_LINUX) && ! defined(SCHED_IDLE)
 // from linux/sched.h
 # define SCHED_IDLE    5
 #endif
 
-#if defined(Q_OS_DARWIN) || !defined(Q_OS_OPENBSD) && defined(_POSIX_THREAD_PRIORITY_SCHEDULING) && (_POSIX_THREAD_PRIORITY_SCHEDULING-0 >= 0)
+#if defined(Q_OS_DARWIN) || ! defined(Q_OS_OPENBSD) && defined(_POSIX_THREAD_PRIORITY_SCHEDULING) \
+      && (_POSIX_THREAD_PRIORITY_SCHEDULING-0 >= 0)
 #define QT_HAS_THREAD_PRIORITY_SCHEDULING
 #endif
 
 static_assert(sizeof(pthread_t) <= sizeof(Qt::HANDLE), "Pthread size mismatch");
-enum { ThreadPriorityResetFlag = 0x80000000 };
+
+static constexpr const int ThreadPriorityResetFlag = 0x80000000;
 
 #if defined(Q_OS_LINUX) && defined(__GLIBC__) && (defined(Q_CC_GNU) || defined(Q_CC_INTEL))
 #define HAVE_TLS
@@ -414,10 +403,6 @@ void QThread::yieldCurrentThread()
    sched_yield();
 }
 
-/*  \internal
-    helper function to do thread sleeps, since usleep()/nanosleep()
-    aren't reliable enough (in terms of behavior and availability)
-*/
 static void thread_sleep(struct timespec *ti)
 {
    pthread_mutex_t mtx;
@@ -547,8 +532,7 @@ void QThread::start(Priority priority)
          int sched_policy;
 
          if (pthread_attr_getschedpolicy(&attr, &sched_policy) != 0) {
-            // failed to get the scheduling policy, don't bother
-            // setting the priority
+            // failed to get the scheduling policy, do not bother setting the priority
             qWarning("QThread::start() Unable to determine default scheduler policy");
             break;
          }

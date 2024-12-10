@@ -21,29 +21,31 @@
 *
 ***********************************************************************/
 
-#include <qapplication.h>
-#include <qwidget.h>
-#include <qtabbar.h>
-#include <qstyle.h>
-#include <qdesktopwidget.h>
-#include <qvariant.h>
 #include <qdockarealayout_p.h>
+
+#include <qapplication.h>
+#include <qdesktopwidget.h>
 #include <qdockwidget.h>
 #include <qmainwindow.h>
 #include <qpainter.h>
+#include <qstyle.h>
 #include <qstyleoption.h>
+#include <qtabbar.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
-#include <qwidgetanimator_p.h>
-#include <qmainwindowlayout_p.h>
 #include <qdockwidget_p.h>
 #include <qlayoutengine_p.h>
+#include <qmainwindowlayout_p.h>
+#include <qwidgetanimator_p.h>
 
 #ifndef QT_NO_DOCKWIDGET
 
 // qmainwindow.cpp
 extern QMainWindowLayout *qt_mainwindow_layout(const QMainWindow *window);
 
-enum { StateFlagVisible = 1, StateFlagFloating = 2 };
+static constexpr const int StateFlagVisible  = 1;
+static constexpr const int StateFlagFloating = 2;
 
 QPlaceHolderItem::QPlaceHolderItem(QWidget *w)
 {
@@ -215,7 +217,7 @@ static quintptr tabId(const QDockAreaLayoutItem &item)
 }
 #endif
 
-static const int zero = 0;
+static constexpr const int zero = 0;
 
 QDockAreaLayoutInfo::QDockAreaLayoutInfo()
    : sep(&zero), dockPos(QInternal::LeftDock), o(Qt::Horizontal), mainWindow(nullptr)
@@ -1361,8 +1363,6 @@ bool QDockAreaLayoutInfo::insertGap(const QList<int> &path, QLayoutItem *dockWid
 
    // finally, insert the gap
    item_list.insert(index, gap_item);
-
-   //    dump(qDebug() << "insertGap() after:" << index << tabIndex, *this, QString());
 
    return true;
 }

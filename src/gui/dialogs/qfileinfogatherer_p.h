@@ -24,40 +24,46 @@
 #ifndef QFILEINFOGATHERER_P_H
 #define QFILEINFOGATHERER_P_H
 
-#include <qthread.h>
-#include <qmutex.h>
-#include <qwaitcondition.h>
-#include <qfilesystemwatcher.h>
-#include <qfileiconprovider.h>
-
-#include <qpair.h>
-#include <qstack.h>
 #include <qdatetime.h>
 #include <qdir.h>
 #include <qelapsedtimer.h>
+#include <qfileiconprovider.h>
+#include <qfilesystemwatcher.h>
+#include <qmutex.h>
+#include <qpair.h>
+#include <qstack.h>
+#include <qthread.h>
+#include <qwaitcondition.h>
 
 #include <qfilesystemengine_p.h>
-
 
 class QFileIconProvider;
 
 class QExtendedInformation
 {
  public:
-   enum Type { Dir, File, System };
+   enum Type {
+      Dir,
+      File,
+      System
+   };
 
-   QExtendedInformation() {}
-   QExtendedInformation(const QFileInfo &info) : mFileInfo(info) {}
+   QExtendedInformation()
+   { }
 
-   inline bool isDir() {
+   QExtendedInformation(const QFileInfo &info)
+      : mFileInfo(info)
+   { }
+
+   bool isDir() {
       return type() == Dir;
    }
 
-   inline bool isFile() {
+   bool isFile() {
       return type() == File;
    }
 
-   inline bool isSystem() {
+   bool isSystem() {
       return type() == System;
    }
 

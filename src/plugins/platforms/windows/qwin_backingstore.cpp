@@ -23,12 +23,11 @@
 
 #include <qwin_backingstore.h>
 
-#include <qdebug.h>
-#include <qwindow.h>
 #include <qpainter.h>
-#include <qwin_window.h>
-#include <qwin_nativeimage.h>
 #include <qwin_context.h>
+#include <qwin_nativeimage.h>
+#include <qwin_window.h>
+#include <qwindow.h>
 
 #include <qhighdpiscaling_p.h>
 #include <qimage_p.h>
@@ -53,10 +52,6 @@ void QWindowsBackingStore::flush(QWindow *window, const QRegion &region, const Q
    Q_ASSERT(window);
 
    const QRect br = region.boundingRect();
-
-   if (QWindowsContext::verbose > 1) {
-      qDebug() << "QWindowsBackingStore::flush():" << this << window << offset << br;
-   }
 
    QWindowsWindow *rw = QWindowsWindow::baseWindowOf(window);
 
@@ -109,30 +104,11 @@ void QWindowsBackingStore::flush(QWindow *window, const QRegion &region, const Q
 
       rw->releaseDC();
    }
-
-   // Write image for debug purposes.
-   if (QWindowsContext::verbose > 2) {
-      static int n = 0;
-      const QString fileName = QString::fromLatin1("win%1_%2.png").formatArg(rw->winId()).formatArg(n++);
-      m_image->image().save(fileName);
-
-#if defined(CS_SHOW_DEBUG)
-      qDebug() << "Wrote =" << m_image->image().size() << fileName;
-#endif
-
-   }
 }
 
 void QWindowsBackingStore::resize(const QSize &size, const QRegion &region)
 {
    if (m_image.isNull() || m_image->image().size() != size) {
-
-#if defined(CS_SHOW_DEBUG)
-      if (QWindowsContext::verbose) {
-         qDebug() << "QWindowsBackingStore::resize(): " << window() << ' ' << size << ' ' << region
-                  << " from: " << (m_image.isNull() ? QSize() : m_image->image().size());
-      }
-#endif
 
       QImage::Format format = window()->format().hasAlpha() ?
          QImage::Format_ARGB32_Premultiplied : QWindowsNativeImage::systemFormat();
@@ -189,10 +165,6 @@ bool QWindowsBackingStore::scroll(const QRegion &area, int dx, int dy)
 
 void QWindowsBackingStore::beginPaint(const QRegion &region)
 {
-   if (QWindowsContext::verbose > 1) {
-      qDebug() << "QWindowsBackingStore::beginPaint" << region;
-   }
-
    if (m_alphaNeedsFill) {
       QPainter p(&m_image->image());
       p.setCompositionMode(QPainter::CompositionMode_Source);
@@ -217,7 +189,7 @@ HDC QWindowsBackingStore::getDC() const
 QImage QWindowsBackingStore::toImage() const
 {
    if (m_image.isNull()) {
-      qWarning() << "QWindowsBackingStore::toImage(): Image is null";
+      qWarning("QWindowsBackingStore::toImage() Image is null");
       return QImage();
    }
 

@@ -25,11 +25,12 @@
 
 #ifndef QT_NO_IMAGEFORMAT_XPM
 
-#include <qcolor_p.h>
 #include <qimage.h>
 #include <qmap.h>
 #include <qtextstream.h>
 #include <qvariant.h>
+
+#include <qcolor_p.h>
 
 #include <algorithm>
 
@@ -49,14 +50,17 @@ static quint64 xpmHash(const char *str)
 #ifdef QRGB
 #undef QRGB
 #endif
+
 #define QRGB(r,g,b) (r*65536 + g*256 + b)
 
-static const int xpmRgbTblSize = 657;
+static constexpr const int xpmRgbTblSize = 657;
 
-static const struct XPMRGBData {
+struct XPMRGBData {
    uint  value;
    const char name[21];
-} xpmRgbTbl[] = {
+};
+
+static const XPMRGBData xpmRgbTbl[] = {
    { QRGB(240, 248, 255),  "aliceblue" },
    { QRGB(250, 235, 215),  "antiquewhite" },
    { QRGB(255, 239, 219),  "antiquewhite1" },
@@ -1039,13 +1043,8 @@ static bool read_xpm_body(QIODevice *device, const char *const *source, int &ind
    return true;
 }
 
-//
-// INTERNAL
-//
 // Reads an .xpm from either the QImageIO or from the QString *.
 // One of the two HAS to be 0, the other one is used.
-//
-
 bool qt_read_xpm_image_or_array(QIODevice *device, const char *const *source, QImage &image)
 {
    if (!source) {
@@ -1277,17 +1276,18 @@ bool QXpmHandler::canRead()
 
 bool QXpmHandler::canRead(QIODevice *device)
 {
-   if (!device) {
+   if (! device) {
       qWarning("QXpmHandler::canRead() No device");
       return false;
    }
 
    char head[6];
+
    if (device->peek(head, sizeof(head)) != sizeof(head)) {
       return false;
    }
 
-   return qstrncmp(head, "/* XPM", 6) == 0;
+   return qstrncmp(head, "/* XPM", 6) == 0;      /* comment */
 }
 
 bool QXpmHandler::read(QImage *image)
@@ -1305,9 +1305,7 @@ bool QXpmHandler::write(const QImage &image)
 
 bool QXpmHandler::supportsOption(ImageOption option) const
 {
-   return option == Name
-      || option == Size
-      || option == ImageFormat;
+   return option == Name || option == Size || option == ImageFormat;
 }
 
 QVariant QXpmHandler::option(ImageOption option)

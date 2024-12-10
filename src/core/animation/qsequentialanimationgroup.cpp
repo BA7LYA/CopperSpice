@@ -22,11 +22,10 @@
 ***********************************************************************/
 
 #include <qsequentialanimationgroup.h>
+#include <qsequentialanimationgroup_p.h>
 
 #include <qdebug.h>
 #include <qpauseanimation.h>
-
-#include <qsequentialanimationgroup_p.h>
 
 #ifndef QT_NO_ANIMATION
 
@@ -276,7 +275,7 @@ void QSequentialAnimationGroup::updateCurrentTime(int currentTime)
       d->currentAnimation->setCurrentTime(newCurrentTime);
 
       if (d->atEnd()) {
-         //we make sure that we don't exceed the duration here
+         // make sure we do not exceed the duration here
          d->currentTime += QAbstractAnimationPrivate::get(d->currentAnimation)->totalCurrentTime - newCurrentTime;
          stop();
       }
@@ -419,7 +418,7 @@ void QSequentialAnimationGroupPrivate::_q_uncontrolledAnimationFinished()
 
    if ((direction == QAbstractAnimation::Forward && currentAnimation == animations.last())
          || (direction == QAbstractAnimation::Backward && currentAnimationIndex == 0)) {
-      // we don't handle looping of a group with undefined duration
+      // do not handle looping of a group with undefined duration
       q->stop();
 
    } else if (direction == QAbstractAnimation::Forward) {

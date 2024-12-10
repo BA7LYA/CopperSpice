@@ -40,39 +40,31 @@ class NamespaceBinding
 
    typedef QVector<NamespaceBinding> Vector;
 
-   inline NamespaceBinding() : m_prefix(InvalidCode),
-      m_namespace(InvalidCode) {
+   NamespaceBinding()
+      : m_prefix(InvalidCode), m_namespace(InvalidCode)
+   { }
+
+   NamespaceBinding(const QXmlName::PrefixCode p, const QXmlName::NamespaceCode n)
+      : m_prefix(p), m_namespace(n)
+   { }
+
+   bool operator==(const NamespaceBinding &other) const {
+      return m_prefix == other.m_prefix && m_namespace == other.m_namespace;
    }
 
-   inline NamespaceBinding(const QXmlName::PrefixCode p,
-                           const QXmlName::NamespaceCode n) : m_prefix(p),
-      m_namespace(n) {
-   }
-
-   inline bool operator==(const NamespaceBinding &other) const {
-      return m_prefix == other.m_prefix &&
-             m_namespace == other.m_namespace;
-   }
-
-   inline QXmlName::PrefixCode prefix() const {
+   QXmlName::PrefixCode prefix() const {
       return m_prefix;
    }
 
-   inline QXmlName::NamespaceCode namespaceURI() const {
+   QXmlName::NamespaceCode namespaceURI() const {
       return m_namespace;
    }
 
-   inline bool isNull() const {
+   bool isNull() const {
       return m_prefix == InvalidCode;
    }
 
-   /**
-    * @short Constructs a NamespaceBinding whose prefix and namespace is
-    * taken from @p qName.
-    *
-    * The local name in @p qName is ignored. @p qName may not be null.
-    */
-   static inline NamespaceBinding fromQXmlName(const QXmlName qName) {
+   static NamespaceBinding fromQXmlName(const QXmlName qName) {
       Q_ASSERT(!qName.isNull());
       return NamespaceBinding(qName.prefix(), qName.namespaceURI());
    }
@@ -82,9 +74,6 @@ class NamespaceBinding
    QXmlName::NamespaceCode   m_namespace;
 };
 
-/**
- * @relates NamespaceBinding
- */
 static inline uint qHash(const NamespaceBinding nb)
 {
    return (nb.prefix() << 16) + nb.namespaceURI();

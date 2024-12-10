@@ -201,27 +201,11 @@ QString QSqlResult::lastQuery() const
    return d->sql;
 }
 
-/*!
-    Returns the current (zero-based) row position of the result. May
-    return the special values QSql::BeforeFirstRow or
-    QSql::AfterLastRow.
-
-    \sa setAt(), isValid()
-*/
 int QSqlResult::at() const
 {
    Q_D(const QSqlResult);
    return d->idx;
 }
-
-
-/*!
-    Returns true if the result is positioned on a valid record (that
-    is, the result is not positioned before the first or after the
-    last record); otherwise returns false.
-
-    \sa at()
-*/
 
 bool QSqlResult::isValid() const
 {
@@ -229,19 +213,11 @@ bool QSqlResult::isValid() const
    return d->idx != QSql::BeforeFirstRow && d->idx != QSql::AfterLastRow;
 }
 
-
 bool QSqlResult::isActive() const
 {
    Q_D(const QSqlResult);
    return d->active;
 }
-
-/*!
-    This function is provided for derived classes to set the
-    internal (zero-based) row position to \a index.
-
-    \sa at()
-*/
 
 void QSqlResult::setAt(int index)
 {
@@ -249,20 +225,11 @@ void QSqlResult::setAt(int index)
    d->idx = index;
 }
 
-
-
 void QSqlResult::setSelect(bool select)
 {
    Q_D(QSqlResult);
    d->isSel = select;
 }
-
-/*!
-    Returns true if the current result is from a \c SELECT statement;
-    otherwise returns false.
-
-    \sa setSelect()
-*/
 
 bool QSqlResult::isSelect() const
 {
@@ -270,24 +237,11 @@ bool QSqlResult::isSelect() const
    return d->isSel;
 }
 
-/*!
-    Returns the driver associated with the result. This is the object
-    that was passed to the constructor.
-*/
-
 const QSqlDriver *QSqlResult::driver() const
 {
    Q_D(const QSqlResult);
    return d->sqldriver;
 }
-
-
-/*!
-    This function is provided for derived classes to set the internal
-    active state to \a active.
-
-    \sa isActive()
-*/
 
 void QSqlResult::setActive(bool active)
 {
@@ -299,7 +253,6 @@ void QSqlResult::setActive(bool active)
 
    d->active = active;
 }
-
 
 void QSqlResult::setLastError(const QSqlError &error)
 {
@@ -338,13 +291,6 @@ void QSqlResult::setForwardOnly(bool forward)
    d->forwardOnly = forward;
 }
 
-/*!
-    Prepares the given \a query, using the underlying database
-    functionality where possible. Returns true if the query is
-    prepared successfully; otherwise returns false.
-
-    \sa prepare()
-*/
 bool QSqlResult::savePrepare(const QString &query)
 {
    Q_D(QSqlResult);
@@ -535,31 +481,18 @@ QVector<QVariant> &QSqlResult::boundValues() const
    return const_cast<QSqlResultPrivate *>(d)->values;
 }
 
-
 QSqlResult::BindingSyntax QSqlResult::bindingSyntax() const
 {
    Q_D(const QSqlResult);
    return d->binds;
 }
 
-/*!
-    Clears the entire result set and releases any associated
-    resources.
-*/
 void QSqlResult::clear()
 {
    Q_D(QSqlResult);
    d->clear();
 }
 
-/*!
-    Returns the query that was actually executed. This may differ from
-    the query that was passed, for example if bound values were used
-    with a prepared query and the underlying database doesn't support
-    prepared queries.
-
-    \sa exec(), setQuery()
-*/
 QString QSqlResult::executedQuery() const
 {
    Q_D(const QSqlResult);
@@ -571,7 +504,6 @@ void QSqlResult::resetBindCount()
    Q_D(QSqlResult);
    d->resetBindCount();
 }
-
 
 QString QSqlResult::boundValueName(int index) const
 {
@@ -608,8 +540,6 @@ QVariant QSqlResult::lastInsertId() const
    return QVariant();
 }
 
-/*! \internal
-*/
 void QSqlResult::virtual_hook(int, void *)
 {
 }

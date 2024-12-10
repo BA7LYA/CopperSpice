@@ -256,13 +256,15 @@ static quint64 detectProcessorFeatures()
       AVX512State     = AVXState | OpMask | ZMM0_15Hi256 | ZMM16_31
    };
 
-   static const quint64 AllAVX512 = (Q_UINT64_C(1) << CpuFeatureAVX512F)  | (Q_UINT64_C(1) << CpuFeatureAVX512CD) |
-         (Q_UINT64_C(1) << CpuFeatureAVX512ER) | (Q_UINT64_C(1) << CpuFeatureAVX512PF) |
-         (Q_UINT64_C(1) << CpuFeatureAVX512BW) | (Q_UINT64_C(1) << CpuFeatureAVX512DQ) |
-         (Q_UINT64_C(1) << CpuFeatureAVX512VL) |
+   static constexpr const quint64 AllAVX512 = (Q_UINT64_C(1) << CpuFeatureAVX512F)    |
+         (Q_UINT64_C(1) << CpuFeatureAVX512CD)   |
+         (Q_UINT64_C(1) << CpuFeatureAVX512ER)   | (Q_UINT64_C(1) << CpuFeatureAVX512PF) |
+         (Q_UINT64_C(1) << CpuFeatureAVX512BW)   | (Q_UINT64_C(1) << CpuFeatureAVX512DQ) |
+         (Q_UINT64_C(1) << CpuFeatureAVX512VL)   |
          (Q_UINT64_C(1) << CpuFeatureAVX512IFMA) | (Q_UINT64_C(1) << CpuFeatureAVX512VBMI);
-   static const quint64 AllAVX2 = (Q_UINT64_C(1) << CpuFeatureAVX2) | AllAVX512;
-   static const quint64 AllAVX = (Q_UINT64_C(1) << CpuFeatureAVX) | AllAVX2;
+
+   static constexpr const quint64 AllAVX2 = (Q_UINT64_C(1) << CpuFeatureAVX2) | AllAVX512;
+   static constexpr const quint64 AllAVX = (Q_UINT64_C(1) << CpuFeatureAVX) | AllAVX2;
 
    quint64 features = 0;
    int cpuidLevel = maxBasicCpuidSupported();
@@ -337,14 +339,14 @@ static quint64 detectProcessorFeatures()
 #elif defined(Q_PROCESSOR_MIPS_32)
 
 #if defined(Q_OS_LINUX)
-//
-// Do not use QByteArray: it could use SIMD instructions itself at
-// some point, thus creating a recursive dependency. Instead, use a
-// QSimpleBuffer, which has the bare minimum needed to use memory
+
+// Do not use a QByteArray for the implementation for QSimd to avoid a recursive dependency.
+// Use QSimpleBuffer, which has the bare minimum needed to use memory
 // dynamically and read lines from /proc/cpuinfo of arbitrary sizes.
-//
+
 struct QSimpleBuffer {
-   static const int chunk_size = 256;
+   static constexpr const int chunk_size = 256;
+
    char *data;
    unsigned alloc;
    unsigned size;
@@ -374,11 +376,13 @@ struct QSimpleBuffer {
 
       size = newsize;
    }
+
    void append(const QSimpleBuffer &other, unsigned appendsize) {
       unsigned oldsize = size;
       resize(oldsize + appendsize);
       ::memcpy(data + oldsize, other.data, appendsize);
    }
+
    void popleft(unsigned amount) {
       if (amount >= size) {
          return resize(0);
@@ -594,10 +598,10 @@ static const int features_indices[] = { };
 
 // end generated
 
-static const int features_count = (sizeof features_indices) / (sizeof features_indices[0]);
+static constexpr const int features_count = (sizeof features_indices) / (sizeof features_indices[0]);
 
 // record what CPU features were enabled by default in this build
-static const quint64 minFeature = qCompilerCpuFeatures;
+static constexpr const quint64 minFeature = qCompilerCpuFeatures;
 
 #ifdef Q_OS_WIN
 

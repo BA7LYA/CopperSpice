@@ -24,15 +24,13 @@
 #ifndef QTEXTUREGLYPHCACHE_GL_P_H
 #define QTEXTUREGLYPHCACHE_GL_P_H
 
-#include <qglshaderprogram.h>
+#include <qtextureglyphcache_p.h>
+
 #include <qglframebufferobject.h>
+#include <qglshaderprogram.h>
 #include <qopenglfunctions.h>
 
-#include <qtextureglyphcache_p.h>
 #include <qgl_p.h>
-
-// #define QT_GL_TEXTURE_GLYPH_CACHE_DEBUG
-
 
 class QGL2PaintEngineExPrivate;
 
@@ -45,7 +43,7 @@ struct QGLGlyphTexture : public QOpenGLSharedResource
             ctx->contextHandle()->functions()->glGenFramebuffers(1, &m_fbo);
         }
 
-#ifdef QT_GL_TEXTURE_GLYPH_CACHE_DEBUG
+#if defined(CS_SHOW_DEBUG_OPENGL)
       qDebug(" -> QGLGlyphTexture() %p for context %p.", this, ctx);
 #endif
    }
@@ -53,11 +51,13 @@ struct QGLGlyphTexture : public QOpenGLSharedResource
     void freeResource(QOpenGLContext *context) override
     {
         const QGLContext *ctx = QGLContext::fromOpenGLContext(context);
-#ifdef QT_GL_TEXTURE_GLYPH_CACHE_DEBUG
+
+#if defined(CS_SHOW_DEBUG_OPENGL)
         qDebug("~QGLGlyphTexture() %p for context %p.", this, ctx);
 #else
         (void) ctx;
 #endif
+
         if (ctx && m_fbo)
             ctx->contextHandle()->functions()->glDeleteFramebuffers(1, &m_fbo);
         if (m_width || m_height)
@@ -66,9 +66,9 @@ struct QGLGlyphTexture : public QOpenGLSharedResource
 
     void invalidateResource() override {
         m_texture = 0;
-        m_fbo = 0;
-        m_width = 0;
-        m_height = 0;
+        m_fbo     = 0;
+        m_width   = 0;
+        m_height  = 0;
     }
 
    GLuint m_texture;
@@ -112,7 +112,7 @@ class Q_OPENGL_EXPORT QGLTextureGlyphCache : public QImageTextureGlyphCache
       pex = p;
    }
 
-   inline const QOpenGLContextGroup *contextGroup() const {
+   const QOpenGLContextGroup *contextGroup() const {
       return m_textureResource ? m_textureResource->group() : nullptr;
    }
 

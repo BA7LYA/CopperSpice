@@ -21,7 +21,7 @@
 *
 ***********************************************************************/
 
-#include "mainwindow.h"
+#include <mainwindow.h>
 
 #include <batchtranslation_dialog.h>
 #include <errorsview.h>
@@ -37,7 +37,6 @@
 #include <sourcecodeview.h>
 #include <statistics.h>
 #include <translate_dialog.h>
-
 // #include "formpreviewview.h"
 
 #include <qaction.h>
@@ -152,7 +151,7 @@ class ContextItemDelegate : public QItemDelegate
    {
    }
 
-   void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+   void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
       const QAbstractItemModel *model = index.model();
       Q_ASSERT(model);
 
@@ -178,7 +177,6 @@ static const QVariant &pxObsolete()
    return v;
 }
 
-
 class SortedMessagesModel : public QSortFilterProxyModel
 {
  public:
@@ -187,7 +185,7 @@ class SortedMessagesModel : public QSortFilterProxyModel
    {
    }
 
-   QVariant headerData(int section, Qt::Orientation orientation, int role) const {
+   QVariant headerData(int section, Qt::Orientation orientation, int role) const override {
       if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
          switch (section - m_dataModel->modelCount()) {
             case 0:
@@ -220,7 +218,7 @@ class SortedContextsModel : public QSortFilterProxyModel
    {
    }
 
-   QVariant headerData(int section, Qt::Orientation orientation, int role) const {
+   QVariant headerData(int section, Qt::Orientation orientation, int role) const override {
       if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
          switch (section - m_dataModel->modelCount()) {
             case 0:
@@ -251,10 +249,12 @@ class SortedContextsModel : public QSortFilterProxyModel
 class FocusWatcher : public QObject
 {
  public:
-   FocusWatcher(MessageEditor *msgedit, QObject *parent) : QObject(parent), m_messageEditor(msgedit) {}
+   FocusWatcher(MessageEditor *msgedit, QObject *parent)
+      : QObject(parent), m_messageEditor(msgedit)
+   { }
 
  protected:
-   bool eventFilter(QObject *object, QEvent *event);
+   bool eventFilter(QObject *object, QEvent *event) override;
 
  private:
    MessageEditor *m_messageEditor;

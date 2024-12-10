@@ -25,10 +25,11 @@
 #define QURLINFO_P_H
 
 #include <qdatetime.h>
-#include <qstring.h>
 #include <qiodevice.h>
+#include <qstring.h>
 
 #ifndef QT_NO_FTP
+
 class QUrl;
 class QUrlInfoPrivate;
 
@@ -94,7 +95,7 @@ class Q_NETWORK_EXPORT QUrlInfo
 
    bool operator==(const QUrlInfo &other) const;
 
-   inline bool operator!=(const QUrlInfo &other) const {
+   bool operator!=(const QUrlInfo &other) const {
       return ! operator==(other);
    }
 
@@ -103,6 +104,5 @@ class Q_NETWORK_EXPORT QUrlInfo
 };
 
 #endif // QT_NO_FTP
-
 
 #endif // QURLINFO_H

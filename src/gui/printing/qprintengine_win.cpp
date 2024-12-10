@@ -23,24 +23,23 @@
 
 #ifndef QT_NO_PRINTER
 
-#include <qprinter_p.h>
 #include <qprintengine_win_p.h>
-
-#include <qplatform_printplugin.h>
-#include <qplatform_printersupport.h>
-#include <qplatform_pixmap.h>
-#include <qt_windows.h>
 
 #include <qbitmap.h>
 #include <qdebug.h>
-#include <qvector.h>
 #include <qpicture.h>
+#include <qplatform_pixmap.h>
+#include <qplatform_printersupport.h>
+#include <qplatform_printplugin.h>
+#include <qt_windows.h>
+#include <qvector.h>
 
 #include <qfont_p.h>
 #include <qfontengine_p.h>
 #include <qpainter_p.h>
 #include <qpicture_p.h>
 #include <qpixmap_raster_p.h>
+#include <qprinter_p.h>
 
 #include <limits.h>
 
@@ -48,11 +47,8 @@ Q_GUI_EXPORT HBITMAP qt_pixmapToWinHBITMAP(const QPixmap &p, int hbitmapFormat =
 extern QPainterPath qt_regionToPath(const QRegion &region);
 extern QMarginsF qt_convertMargins(const QMarginsF &margins, QPageLayout::Unit fromUnits, QPageLayout::Unit toUnits);
 
-// #define QT_DEBUG_DRAW
-// #define QT_DEBUG_METRICS
-
 static void draw_text_item_win(const QPointF &_pos, const QTextItemInt &ti, HDC hdc,
-   const QTransform &xform, const QPointF &topLeft);
+      const QTransform &xform, const QPointF &topLeft);
 
 enum HBitmapFormat {
    HBitmapNoAlpha,
@@ -654,9 +650,8 @@ void QWin32PrintEnginePrivate::composeGdiPath(const QPainterPath & path)
       }
    }
 
-   if (start >= 0
-      && path.elementAt(start).x == path.elementAt(path.elementCount() - 1).x
-      && path.elementAt(start).y == path.elementAt(path.elementCount() - 1).y) {
+   if (start >= 0 && path.elementAt(start).x == path.elementAt(path.elementCount() - 1).x
+         && path.elementAt(start).y == path.elementAt(path.elementCount() - 1).y) {
       CloseFigure(hdc);
    }
 
@@ -669,11 +664,6 @@ void QWin32PrintEnginePrivate::composeGdiPath(const QPainterPath & path)
 
 void QWin32PrintEnginePrivate::fillPath_dev(const QPainterPath & path, const QColor & color)
 {
-
-#ifdef QT_DEBUG_DRAW
-   qDebug() << " --- QWin32PrintEnginePrivate::fillPath() bound:" << path.boundingRect() << color;
-#endif
-
    composeGdiPath(path);
 
    HBRUSH brush = CreateSolidBrush(RGB(color.red(), color.green(), color.blue()));
@@ -755,10 +745,6 @@ void QWin32PrintEnginePrivate::strokePath(const QPainterPath & path, const QColo
 
 void QWin32PrintEngine::drawPath(const QPainterPath & path)
 {
-#ifdef QT_DEBUG_DRAW
-   qDebug() << " - QWin32PrintEngine::drawPath(), bounds: " << path.boundingRect();
-#endif
-
    Q_D(QWin32PrintEngine);
 
    QAlphaPaintEngine::drawPath(path);
@@ -777,11 +763,8 @@ void QWin32PrintEngine::drawPath(const QPainterPath & path)
 
 void QWin32PrintEngine::drawPolygon(const QPointF * points, int pointCount, PolygonDrawMode mode)
 {
-#ifdef QT_DEBUG_DRAW
-   qDebug() << " - QWin32PrintEngine::drawPolygon(), pointCount: " << pointCount;
-#endif
-
    QAlphaPaintEngine::drawPolygon(points, pointCount, mode);
+
    if (!continueCall()) {
       return;
    }
@@ -1434,16 +1417,15 @@ QVariant QWin32PrintEngine::property(PrintEnginePropertyKey key) const
          break;
 
       case PPK_PaperSources: {
-
-
          QList<QVariant> out;
-         for (const QPrint::InputSlot inputSlot : d->m_printDevice.supportedInputSlots()) {
+
+         for (const QPrint::InputSlot &inputSlot : d->m_printDevice.supportedInputSlots()) {
             out << QVariant(inputSlot.id == QPrint::CustomInputSlot ? inputSlot.windowsId : int(inputSlot.id));
          }
+
          value = out;
          break;
       }
-
 
       case PPK_CustomPaperSize:
          value = d->m_pageLayout.fullRectPoints().size();
@@ -1621,19 +1603,9 @@ void QWin32PrintEnginePrivate::updateMetrics() {
    origin_y = qRound(margins.top() * dpi_y)  - GetDeviceCaps(hdc, PHYSICALOFFSETY);
 }
 
-void QWin32PrintEnginePrivate::debugMetrics() const {
-   qDebug() << "    " << "m_pageLayout      = " << m_pageLayout;
-   qDebug() << "    " << "m_paintRectPixels = " << m_paintRectPixels;
-   qDebug() << "    " << "m_paintSizeMM     = " << m_paintSizeMM;
-   qDebug() << "    " << "resolution        = " << resolution;
-   qDebug() << "    " << "stretch           = " << stretch_x << stretch_y;
-   qDebug() << "    " << "origin            = " << origin_x << origin_y;
-   qDebug() << "    " << "dpi               = " << dpi_x << dpi_y;
-   qDebug() << "";
-}
-
 static void draw_text_item_win(const QPointF & pos, const QTextItemInt & ti, HDC hdc,
-                               const QTransform & xform, const QPointF & topLeft) {
+      const QTransform & xform, const QPointF & topLeft)
+{
    QPointF baseline_pos = xform.inverted().map(xform.map(pos) - topLeft);
 
    SetTextAlign(hdc, TA_BASELINE);

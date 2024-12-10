@@ -24,13 +24,13 @@
 #ifndef QMEDIAPLAYLIST_H
 #define QMEDIAPLAYLIST_H
 
-#include <qobject.h>
+#include <qmediabindableinterface.h>
 #include <qmediacontent.h>
 #include <qmediaobject.h>
-#include <qmediabindableinterface.h>
+#include <qobject.h>
 
-class QMediaPlaylistProvider;
 class QMediaPlaylistPrivate;
+class QMediaPlaylistProvider;
 
 class Q_MULTIMEDIA_EXPORT QMediaPlaylist : public QObject, public QMediaBindableInterface
 {
@@ -53,8 +53,21 @@ class Q_MULTIMEDIA_EXPORT QMediaPlaylist : public QObject, public QMediaBindable
    MULTI_CS_ENUM(Error)
 
  public:
-   enum PlaybackMode { CurrentItemOnce, CurrentItemInLoop, Sequential, Loop, Random };
-   enum Error { NoError, FormatError, FormatNotSupportedError, NetworkError, AccessDeniedError };
+   enum PlaybackMode {
+      CurrentItemOnce,
+      CurrentItemInLoop,
+      Sequential,
+      Loop,
+      Random
+   };
+
+   enum Error {
+      NoError,
+      FormatError,
+      FormatNotSupportedError,
+      NetworkError,
+      AccessDeniedError
+   };
 
    explicit QMediaPlaylist(QObject *parent = nullptr);
    virtual ~QMediaPlaylist();

@@ -22,6 +22,7 @@
 ***********************************************************************/
 
 #include <qfileinfogatherer_p.h>
+
 #include <qdebug.h>
 #include <qdiriterator.h>
 
@@ -56,9 +57,6 @@ QFileInfoGatherer::QFileInfoGatherer(QObject *parent)
    start(LowPriority);
 }
 
-/*!
-    Destroys thread
-*/
 QFileInfoGatherer::~QFileInfoGatherer()
 {
    abort.store(true);

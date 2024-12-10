@@ -28,19 +28,21 @@
 #include <qscopedarraypointer.h>
 #include <qtextstream.h>
 #include <qvariant.h>
+
 #include <qimage_p.h>
 
 #if defined(QT_USE_FREETYPE)
 
-#include <qfile.h>
-#include <qscopedvaluerollback.h>
 #include <qabstractfileengine.h>
-#include <qthreadstorage.h>
+#include <qfile.h>
 #include <qmath.h>
+#include <qscopedvaluerollback.h>
+#include <qthreadstorage.h>
 
 #include <qharfbuzz_p.h>
 
 #include <ft2build.h>
+
 #include FT_FREETYPE_H
 #include FT_OUTLINE_H
 #include FT_SYNTHESIS_H
@@ -96,7 +98,6 @@ static const QFontEngine::HintStyle ftInitialDefaultHintStyle =
 #else
    QFontEngineFT::HintNone;
 #endif
-
 
 // -------------------------- Freetype support ------------------------------
 
@@ -593,12 +594,12 @@ QFontEngineFT::Glyph::~Glyph()
 }
 
 struct LcdFilterDummy {
-   static inline void filterPixel(uchar &, uchar &, uchar &)
-   {}
+   static void filterPixel(uchar &, uchar &, uchar &) {
+   }
 };
 
 struct LcdFilterLegacy {
-   static inline void filterPixel(uchar &red, uchar &green, uchar &blue) {
+   static void filterPixel(uchar &red, uchar &green, uchar &blue) {
       uint r = red, g = green, b = blue;
       // intra-pixel filter used by the legacy filter (adopted from _ft_lcd_filter_legacy)
       red   = (r * uint(65538 * 9 / 13) + g * uint(65538 * 1 / 6) + b * uint(65538 * 1 / 13)) / 65536;
@@ -1636,6 +1637,7 @@ void QFontEngineFT::addGlyphsToPath(glyph_t *glyphs, QFixedPoint *positions, int
       if (obliquen) {
          FT_GlyphSlot_Oblique(g);
       }
+
       QFreetypeFace::addGlyphToPath(face, g, positions[gl], path, xsize, ysize);
    }
 
@@ -1644,7 +1646,7 @@ void QFontEngineFT::addGlyphsToPath(glyph_t *glyphs, QFixedPoint *positions, int
 
 glyph_t QFontEngineFT::glyphIndex(char32_t ch) const
 {
-   glyph_t glyph = ch < QFreetypeFace::cmapCacheSize ? freetype->cmapCache[ch] : 0;
+   glyph_t glyph = ch < QFreetypeFace::CmapCacheSize ? freetype->cmapCache[ch] : 0;
 
    if (glyph == 0) {
 
@@ -1672,7 +1674,7 @@ glyph_t QFontEngineFT::glyphIndex(char32_t ch) const
          }
       }
 
-      if (ch < QFreetypeFace::cmapCacheSize) {
+      if (ch < QFreetypeFace::CmapCacheSize) {
          freetype->cmapCache[ch] = glyph;
       }
    }
@@ -1699,23 +1701,25 @@ bool QFontEngineFT::stringToCMap(QStringView str, QGlyphLayout *glyphs, int *num
       for (QChar c : str) {
          unsigned int uc = c.unicode();
 
-         glyphs->glyphs[glyph_pos] = uc < QFreetypeFace::cmapCacheSize ? freetype->cmapCache[uc] : 0;
+         glyphs->glyphs[glyph_pos] = uc < QFreetypeFace::CmapCacheSize ? freetype->cmapCache[uc] : 0;
 
          if (! glyphs->glyphs[glyph_pos] ) {
 
-
             glyph_t glyph = FT_Get_Char_Index(face, uc);
-            if (!glyph && (uc == 0xa0 || uc == 0x9)) {
+
+            if (! glyph && (uc == 0xa0 || uc == 0x9)) {
                uc = 0x20;
                glyph = FT_Get_Char_Index(face, uc);
             }
-            if (!glyph) {
+
+            if (! glyph) {
                FT_Set_Charmap(face, freetype->symbol_map);
                glyph = FT_Get_Char_Index(face, uc);
                FT_Set_Charmap(face, freetype->unicode_map);
             }
+
             glyphs->glyphs[glyph_pos] = glyph;
-            if (uc < QFreetypeFace::cmapCacheSize) {
+            if (uc < QFreetypeFace::CmapCacheSize) {
                freetype->cmapCache[uc] = glyph;
             }
          }
@@ -1729,20 +1733,20 @@ bool QFontEngineFT::stringToCMap(QStringView str, QGlyphLayout *glyphs, int *num
       for (QChar c : str) {
          unsigned int uc = c.unicode();
 
-         glyphs->glyphs[glyph_pos] = uc < QFreetypeFace::cmapCacheSize ? freetype->cmapCache[uc] : 0;
+         glyphs->glyphs[glyph_pos] = uc < QFreetypeFace::CmapCacheSize ? freetype->cmapCache[uc] : 0;
 
          if (! glyphs->glyphs[glyph_pos]) {
 
             {
             redo:
                glyph_t glyph = FT_Get_Char_Index(face, uc);
-               if (!glyph && (uc == 0xa0 || uc == 0x9)) {
+               if (! glyph && (uc == 0xa0 || uc == 0x9)) {
                   uc = 0x20;
                   goto redo;
                }
 
                glyphs->glyphs[glyph_pos] = glyph;
-               if (uc < QFreetypeFace::cmapCacheSize) {
+               if (uc < QFreetypeFace::CmapCacheSize) {
                   freetype->cmapCache[uc] = glyph;
                }
             }

@@ -22,14 +22,14 @@
 ***********************************************************************/
 
 #include <qstyleoption.h>
+
 #include <qapplication.h>
+#include <qdebug.h>
+#include <qmath.h>
 
 #ifdef Q_OS_DARWIN
 # include <qmacstyle.h>
 #endif
-
-#include <qdebug.h>
-#include <qmath.h>
 
 QStyleOption::QStyleOption(int version, int type)
    : version(version), type(type), state(QStyle::State_None),
@@ -49,18 +49,23 @@ void QStyleOption::initFrom(const QWidget *widget)
    if (widget->isEnabled()) {
       state |= QStyle::State_Enabled;
    }
+
    if (widget->hasFocus()) {
       state |= QStyle::State_HasFocus;
    }
+
    if (window->testAttribute(Qt::WA_KeyboardFocusChange)) {
       state |= QStyle::State_KeyboardFocusChange;
    }
+
    if (widget->underMouse()) {
       state |= QStyle::State_MouseOver;
    }
+
    if (window->isActiveWindow()) {
       state |= QStyle::State_Active;
    }
+
    if (widget->isWindow()) {
       state |= QStyle::State_Window;
    }
@@ -155,9 +160,6 @@ QStyleOptionHeader::QStyleOptionHeader()
 {
 }
 
-/*!
-    \internal
-*/
 QStyleOptionHeader::QStyleOptionHeader(int version)
    : QStyleOption(version, SO_Header),
      section(0), textAlignment(Qt::AlignLeft), iconAlignment(Qt::AlignLeft),
@@ -172,9 +174,6 @@ QStyleOptionButton::QStyleOptionButton()
 {
 }
 
-/*!
-    \internal
-*/
 QStyleOptionButton::QStyleOptionButton(int version)
    : QStyleOption(version, SO_Button), features(None)
 {
@@ -188,9 +187,6 @@ QStyleOptionToolBar::QStyleOptionToolBar()
 {
 }
 
-/*!
-    \internal
-*/
 QStyleOptionToolBar::QStyleOptionToolBar(int version)
    : QStyleOption(version, SO_ToolBar), positionOfLine(OnlyOne), positionWithinLine(OnlyOne),
      toolBarArea(Qt::TopToolBarArea), features(None), lineWidth(0), midLineWidth(0)
@@ -208,9 +204,6 @@ QStyleOptionTab::QStyleOptionTab()
 {
 }
 
-/*!
-    \internal
-*/
 QStyleOptionTab::QStyleOptionTab(int version)
    : QStyleOption(version, SO_Tab), shape(QTabBar::RoundedNorth), row(0),
      position(Beginning), selectedPosition(NotAdjacent), cornerWidgets(QStyleOptionTab::NoCornerWidgets),
@@ -241,9 +234,6 @@ QStyleOptionMenuItem::QStyleOptionMenuItem()
 {
 }
 
-/*!
-    \internal
-*/
 QStyleOptionMenuItem::QStyleOptionMenuItem(int version)
    : QStyleOption(version, SO_MenuItem), menuItemType(Normal),
      checkType(NotCheckable), checked(false), menuHasCheckableItems(true), maxIconWidth(0), tabWidth(0)
@@ -265,9 +255,6 @@ QStyleOptionSlider::QStyleOptionSlider()
 {
 }
 
-/*!
-    \internal
-*/
 QStyleOptionSlider::QStyleOptionSlider(int version)
    : QStyleOptionComplex(version, SO_Slider), orientation(Qt::Horizontal), minimum(0), maximum(0),
      tickPosition(QSlider::NoTicks), tickInterval(0), upsideDown(false),
@@ -286,16 +273,13 @@ QStyleOptionSpinBox::QStyleOptionSpinBox()
 {
 }
 
-/*!
-    \internal
-*/
 QStyleOptionSpinBox::QStyleOptionSpinBox(int version)
    : QStyleOptionComplex(version, SO_SpinBox), buttonSymbols(QAbstractSpinBox::UpDownArrows),
      stepEnabled(QAbstractSpinBox::StepNone), frame(false)
 {
 }
 
-#endif // QT_NO_SPINBOX
+#endif
 
 QStyleOptionDockWidget::QStyleOptionDockWidget()
    : QStyleOption(Version, SO_DockWidget), closable(false),
@@ -303,15 +287,11 @@ QStyleOptionDockWidget::QStyleOptionDockWidget()
 {
 }
 
-/*!
-    \internal
-*/
 QStyleOptionDockWidget::QStyleOptionDockWidget(int version)
    : QStyleOption(version, SO_DockWidget), closable(false),
      movable(false), floatable(false), verticalTitleBar(false)
 {
 }
-
 
 QStyleOptionToolButton::QStyleOptionToolButton()
    : QStyleOptionComplex(Version, SO_ToolButton), features(None), arrowType(Qt::DownArrow)
@@ -322,7 +302,6 @@ QStyleOptionToolButton::QStyleOptionToolButton()
 QStyleOptionToolButton::QStyleOptionToolButton(int version)
    : QStyleOptionComplex(version, SO_ToolButton), features(None), arrowType(Qt::DownArrow)
    , toolButtonStyle(Qt::ToolButtonIconOnly)
-
 {
 }
 
@@ -331,9 +310,6 @@ QStyleOptionComboBox::QStyleOptionComboBox()
 {
 }
 
-/*!
-    \internal
-*/
 QStyleOptionComboBox::QStyleOptionComboBox(int version)
    : QStyleOptionComplex(version, SO_ComboBox), editable(false), frame(true)
 {
@@ -344,9 +320,6 @@ QStyleOptionToolBox::QStyleOptionToolBox()
 {
 }
 
-/*!
-    \internal
-*/
 QStyleOptionToolBox::QStyleOptionToolBox(int version)
    : QStyleOption(version, SO_ToolBox), position(Beginning), selectedPosition(NotAdjacent)
 {
@@ -359,26 +332,25 @@ QStyleOptionRubberBand::QStyleOptionRubberBand()
 {
 }
 
-// internal
 QStyleOptionRubberBand::QStyleOptionRubberBand(int version)
    : QStyleOption(version, SO_RubberBand), shape(QRubberBand::Line), opaque(false)
 {
 }
 
-#endif // QT_NO_RUBBERBAND
+#endif
 
 QStyleOptionTitleBar::QStyleOptionTitleBar()
    : QStyleOptionComplex(Version, SO_TitleBar), titleBarState(0), titleBarFlags(Qt::EmptyFlag)
 {
 }
 
-// internal
 QStyleOptionTitleBar::QStyleOptionTitleBar(int version)
    : QStyleOptionComplex(version, SO_TitleBar), titleBarState(0), titleBarFlags(Qt::EmptyFlag)
 {
 }
 
 #ifndef QT_NO_ITEMVIEWS
+
 QStyleOptionViewItem::QStyleOptionViewItem()
    : QStyleOption(Version, SO_ViewItem),
      displayAlignment(Qt::AlignLeft), decorationAlignment(Qt::AlignLeft),
@@ -388,7 +360,6 @@ QStyleOptionViewItem::QStyleOptionViewItem()
 {
 }
 
-// internal
 QStyleOptionViewItem::QStyleOptionViewItem(int version)
    : QStyleOption(version, SO_ViewItem),
      displayAlignment(Qt::AlignLeft), decorationAlignment(Qt::AlignLeft),
@@ -398,7 +369,8 @@ QStyleOptionViewItem::QStyleOptionViewItem(int version)
 {
 }
 
-#endif // QT_NO_ITEMVIEWS
+#endif
+
 #ifndef QT_NO_TABWIDGET
 
 QStyleOptionTabWidgetFrame::QStyleOptionTabWidgetFrame()
@@ -407,14 +379,13 @@ QStyleOptionTabWidgetFrame::QStyleOptionTabWidgetFrame()
 {
 }
 
-// internal
 QStyleOptionTabWidgetFrame::QStyleOptionTabWidgetFrame(int version)
    : QStyleOption(version, SO_TabWidgetFrame), lineWidth(0), midLineWidth(0),
      shape(QTabBar::RoundedNorth)
 {
 }
 
-#endif // QT_NO_TABWIDGET
+#endif
 
 #ifndef QT_NO_TABBAR
 
@@ -424,14 +395,13 @@ QStyleOptionTabBarBase::QStyleOptionTabBarBase()
 {
 }
 
-// internal
 QStyleOptionTabBarBase::QStyleOptionTabBarBase(int version)
    : QStyleOption(version, SO_TabBarBase), shape(QTabBar::RoundedNorth),
      documentMode(false)
 {
 }
 
-#endif // QT_NO_TABBAR
+#endif
 
 #ifndef QT_NO_SIZEGRIP
 
@@ -440,20 +410,18 @@ QStyleOptionSizeGrip::QStyleOptionSizeGrip()
 {
 }
 
-// internal
 QStyleOptionSizeGrip::QStyleOptionSizeGrip(int version)
    : QStyleOptionComplex(version, Type), corner(Qt::BottomRightCorner)
 {
 }
 
-#endif // QT_NO_SIZEGRIP
+#endif
 
 QStyleOptionGraphicsItem::QStyleOptionGraphicsItem()
    : QStyleOption(Version, Type), levelOfDetail(1)
 {
 }
 
-// internal
 QStyleOptionGraphicsItem::QStyleOptionGraphicsItem(int version)
    : QStyleOption(version, Type), levelOfDetail(1)
 {
@@ -468,6 +436,7 @@ qreal QStyleOptionGraphicsItem::levelOfDetailFromTransform(const QTransform &wor
    // Two unit vectors.
    QLineF v1(0, 0, 1, 0);
    QLineF v2(0, 0, 0, 1);
+
    // LOD is the transformed area of a 1x1 rectangle.
    return qSqrt(worldTransform.map(v1).length() * worldTransform.map(v2).length());
 }
@@ -488,6 +457,7 @@ QStyleHintReturnMask::QStyleHintReturnMask() : QStyleHintReturn(Version, Type)
 QStyleHintReturnMask::~QStyleHintReturnMask()
 {
 }
+
 QStyleHintReturnVariant::QStyleHintReturnVariant() : QStyleHintReturn(Version, Type)
 {
 }
@@ -498,8 +468,7 @@ QStyleHintReturnVariant::~QStyleHintReturnVariant()
 
 QDebug operator<<(QDebug debug, const QStyleOption::OptionType &optionType)
 {
-#if defined(QT_DEBUG)
-
+#if defined(CS_SHOW_DEBUG_GUI_STYLES)
    switch (optionType) {
       case QStyleOption::SO_Default:
          debug << "SO_Default";
@@ -564,6 +533,7 @@ QDebug operator<<(QDebug debug, const QStyleOption::OptionType &optionType)
       case QStyleOption::SO_Slider:
          debug << "SO_Slider";
          break;
+
       case QStyleOption::SO_SpinBox:
          debug << "SO_SpinBox";
          break;
@@ -604,6 +574,10 @@ QDebug operator<<(QDebug debug, const QStyleOption::OptionType &optionType)
          debug << "SO_GraphicsItem";
          break;
    }
+
+#else
+   (void) optionType;
+
 #endif
 
    return debug;
@@ -611,7 +585,7 @@ QDebug operator<<(QDebug debug, const QStyleOption::OptionType &optionType)
 
 QDebug operator<<(QDebug debug, const QStyleOption &option)
 {
-#if defined(QT_DEBUG)
+#if defined(CS_SHOW_DEBUG_GUI_STYLES)
    debug << "QStyleOption(";
    debug << QStyleOption::OptionType(option.type);
    debug << ',' << (option.direction == Qt::RightToLeft ? "RightToLeft" : "LeftToRight");
@@ -619,6 +593,10 @@ QDebug operator<<(QDebug debug, const QStyleOption &option)
    debug << ',' << option.rect;
    debug << ',' << option.styleObject;
    debug << ')';
+
+#else
+   (void) option;
+
 #endif
 
    return debug;

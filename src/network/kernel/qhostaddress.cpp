@@ -23,8 +23,13 @@
 
 #include <qhostaddress.h>
 #include <qhostaddress_p.h>
-#include <qipaddress_p.h>
+
+#include <qdatastream.h>
 #include <qdebug.h>
+#include <qendian.h>
+#include <qstringlist.h>
+
+#include <qipaddress_p.h>
 
 #if defined(Q_OS_WIN)
 # include <winsock2.h>
@@ -32,10 +37,8 @@
 # include <netinet/in.h>
 #endif
 
+// order dependent, must be after winsock2.h
 #include <qplatformdefs.h>
-#include <qstringlist.h>
-#include <qendian.h>
-#include <qdatastream.h>
 
 #ifdef __SSE2__
 #  include <qsimd_p.h>
@@ -357,24 +360,16 @@ void QNetmaskAddress::setPrefixLength(QAbstractSocket::NetworkLayerProtocol prot
    }
 }
 
-
-
-
-
 QHostAddress::QHostAddress()
    : d(new QHostAddressPrivate)
 {
 }
 
-/*!
-    Constructs a host address object with the IPv4 address \a ip4Addr.
-*/
 QHostAddress::QHostAddress(quint32 ip4Addr)
    : d(new QHostAddressPrivate)
 {
    setAddress(ip4Addr);
 }
-
 
 QHostAddress::QHostAddress(const quint8 *ip6Addr)
    : d(new QHostAddressPrivate)
@@ -388,7 +383,6 @@ QHostAddress::QHostAddress(const Q_IPV6ADDR &ip6Addr)
 {
    setAddress(ip6Addr);
 }
-
 
 QHostAddress::QHostAddress(const QString &address)
    : d(new QHostAddressPrivate)
@@ -409,15 +403,11 @@ QHostAddress::QHostAddress(const struct sockaddr *sockaddr)
    }
 }
 
-
 QHostAddress::QHostAddress(const QHostAddress &address)
    : d(new QHostAddressPrivate(*address.d.data()))
 {
 }
 
-/*!
-    Constructs a QHostAddress object for \a address.
-*/
 QHostAddress::QHostAddress(SpecialAddress address)
    : d(new QHostAddressPrivate)
 {
@@ -846,10 +836,15 @@ QDebug operator<<(QDebug d, const QHostAddress &address)
    return d;
 }
 
-uint qHash(const QHostAddress &key, uint seed)
+uint QHostAddress::hash(const QHostAddress &key, uint seed)
 {
    QT_ENSURE_PARSED(&key);
    return qHashBits(key.d->a6.c, 16, seed);
+}
+
+uint qHash(const QHostAddress &key, uint seed)
+{
+   return QHostAddress::hash(key, seed);
 }
 
 QDataStream &operator<<(QDataStream &out, const QHostAddress &address)

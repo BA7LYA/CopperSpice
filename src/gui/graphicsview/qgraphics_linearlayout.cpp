@@ -34,10 +34,6 @@
 #include <qgraphics_layoutstyleinfo_p.h>
 #include <qgraphics_gridlayoutengine_p.h>
 
-#ifdef QT_DEBUG
-#include <qdebug.h>
-#endif
-
 class QGraphicsLinearLayoutPrivate : public QGraphicsLayoutPrivate
 {
  public:
@@ -337,7 +333,6 @@ void QGraphicsLinearLayout::invalidate()
    QGraphicsLayout::invalidate();
 }
 
-// internal
 void QGraphicsLinearLayout::dump(int indent) const
 {
    (void) indent;

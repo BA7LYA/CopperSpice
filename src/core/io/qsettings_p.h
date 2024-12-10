@@ -180,16 +180,18 @@ class QConfFile
 class QSettingsPrivate
 {
  public:
-   enum ChildSpec { AllKeys, ChildKeys, ChildGroups };
+   enum ChildSpec {
+      AllKeys,
+      ChildKeys,
+      ChildGroups
+   };
 
-   // numeric values for this enum defines the search order
-   enum {
+   enum SearchOrder {
       F_Application  = 0x0,
       F_Organization = 0x1,
       F_User         = 0x0,
       F_System       = 0x2
    };
-
 
    QSettingsPrivate(QSettings::Format format);
    QSettingsPrivate(QSettings::Format format, QSettings::Scope scope, const QString &organization, const QString &application);
@@ -239,8 +241,8 @@ class QSettingsPrivate
 
    static QStringList splitArgs(const QString &s, int idx);
 
-   QSettings::Format format;
-   QSettings::Scope scope;
+   QSettings::Format m_format;
+   QSettings::Scope m_scope;
    QString organizationName;
    QString applicationName;
    QTextCodec *iniCodec;
@@ -251,7 +253,7 @@ class QSettingsPrivate
    int m_spec;
    bool fallbacks;
    bool pendingChanges;
-   mutable QSettings::Status status;
+   mutable QSettings::Status m_status;
 
    QSettings *q_ptr;
 

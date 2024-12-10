@@ -26,13 +26,12 @@
 
 #include <qevent.h>
 #include <qgesturerecognizer.h>
-#include <qgesture_p.h>
-#include <qscroller.h>
 #include <qscopedpointer.h>
+#include <qscroller.h>
+
+#include <qgesture_p.h>
 
 #ifndef QT_NO_GESTURES
-
-
 
 class QFlickGesturePrivate;
 class QGraphicsItem;
@@ -60,7 +59,7 @@ class QFlickGesturePrivate : public QGesturePrivate
 
    QPointer<QObject> receiver;
    QScroller *receiverScroller;
-   Qt::MouseButton button; // NoButton == Touch
+   Qt::MouseButton button;          // NoButton == Touch
    bool macIgnoreWheel;
    static PressDelayHandler *pressDelayHandler;
 };
@@ -70,15 +69,13 @@ class QFlickGestureRecognizer : public QGestureRecognizer
  public:
    QFlickGestureRecognizer(Qt::MouseButton button);
 
-   QGesture *create(QObject *target);
-   QGestureRecognizer::Result recognize(QGesture *state, QObject *watched, QEvent *event);
-   void reset(QGesture *state);
+   QGesture *create(QObject *target) override;
+   QGestureRecognizer::Result recognize(QGesture *state, QObject *watched, QEvent *event) override;
+   void reset(QGesture *state) override;
 
  private:
-   Qt::MouseButton button; // NoButton == Touch
+   Qt::MouseButton button;          // NoButton == Touch
 };
-
-
 
 #endif // QT_NO_GESTURES
 

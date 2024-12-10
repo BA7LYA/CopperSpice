@@ -58,11 +58,11 @@ class Q_CORE_EXPORT QEventDispatcherWin32 : public QAbstractEventDispatcher
    bool unregisterTimers(QObject *object) override;
    QList<QTimerInfo> registeredTimers(QObject *object) const override;
 
-   bool registerEventNotifier(QWinEventNotifier *notifier);
-   void unregisterEventNotifier(QWinEventNotifier *notifier);
+   bool registerEventNotifier(QWinEventNotifier *notifier) override;
+   void unregisterEventNotifier(QWinEventNotifier *notifier) override;
    void activateEventNotifiers();
 
-   int remainingTime(int timerId);
+   int remainingTime(int timerId) override;
    void wakeUp() override;
    void interrupt() override;
    void flush() override;
@@ -93,14 +93,16 @@ struct QSockNot {
 using QSNDict = QHash<int, QSockNot *>;
 
 struct QSockFd {
+   explicit QSockFd(long ev = 0)
+      : event(ev), selected(false)
+   { }
+
    long event;
    bool selected;
-
-   explicit inline QSockFd(long ev = 0) : event(ev), selected(false) { }
 };
 using QSFDict = QHash<int, QSockFd>;
 
-struct WinTimerInfo {                           // internal timer info
+struct WinTimerInfo {
    QObject *dispatcher;
    int timerId;
    int interval;
@@ -114,7 +116,7 @@ struct WinTimerInfo {                           // internal timer info
 class QZeroTimerEvent : public QTimerEvent
 {
  public:
-   explicit inline QZeroTimerEvent(int timerId)
+   explicit QZeroTimerEvent(int timerId)
       : QTimerEvent(timerId)
    {
       t = QEvent::ZeroTimerEvent;
@@ -137,7 +139,7 @@ class Q_CORE_EXPORT QEventDispatcherWin32Private : public QAbstractEventDispatch
    bool interrupt;
    bool closingDown;
 
-   // internal window handle used for socketnotifiers/timers/etc
+   // window handle is used for socketnotifiers and timers
    HWND internalHwnd;
    HHOOK getMessageHook;
 

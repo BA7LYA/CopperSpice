@@ -21,14 +21,14 @@
 *
 ***********************************************************************/
 
-#include <qglobal.h>
 #include <qlocale.h>
 
-#include <qplatformdefs.h>
 #include <qdatastream.h>
 #include <qdatetime.h>
+#include <qglobal.h>
 #include <qhashfunc.h>
 #include <qnamespace.h>
+#include <qplatformdefs.h>
 #include <qstring.h>
 #include <qstringlist.h>
 #include <qstringparser.h>
@@ -36,8 +36,8 @@
 
 #include <qdatetime_p.h>
 #include <qdatetimeparser_p.h>
-#include <qlocale_p.h>
 #include <qlocale_data_p.h>
+#include <qlocale_p.h>
 #include <qlocale_tools_p.h>
 #include <qnumeric_p.h>
 #include <qsystemlibrary_p.h>
@@ -893,12 +893,17 @@ bool QLocale::operator!=(const QLocale &other) const
    return d->m_data != other.d->m_data || d->m_numberOptions != other.d->m_numberOptions;
 }
 
-uint qHash(const QLocale &key, uint seed)
+uint QLocale::hash(const QLocale &key, uint seed)
 {
    seed = qHash(key.d->m_data, seed);
    seed = qHash(key.d->m_numberOptions, seed);
 
    return seed;
+}
+
+uint qHash(const QLocale &key, uint seed)
+{
+   return QLocale::hash(key, seed);
 }
 
 void QLocale::setNumberOptions(NumberOptions options)
@@ -2359,16 +2364,13 @@ QString QLocaleData::longLongToString(const QChar zero, const QChar group, const
       num_str = qulltoa(l, base, zero);
    }
 
-   uint cnt_thousand_sep = 0;
-
    if (flags & ThousandsGroup && base == 10) {
       for (int i = num_str.length() - 3; i > 0; i -= 3) {
          num_str.insert(i, group);
-         ++cnt_thousand_sep;
       }
    }
 
-   for (int i = num_str.length()/* - cnt_thousand_sep*/; i < precision; ++i) {
+   for (int i = num_str.length(); i < precision; ++i) {
       num_str.prepend(base == 10 ? zero : QChar::fromLatin1('0'));
    }
 
@@ -2442,12 +2444,10 @@ QString QLocaleData::unsLongLongToString(const QChar zero, const QChar group, co
    }
 
    QString num_str = qulltoa(l, base, zero);
-   uint cnt_thousand_sep = 0;
 
    if (flags & ThousandsGroup && base == 10) {
       for (int i = num_str.length() - 3; i > 0; i -= 3) {
          num_str.insert(i, group);
-         ++cnt_thousand_sep;
       }
    }
 

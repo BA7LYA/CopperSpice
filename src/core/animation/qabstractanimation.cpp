@@ -22,6 +22,8 @@
 ***********************************************************************/
 
 #include <qabstractanimation.h>
+#include <qabstractanimation_p.h>
+
 #include <qanimationgroup.h>
 #include <qcoreevent.h>
 #include <qdebug.h>
@@ -29,12 +31,10 @@
 #include <qpointer.h>
 #include <qthreadstorage.h>
 
-#include <qabstractanimation_p.h>
-
 #ifndef QT_NO_ANIMATION
 
 #define DEFAULT_TIMER_INTERVAL 16
-#define STARTSTOP_TIMER_DELAY 0
+#define STARTSTOP_TIMER_DELAY   0
 
 static QThreadStorage<QUnifiedTimer *> *unifiedTimer()
 {
@@ -137,16 +137,11 @@ void QUnifiedTimer::restartAnimationTimer()
    if (runningLeafAnimations == 0 && !runningPauseAnimations.isEmpty()) {
       int closestTimeToFinish = closestPauseAnimationTimeToFinish();
 
-      if (closestTimeToFinish < 0) {
-         qDebug() << runningPauseAnimations;
-         qDebug() << closestPauseAnimationTimeToFinish();
-      }
-
       driver->stop();
       animationTimer.start(closestTimeToFinish, this);
       isPauseTimerActive = true;
 
-   } else if (!driver->isRunning() || isPauseTimerActive) {
+   } else if (! driver->isRunning() || isPauseTimerActive) {
       driver->start();
       isPauseTimerActive = false;
 

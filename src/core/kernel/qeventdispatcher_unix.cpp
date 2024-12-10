@@ -29,7 +29,6 @@
 #include <qsocketnotifier.h>
 #include <qthread.h>
 
-
 #include <qcoreapplication_p.h>
 #include <qcore_unix_p.h>
 #include <qthread_p.h>
@@ -214,8 +213,8 @@ int QEventDispatcherUNIXPrivate::doSelect(QEventLoop::ProcessEventsFlags flags, 
    return (nevents + q->activateSocketNotifiers());
 }
 
-// Internal functions for manipulating timer data structures.  The
-// timerBitVec array is used for keeping track of timer identifiers.
+// methods for changing timer data structures
+// timerBitVec array is used for keeping track of timer identifiers
 
 int QEventDispatcherUNIXPrivate::initThreadWakeUp()
 {
@@ -278,17 +277,15 @@ int QEventDispatcherUNIX::select(int nfds, fd_set *readfds, fd_set *writefds, fd
 
 void QEventDispatcherUNIX::registerTimer(int timerId, int interval, Qt::TimerType timerType, QObject *obj)
 {
-#if defined(QT_DEBUG)
-
+#if defined(CS_SHOW_DEBUG_CORE)
    if (timerId < 1 || interval < 0 || !obj) {
-      qWarning("QEventDispatcher::registerTimer() Invalid arguments");
+      qDebug("QEventDispatcher::registerTimer() Invalid arguments");
       return;
 
    } else if (obj->thread() != thread() || thread() != QThread::currentThread()) {
-      qWarning("QEventDispatcher::registerTimer() Timers can not be started from another thread");
+      qDebug("QEventDispatcher::registerTimer() Timers can not be started from another thread");
       return;
    }
-
 #endif
 
    Q_D(QEventDispatcherUNIX);
@@ -297,36 +294,32 @@ void QEventDispatcherUNIX::registerTimer(int timerId, int interval, Qt::TimerTyp
 
 bool QEventDispatcherUNIX::unregisterTimer(int timerId)
 {
-#if defined(QT_DEBUG)
-
+#if defined(CS_SHOW_DEBUG_CORE)
    if (timerId < 1) {
-      qWarning("QEventDispatcher::unregisterTimer() Invalid argument");
+      qDebug("QEventDispatcher::unregisterTimer() Invalid argument");
       return false;
+
    } else if (thread() != QThread::currentThread()) {
-      qWarning("QEventDispatcher::unregisterTimer() Timers can not be stopped from another thread");
+      qDebug("QEventDispatcher::unregisterTimer() Timers can not be stopped from another thread");
       return false;
    }
-
 #endif
 
    Q_D(QEventDispatcherUNIX);
    return d->timerList.unregisterTimer(timerId);
 }
 
-
 bool QEventDispatcherUNIX::unregisterTimers(QObject *object)
 {
-#if defined(QT_DEBUG)
-
+#if defined(CS_SHOW_DEBUG_CORE)
    if (! object) {
-      qWarning("QEventDispatcher::unregisterTimers() Invalid argument");
+      qDebug("QEventDispatcher::unregisterTimers() Invalid argument");
       return false;
 
    } else if (object->thread() != thread() || thread() != QThread::currentThread()) {
-      qWarning("QEventDispatcher::unregisterTimers() Timers can not be stopped from another thread");
+      qDebug("QEventDispatcher::unregisterTimers() Timers can not be stopped from another thread");
       return false;
    }
-
 #endif
 
    Q_D(QEventDispatcherUNIX);
@@ -365,17 +358,15 @@ void QEventDispatcherUNIX::registerSocketNotifier(QSocketNotifier *notifier)
    int sockfd = notifier->socket();
    int type = notifier->type();
 
-#if defined(QT_DEBUG)
-
+#if defined(CS_SHOW_DEBUG_CORE)
    if (sockfd < 0 || unsigned(sockfd) >= FD_SETSIZE) {
-      qWarning("QEventDispatcher::registerSocketNotifier() Internal error");
+      qDebug("QEventDispatcher::registerSocketNotifier() Internal error");
       return;
 
    } else if (notifier->thread() != thread() || thread() != QThread::currentThread()) {
-      qWarning("QEventDispatcher::registerSocketNotifier() Socket notifiers can not be enabled from another thread");
+      qDebug("QEventDispatcher::registerSocketNotifier() Socket notifiers can not be enabled from another thread");
       return;
    }
-
 #endif
 
    Q_D(QEventDispatcherUNIX);
@@ -416,17 +407,15 @@ void QEventDispatcherUNIX::unregisterSocketNotifier(QSocketNotifier *notifier)
    int sockfd = notifier->socket();
    int type = notifier->type();
 
-#if defined(QT_DEBUG)
-
+#if defined(CS_SHOW_DEBUG_CORE)
    if (sockfd < 0 || unsigned(sockfd) >= FD_SETSIZE) {
-      qWarning("QSocketNotifier::unregisterSocketNotifier() Internal error");
+      qDebug("QSocketNotifier::unregisterSocketNotifier() Internal error");
       return;
 
    } else if (notifier->thread() != thread() || thread() != QThread::currentThread()) {
-      qWarning("QSocketNotifier::unregisterSocketNotifier() Socket notifiers can not be disabled from another thread");
+      qDebug("QSocketNotifier::unregisterSocketNotifier() Socket notifiers can not be disabled from another thread");
       return;
    }
-
 #endif
 
    Q_D(QEventDispatcherUNIX);
@@ -473,10 +462,9 @@ void QEventDispatcherUNIX::setSocketNotifierPending(QSocketNotifier *notifier)
    int sockfd = notifier->socket();
    int type = notifier->type();
 
-#if defined(QT_DEBUG)
-
+#if defined(CS_SHOW_DEBUG_CORE)
    if (sockfd < 0 || unsigned(sockfd) >= FD_SETSIZE) {
-      qWarning("QEventDispatcher::setSocketNotifierPending() Internal error");
+      qDebug("QEventDispatcher::setSocketNotifierPending() Internal error");
       return;
    }
 
@@ -496,7 +484,8 @@ void QEventDispatcherUNIX::setSocketNotifierPending(QSocketNotifier *notifier)
       }
    }
 
-   if (i == list.size()) { // not found
+   if (i == list.size()) {
+      // not found
       return;
    }
 
@@ -609,16 +598,15 @@ bool QEventDispatcherUNIX::hasPendingEvents()
 
 int QEventDispatcherUNIX::remainingTime(int timerId)
 {
-#if defined(QT_DEBUG)
-
+#if defined(CS_SHOW_DEBUG_CORE)
    if (timerId < 1) {
-      qWarning("QEventDispatcher::remainingTime() Invalid argument");
+      qDebug("QEventDispatcher::remainingTime() Invalid argument");
       return -1;
    }
-
 #endif
 
    Q_D(QEventDispatcherUNIX);
+
    return d->timerList.timerRemainingTime(timerId);
 }
 

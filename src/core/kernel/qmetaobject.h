@@ -250,23 +250,23 @@ class Q_CORE_EXPORT QMetaObject_X : public QMetaObject
 {
  public:
    void register_classInfo(const QString &name, const QString &value);
-   QMetaClassInfo classInfo(int index) const final;
+   QMetaClassInfo classInfo(int index) const override final;
 
-   int classInfoCount() const final;
+   int classInfoCount() const override final;
 
-   QMetaMethod constructor(int index) const final;
-   int constructorCount() const final;
+   QMetaMethod constructor(int index) const override final;
+   int constructorCount() const override final;
 
    void register_enum_data(const QString &args);
 
-   QMetaEnum enumerator(int index) const final;
-   int enumeratorCount() const final;
+   QMetaEnum enumerator(int index) const override final;
+   int enumeratorCount() const override final;
 
-   QMetaMethod method(int index) const final;
-   int methodCount() const final;
+   QMetaMethod method(int index) const override final;
+   int methodCount() const override final;
 
-   QMetaProperty property(int index) const final;
-   int propertyCount() const final;
+   QMetaProperty property(int index) const override final;
+   int propertyCount() const override final;
 
    //
    int  register_enum(const QString &name, std::type_index id, const QString &scope);
@@ -280,7 +280,7 @@ class Q_CORE_EXPORT QMetaObject_X : public QMetaObject
    void register_property_read(const QString &name, std::type_index returnTypeId,
          QString (*returnTypeFuncPtr)(), JarReadAbstract *readJar);
 
-   void register_property_write(const QString &name, JarWriteAbstract *method);
+   void register_property_write(const QString &name, JarWriteAbstract *method, const QString &methodName);
    void register_property_bool(const QString &name, JarReadAbstract *method, QMetaProperty::Kind kind);
 
    void register_property_int(const QString &name, int value, QMetaProperty::Kind kind);
@@ -354,7 +354,12 @@ const QString &QMetaObject_T<T>::getInterface_iid() const
 template<class T>
 const QMetaObject *QMetaObject_T<T>::superClass() const
 {
-   return &T::cs_parent::staticMetaObject();
+   if constexpr (std::is_same_v<typename T::cs_parent, CSGadget_Fake_Parent>) {
+      return nullptr;
+
+   } else {
+      return &T::cs_parent::staticMetaObject();
+   }
 }
 
 template<>

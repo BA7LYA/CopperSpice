@@ -24,26 +24,26 @@
 #ifndef QHOSTADDRESS_H
 #define QHOSTADDRESS_H
 
-#include <qpair.h>
-#include <qstring.h>
-#include <qscopedpointer.h>
 #include <qabstractsocket.h>
+#include <qpair.h>
+#include <qscopedpointer.h>
+#include <qstring.h>
+
+class QHostAddress;
+class QHostAddressPrivate;
 
 struct sockaddr;
-
-class QHostAddressPrivate;
-class QHostAddress;
 
 Q_NETWORK_EXPORT uint qHash(const QHostAddress &key, uint seed = 0);
 
 class Q_NETWORK_EXPORT QIPv6Address
 {
  public:
-   inline quint8 &operator [](int index) {
+   quint8 &operator [](int index) {
       return c[index];
    }
 
-   inline quint8 operator [](int index) const {
+   quint8 operator [](int index) const {
       return c[index];
    }
 
@@ -106,13 +106,13 @@ class Q_NETWORK_EXPORT QHostAddress
 
    bool operator ==(const QHostAddress &other) const;
 
-   inline bool operator !=(const QHostAddress &other) const {
+   bool operator !=(const QHostAddress &other) const {
       return !operator==(other);
    }
 
    bool operator ==(SpecialAddress address) const;
 
-   inline bool operator !=(SpecialAddress address) const {
+   bool operator !=(SpecialAddress address) const {
       return !operator==(address);
    }
 
@@ -125,13 +125,13 @@ class Q_NETWORK_EXPORT QHostAddress
    bool isLoopback() const;
    bool isMulticast() const;
 
-   static QPair<QHostAddress, int> parseSubnet(const QString &subnet);
-
    void swap(QHostAddress &other) {
       d.swap(other.d);
    }
 
-   friend Q_NETWORK_EXPORT uint qHash(const QHostAddress &key, uint seed);
+   static QPair<QHostAddress, int> parseSubnet(const QString &subnet);
+
+   static uint hash(const QHostAddress &key, uint seed);
 
  protected:
    QScopedPointer<QHostAddressPrivate> d;

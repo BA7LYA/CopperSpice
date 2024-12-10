@@ -24,23 +24,24 @@
 #ifndef QNETWORKINTERFACE_H
 #define QNETWORKINTERFACE_H
 
-#include <qshareddata.h>
-#include <qscopedpointer.h>
 #include <qhostaddress.h>
+#include <qscopedpointer.h>
+#include <qshareddata.h>
 
 #ifndef QT_NO_NETWORKINTERFACE
 
 template <typename T>
 class QList;
 
-class QNetworkInterfacePrivate;
 class QNetworkAddressEntryPrivate;
+class QNetworkInterfacePrivate;
 
 class Q_NETWORK_EXPORT QNetworkAddressEntry
 {
  public:
    QNetworkAddressEntry();
    QNetworkAddressEntry(const QNetworkAddressEntry &other);
+
    ~QNetworkAddressEntry();
 
    QNetworkAddressEntry &operator=(const QNetworkAddressEntry &other);
@@ -52,7 +53,7 @@ class Q_NETWORK_EXPORT QNetworkAddressEntry
 
    bool operator==(const QNetworkAddressEntry &other) const;
 
-   inline bool operator!=(const QNetworkAddressEntry &other) const {
+   bool operator!=(const QNetworkAddressEntry &other) const {
       return !(*this == other);
    }
 

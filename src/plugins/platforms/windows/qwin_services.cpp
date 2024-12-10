@@ -54,7 +54,7 @@ static inline bool shellExecute(const QUrl &url)
 // command line for the mailto: shell command.
 static inline QString mailCommand()
 {
-   enum { BufferSize = sizeof(wchar_t) * MAX_PATH };
+   static constexpr const auto BufferSize = sizeof(wchar_t) * MAX_PATH;
 
    const wchar_t mailUserKey[] = L"Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\mailto\\UserChoice";
 
@@ -80,7 +80,7 @@ static inline QString mailCommand()
 
    keyName += "\\Shell\\Open\\Command";
 
-#ifdef CS_SHOW_DEBUG
+#if defined(CS_SHOW_DEBUG_PLATFORM)
    qDebug() << __FUNCTION__ << "keyName=" << keyName;
 #endif
 
@@ -128,7 +128,7 @@ static inline bool launchMail(const QUrl &url)
    // but that cannot handle a Windows command line [yet].
    command.replace(QString("%1"), url.toString(QUrl::FullyEncoded));
 
-#ifdef CS_SHOW_DEBUG
+#if defined(CS_SHOW_DEBUG_PLATFORM)
    qDebug() << __FUNCTION__ << "Launching" << command;
 #endif
 

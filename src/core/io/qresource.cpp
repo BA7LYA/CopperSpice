@@ -72,7 +72,11 @@ class QResourceRoot
    short flags(int node) const;
 
  public:
-   mutable QAtomicInt ref;
+   enum ResourceRootType {
+      Resource_Builtin,
+      Resource_File,
+      Resource_Buffer
+   };
 
    QResourceRoot()
       : tree(nullptr), names(nullptr), payloads(nullptr)
@@ -110,11 +114,11 @@ class QResourceRoot
       return !operator==(other);
    }
 
-   enum ResourceRootType { Resource_Builtin, Resource_File, Resource_Buffer };
-
    virtual ResourceRootType type() const {
       return Resource_Builtin;
    }
+
+   mutable QAtomicInt ref;
 
  protected:
    void setSource(const uchar *t, const uchar *n, const uchar *d) {
@@ -356,9 +360,6 @@ QResource::QResource(const QString &file, const QLocale &locale)
    d->locale = locale;
 }
 
-/*!
-    Releases the resources of the QResource object.
-*/
 QResource::~QResource()
 {
 }
@@ -370,23 +371,11 @@ void QResource::setLocale(const QLocale &locale)
    d->locale = locale;
 }
 
-/*!
-    Returns the locale used to locate the data for the QResource.
-*/
-
 QLocale QResource::locale() const
 {
    Q_D(const QResource);
    return d->locale;
 }
-
-/*!
-    Sets a QResource to point to \a file. \a file can either be absolute,
-    in which case it is opened directly, if relative then the file will be
-    tried to be found in QDir::searchPaths().
-
-    \sa absoluteFilePath()
-*/
 
 void QResource::setFileName(const QString &file)
 {
@@ -394,13 +383,6 @@ void QResource::setFileName(const QString &file)
    d->clear();
    d->fileName = file;
 }
-
-/*!
-    Returns the full path to the file that this QResource represents as it
-    was passed.
-
-    \sa absoluteFilePath()
-*/
 
 QString QResource::fileName() const
 {
@@ -842,11 +824,11 @@ class QDynamicBufferResourceRoot: public QResourceRoot
       return buffer;
    }
 
-   virtual QString mappingRoot() const override {
+   QString mappingRoot() const override {
       return root;
    }
 
-   virtual ResourceRootType type() const override {
+   ResourceRootType type() const override {
       return Resource_Buffer;
    }
 
@@ -920,7 +902,7 @@ class QDynamicFileResourceRoot: public QDynamicBufferResourceRoot
       return fileName;
    }
 
-   virtual ResourceRootType type() const override {
+   ResourceRootType type() const override {
       return Resource_File;
    }
 
@@ -1135,13 +1117,16 @@ class QResourceFileEnginePrivate : public QAbstractFileEnginePrivate
  private:
    uchar *map(qint64 offset, qint64 size, QFile::MemoryMapFlags flags);
    bool unmap(uchar *ptr);
-   qint64 offset;
+
+   qint64 m_offset;
 
    QResource resource;
    QByteArray uncompressed;
 
  protected:
-   QResourceFileEnginePrivate() : offset(0) { }
+   QResourceFileEnginePrivate()
+      : m_offset(0)
+   { }
 };
 
 bool QResourceFileEngine::mkdir(const QString &, bool) const
@@ -1213,7 +1198,7 @@ bool QResourceFileEngine::open(QIODevice::OpenMode flags)
 bool QResourceFileEngine::close()
 {
    Q_D(QResourceFileEngine);
-   d->offset = 0;
+   d->m_offset = 0;
    d->uncompressed.clear();
 
    return true;
@@ -1228,8 +1213,8 @@ qint64 QResourceFileEngine::read(char *data, qint64 len)
 {
    Q_D(QResourceFileEngine);
 
-   if (len > size() - d->offset) {
-      len = size() - d->offset;
+   if (len > size() - d->m_offset) {
+      len = size() - d->m_offset;
    }
 
    if (len <= 0) {
@@ -1237,12 +1222,13 @@ qint64 QResourceFileEngine::read(char *data, qint64 len)
    }
 
    if (d->resource.isCompressed()) {
-      memcpy(data, d->uncompressed.constData() + d->offset, len);
+      memcpy(data, d->uncompressed.constData() + d->m_offset, len);
    } else {
-      memcpy(data, d->resource.data() + d->offset, len);
+      memcpy(data, d->resource.data() + d->m_offset, len);
    }
 
-   d->offset += len;
+   d->m_offset += len;
+
    return len;
 }
 
@@ -1275,7 +1261,7 @@ qint64 QResourceFileEngine::size() const
 {
    Q_D(const QResourceFileEngine);
 
-   if (!d->resource.isValid()) {
+   if (! d->resource.isValid()) {
       return 0;
    }
 
@@ -1289,33 +1275,34 @@ qint64 QResourceFileEngine::size() const
 qint64 QResourceFileEngine::pos() const
 {
    Q_D(const QResourceFileEngine);
-   return d->offset;
+   return d->m_offset;
 }
 
 bool QResourceFileEngine::atEnd() const
 {
    Q_D(const QResourceFileEngine);
 
-   if (!d->resource.isValid()) {
+   if (! d->resource.isValid()) {
       return true;
    }
 
-   return d->offset == size();
+   return d->m_offset == size();
 }
 
 bool QResourceFileEngine::seek(qint64 pos)
 {
    Q_D(QResourceFileEngine);
 
-   if (!d->resource.isValid()) {
+   if (! d->resource.isValid()) {
       return false;
    }
 
-   if (d->offset > size()) {
+   if (d->m_offset > size()) {
       return false;
    }
 
-   d->offset = pos;
+   d->m_offset = pos;
+
    return true;
 }
 
@@ -1411,7 +1398,7 @@ bool QResourceFileEngine::isRelativePath() const
 
 uint QResourceFileEngine::ownerId(FileOwner) const
 {
-   static const uint nobodyID = (uint) - 2;
+   static constexpr const uint nobodyID = (uint) - 2;
    return nobodyID;
 }
 
@@ -1472,6 +1459,7 @@ uchar *QResourceFileEnginePrivate::map(qint64 offset, qint64 size, QFile::Memory
    }
 
    uchar *address = const_cast<uchar *>(resource.data());
+
    return (address + offset);
 }
 

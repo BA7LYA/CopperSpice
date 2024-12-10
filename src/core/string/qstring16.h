@@ -28,11 +28,11 @@
 
 #include <cs_string.h>
 
-#include <qglobal.h>
 #include <qbytearray.h>
 #include <qchar32.h>
-#include <qstringview.h>
+#include <qglobal.h>
 #include <qstringfwd.h>
+#include <qstringview.h>
 
 class QStringParser;
 
@@ -278,12 +278,10 @@ class Q_CORE_EXPORT QString16 : public CsString::CsString_utf16
          : CsString::CsString_utf16(begin, end)
       { }
 
-      // internal
       QString16(const CsString::CsString_utf16 &other)
          : CsString::CsString_utf16(other)
       { }
 
-      // internal
       QString16(CsString::CsString_utf16 &&other)
          : CsString::CsString_utf16(std::move(other))
       { }
@@ -303,9 +301,9 @@ class Q_CORE_EXPORT QString16 : public CsString::CsString_utf16
       static inline QString16 fromUtf8(const char8_t *str, size_type numOfChars = -1);
 #endif
 
-      using CsString::CsString_utf16::append;         // internal
-      using CsString::CsString_utf16::operator=;      // internal
-      using CsString::CsString_utf16::operator+=;     // internal
+      using CsString::CsString_utf16::append;
+      using CsString::CsString_utf16::operator=;
+      using CsString::CsString_utf16::operator+=;
 
       // methods
       QString16 &append(char32_t c)  {
@@ -1009,8 +1007,11 @@ class Q_CORE_EXPORT QString16 : public CsString::CsString_utf16
       const_iterator cs_internal_rfind_fast(QChar32 c, const_iterator iter_begin) const;
       const_iterator cs_internal_rfind_fast(const QString16 &str, const_iterator iter_begin) const;
 
-      iterator replace(const_iterator iter, const QString16 &str) {
-         return CsString::CsString_utf16::replace(iter, str);
+      iterator replace(const_iterator iter_begin, const QString16 &str) {
+         auto iter = CsString::CsString_utf16::replace(iter_begin, str);
+         iter = iter.advance_storage(str.size_storage());
+
+         return iter;
       }
 };
 

@@ -324,7 +324,7 @@ class Q_CORE_EXPORT Qt
       WA_Disabled = 0,
       WA_UnderMouse = 1,
       WA_MouseTracking = 2,
-      WA_ContentsPropagated = 3,       // may be deprecated
+      WA_ContentsPropagated = 3,             // may be deprecated
       WA_OpaquePaintEvent = 4,
       WA_StaticContents = 5,
       WA_LaidOut = 7,
@@ -332,7 +332,7 @@ class Q_CORE_EXPORT Qt
       WA_NoSystemBackground = 9,
       WA_UpdatesDisabled = 10,
       WA_Mapped = 11,
-      WA_MacNoClickThrough = 12,       // Mac only
+      WA_MacNoClickThrough = 12,             // Mac only
       WA_PaintOutsidePaintEvent = 13,
       WA_InputMethodEnabled = 14,
       WA_WState_Visible = 15,
@@ -351,7 +351,7 @@ class Q_CORE_EXPORT Qt
       WA_Moved = 43,
       WA_PendingUpdate = 44,
       WA_InvalidSize = 45,
-      WA_MacBrushedMetal = 46, // Mac only
+      WA_MacBrushedMetal = 46,               // Mac only
       WA_CustomWhatsThis = 47,
       WA_LayoutOnEntireRect = 48,
       WA_OutsideWSRange = 49,
@@ -375,18 +375,18 @@ class Q_CORE_EXPORT Qt
       WA_WState_OwnSizePolicy = 68,
       WA_WState_ExplicitShowHide = 69,
 
-      WA_ShowModal = 70,                // ## deprecated
+      WA_ShowModal = 70,                     // deprecated
       WA_MouseNoMask = 71,
-      WA_GroupLeader = 72,              // ## deprecated
-      WA_NoMousePropagation = 73,       // ## might go away
+      WA_GroupLeader = 72,                   // deprecated
+      WA_NoMousePropagation = 73,            // might go away
       WA_Hover = 74,
-      WA_InputMethodTransparent = 75,   // do not reset IM when user clicks on this (for virtual keyboards on embedded)
+      WA_InputMethodTransparent = 75,       // do not reset IM when user clicks on this (for virtual keyboards on embedded)
       WA_QuitOnClose = 76,
 
       WA_KeyboardFocusChange = 77,
 
       WA_AcceptDrops = 78,
-      WA_DropSiteRegistered = 79,       // internal
+      WA_DropSiteRegistered = 79,
 
       WA_WindowPropagation = 80,
 
@@ -400,18 +400,18 @@ class Q_CORE_EXPORT Qt
       WA_SetLocale = 87,
       WA_MacShowFocusRect = 88,
 
-      WA_MacNormalSize = 89,  // Mac only
-      WA_MacSmallSize = 90,   // Mac only
-      WA_MacMiniSize = 91,    // Mac only
+      WA_MacNormalSize = 89,                 // Mac only
+      WA_MacSmallSize = 90,                  // Mac only
+      WA_MacMiniSize = 91,                   // Mac only
 
       WA_LayoutUsesWidgetRect = 92,
-      WA_StyledBackground = 93, // internal
-      WA_MSWindowsUseDirect3D = 94, // Win only
-      WA_CanHostQMdiSubWindowTitleBar = 95, // Internal
+      WA_StyledBackground = 93,
+      WA_MSWindowsUseDirect3D = 94,          // windows only
+      WA_CanHostQMdiSubWindowTitleBar = 95,
 
-      WA_MacAlwaysShowToolWindow = 96, // Mac only
+      WA_MacAlwaysShowToolWindow = 96,       // Mac only
 
-      WA_StyleSheet = 97, // internal
+      WA_StyleSheet = 97,
 
       WA_ShowWithoutActivating = 98,
 
@@ -442,7 +442,7 @@ class Q_CORE_EXPORT Qt
       WA_MacFrameworkScaled  = 117,
 
       WA_SetWindowModality = 118,
-      WA_WState_WindowOpacitySet = 119, // internal
+      WA_WState_WindowOpacitySet = 119,
       WA_TranslucentBackground = 120,
 
       WA_AcceptTouchEvents = 121,
@@ -486,8 +486,7 @@ class Q_CORE_EXPORT Qt
       AA_AttributeCount
    };
 
-   // Image conversion flags.  The unusual ordering is caused by
-   // compatibility and default requirements.
+   // Image conversion flags, unusual ordering is caused by compatibility and default requirements.
 
    enum ImageConversionFlag {
       ColorMode_Mask          = 0x00000003,
@@ -1060,7 +1059,7 @@ class Q_CORE_EXPORT Qt
    CORE_CS_ENUM(BrushStyle)
 
    CORE_CS_REGISTER_ENUM(
-      enum BrushStyle {                     // brush style
+      enum BrushStyle {                  // brush style
          NoBrush,
          SolidPattern,
          Dense1Pattern,
@@ -1158,7 +1157,6 @@ class Q_CORE_EXPORT Qt
       };
    )
 
-   // internal
    enum DockWidgetAreaSizes {
       NDockWidgetAreas = 4
    };
@@ -1183,7 +1181,6 @@ class Q_CORE_EXPORT Qt
 
    using ToolBarAreas = QFlags<ToolBarArea>;
 
-   // internal
    enum ToolBarAreaSizes {
       NToolBarAreas = 4
    };
@@ -1492,18 +1489,22 @@ class Q_CORE_EXPORT Qt
       TextColorRole = 9,
       ForegroundRole = 9,
       CheckStateRole = 10,
+
       // Accessibility
       AccessibleTextRole = 11,
       AccessibleDescriptionRole = 12,
+
       // More general purpose
       SizeHintRole = 13,
       InitialSortOrderRole = 14,
+
       // Internal UiLib roles. Start worrying when public roles go that high.
       DisplayPropertyRole = 27,
       DecorationPropertyRole = 28,
       ToolTipPropertyRole = 29,
       StatusTipPropertyRole = 30,
       WhatsThisPropertyRole = 31,
+
       // Reserved
       UserRole = 32
    };
@@ -1599,7 +1600,6 @@ class Q_CORE_EXPORT Qt
       TitleBarArea                 // For move
    };
 
-   // internal
    struct NoDataOverload {
    };
 
@@ -1643,8 +1643,8 @@ class Q_CORE_EXPORT Qt
    };
 
    enum GestureFlag {
-      DontStartGestureOnChildren = 0x01,
-      ReceivePartialGestures     = 0x02,
+      DontStartGestureOnChildren       = 0x01,
+      ReceivePartialGestures           = 0x02,
       IgnoredGesturesPropagateToParent = 0x04
    };
    using GestureFlags = QFlags<GestureFlag>;
@@ -1659,8 +1659,7 @@ class Q_CORE_EXPORT Qt
       RotateNativeGesture,
       SwipeNativeGesture
    };
-
-#endif // QT_NO_GESTURES
+#endif
 
    enum NavigationMode {
       NavigationModeNone,
@@ -1705,9 +1704,11 @@ class Q_CORE_EXPORT Qt
    };
    using MouseEventFlags = QFlags<MouseEventFlag>;
 
-
-   // following enum and 3 methods declarations moved from gui/text/qtextdocument.h
-   enum HitTestAccuracy { ExactHit, FuzzyHit };
+   // following enum and 3 method declarations were moved from gui/text/qtextdocument.h
+   enum HitTestAccuracy {
+      ExactHit,
+      FuzzyHit
+   };
 
    static bool mightBeRichText(const QString &text);
    static QString convertFromPlainText(const QString &plain, WhiteSpaceMode mode = WhiteSpacePre);

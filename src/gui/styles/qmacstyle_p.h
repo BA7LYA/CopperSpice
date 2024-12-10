@@ -155,7 +155,7 @@ class QMacStylePrivate : public QCommonStylePrivate
    void getSliderInfo(QStyle::ComplexControl cc, const QStyleOptionSlider *slider,
       HIThemeTrackDrawInfo *tdi, const QWidget *needToRemoveMe) const;
 
-   inline int animateSpeed(Animates) const {
+   int animateSpeed(Animates) const {
       return 33;
    }
 
@@ -189,7 +189,9 @@ class QMacStylePrivate : public QCommonStylePrivate
 
    NSView *cocoaControl(QCocoaWidget widget) const;
 
-   void drawNSViewInRect(QCocoaWidget widget, NSView *view, const QRect &rect, QPainter *p, bool isQWidget = true, QCocoaDrawRectBlock drawRectBlock = nil) const;
+   void drawNSViewInRect(QCocoaWidget widget, NSView *view, const QRect &rect, QPainter *p, bool isQWidget = true,
+         QCocoaDrawRectBlock drawRectBlock = nil) const;
+
    void resolveCurrentNSView(QWindow *window);
 
    void drawFocusRing(QPainter *p, const QRect &targetRect, int hMargin, int vMargin, qreal radius = 0) const;
@@ -202,8 +204,16 @@ class QMacStylePrivate : public QCommonStylePrivate
 
    struct ButtonState {
       int frame;
-      enum { ButtonDark, ButtonLight } dir;
-   } buttonState;
+
+      enum ButtonColor {
+         ButtonDark,
+         ButtonLight
+      };
+
+      ButtonColor dir;
+   };
+
+   ButtonState buttonState;
 
    mutable QPointer<QFocusFrame> focusWidget;
    CFAbsoluteTime defaultButtonStart;
@@ -217,6 +227,5 @@ class QMacStylePrivate : public QCommonStylePrivate
    NSView *backingStoreNSView;
    QHash<QCocoaWidget, NSView *> cocoaControls;
 };
-
 
 #endif

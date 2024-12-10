@@ -46,18 +46,17 @@ class QTextBrowserPrivate : public QTextEditPrivate
    Q_DECLARE_PUBLIC(QTextBrowser)
 
  public:
-   inline QTextBrowserPrivate()
-      : textOrSourceChanged(false), forceLoadOnSourceChange(false), openExternalLinks(false),
-        openLinks(true)
+   QTextBrowserPrivate()
+      : textOrSourceChanged(false), forceLoadOnSourceChange(false), openExternalLinks(false), openLinks(true)
 #ifdef QT_KEYPAD_NAVIGATION
       , lastKeypadScrollValue(-1)
 #endif
-   {}
+   { }
 
    void init();
 
    struct HistoryEntry {
-      inline HistoryEntry()
+      HistoryEntry()
          : hpos(0), vpos(0), focusIndicatorPosition(-1), focusIndicatorAnchor(-1)
       { }
 
@@ -889,7 +888,7 @@ void QTextBrowser::paintEvent(QPaintEvent *e)
    d->paint(&p, e);
 }
 
-QVariant QTextBrowser::loadResource(int /*type*/, const QUrl &name)
+QVariant QTextBrowser::loadResource(int, const QUrl &name)
 {
    Q_D(QTextBrowser);
 

@@ -26,34 +26,34 @@
 
 #ifndef QT_NO_MAINWINDOW
 
+#include <qapplication.h>
+#include <qdebug.h>
 #include <qdockwidget.h>
 #include <qmainwindow.h>
-#include <qtoolbar.h>
+#include <qmap.h>
 #include <qrubberband.h>
-#include <qapplication.h>
+#include <qstack.h>
 #include <qstatusbar.h>
 #include <qstring.h>
 #include <qstyle.h>
 #include <qstylepainter.h>
-#include <qvarlengtharray.h>
-#include <qstack.h>
-#include <qmap.h>
-#include <qtimer.h>
-#include <qdebug.h>
 #include <qtextstream.h>
+#include <qtimer.h>
+#include <qtoolbar.h>
+#include <qvarlengtharray.h>
 
 #include <qapplication_p.h>
+#include <qdockwidget_p.h>
 #include <qlayoutengine_p.h>
-#include <qwidgetresizehandler_p.h>
+#include <qtabbar_p.h>
+#include <qtoolbar_p.h>
 #include <qtoolbarlayout_p.h>
 #include <qwidgetanimator_p.h>
-#include <qdockwidget_p.h>
-#include <qtoolbar_p.h>
-#include <qtabbar_p.h>
+#include <qwidgetresizehandler_p.h>
 
 extern QMainWindowLayout *qt_mainwindow_layout(const QMainWindow *window);
 
-#if ! defined(QT_NO_DOCKWIDGET) && ! defined(QT_NO_DEBUG_STREAM)
+#if ! defined(QT_NO_DOCKWIDGET)
 
 static void dumpLayout(QTextStream &qout, const QDockAreaLayoutInfo &layout, QString indent);
 
@@ -146,9 +146,7 @@ QDebug operator<<(QDebug debug, const QMainWindowLayout *layout)
    debug << layout->layoutState.dockAreaLayout;
    return debug;
 }
-#endif
 
-#ifndef QT_NO_DOCKWIDGET
 class QDockWidgetGroupLayout : public QLayout
 {
    QDockAreaLayoutInfo info;
@@ -262,6 +260,7 @@ bool QDockWidgetGroupWindow::event(QEvent *e)
       default:
          break;
    }
+
    return QWidget::event(e);
 }
 
@@ -1618,17 +1617,22 @@ void QMainWindowTabBar::mouseMoveEvent(QMouseEvent *e)
    if (!draggingDock && (mainWindow->dockOptions() & QMainWindow::GroupedDragging)) {
       int offset = QApplication::startDragDistance() + 1;
       offset *= 3;
+
       QRect r = rect().adjusted(-offset, -offset, offset, offset);
+
       if (d->dragInProgress && !r.contains(e->pos()) && d->validIndex(d->pressedIndex)) {
          QMainWindowLayout *mlayout = qt_mainwindow_layout(mainWindow);
          QDockAreaLayoutInfo *info = mlayout->dockInfo(this);
          Q_ASSERT(info);
+
          int idx = info->tabIndexToListIndex(d->pressedIndex);
          const QDockAreaLayoutItem &item = info->item_list.at(idx);
+
          if (item.widgetItem
             && (draggingDock = qobject_cast<QDockWidget *>(item.widgetItem->widget()))) {
             // We should drag this QDockWidget away by unpluging it.
-            // First cancel the QTabBar's internal move
+            // First cancel the QTabBar move
+
             d->moveTabFinished(d->pressedIndex);
             d->pressedIndex = -1;
 
@@ -1638,9 +1642,10 @@ void QMainWindowTabBar::mouseMoveEvent(QMouseEvent *e)
 
             d->dragStartPosition = QPoint();
 
-            // Then starts the drag using QDockWidgetPrivate's API
+            // Then starts the drag using QDockWidgetPrivate
             QDockWidgetPrivate *dockPriv = static_cast<QDockWidgetPrivate *>(QWidgetPrivate::get(draggingDock));
             QDockWidgetLayout *dwlayout  = static_cast<QDockWidgetLayout *>(draggingDock->layout());
+
             dockPriv->initDrag(dwlayout->titleArea().center(), true);
             dockPriv->startDrag(false);
 

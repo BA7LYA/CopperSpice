@@ -85,8 +85,11 @@ void QPlatformFontDatabase::registerQPF2Font(const QByteArray &dataArray, void *
          registerFont(fontName, QString(), QString(), fontWeight, fontStyle, stretch, true, false,
             pixelSize, false, writingSystems, handle);
       }
+
    } else {
-      qDebug() << "header verification of QPF2 font failed. maybe it is corrupt?";
+#if defined(CS_SHOW_DEBUG_GUI)
+      qDebug() << "QPlatformFontDatabase::registerQPF2Font() Header verification of QPF2 font failed, it might be corrupt";
+#endif
    }
 }
 
@@ -124,26 +127,17 @@ class QWritingSystemsPrivate
    QVector<bool> vector;
 };
 
-/*!
-    Constructs a new object to handle supported writing systems.
-*/
 QSupportedWritingSystems::QSupportedWritingSystems()
 {
    d = new QWritingSystemsPrivate;
 }
 
-/*!
-    Constructs a copy of the \a other writing systems object.
-*/
 QSupportedWritingSystems::QSupportedWritingSystems(const QSupportedWritingSystems &other)
 {
    d = other.d;
    d->ref.ref();
 }
 
-/*!
-    Constructs a copy of the \a other writing systems object.
-*/
 QSupportedWritingSystems &QSupportedWritingSystems::operator=(const QSupportedWritingSystems &other)
 {
    if (d != other.d) {
@@ -156,9 +150,6 @@ QSupportedWritingSystems &QSupportedWritingSystems::operator=(const QSupportedWr
    return *this;
 }
 
-/*!
-    Destroys the supported writing systems object.
-*/
 QSupportedWritingSystems::~QSupportedWritingSystems()
 {
    if (!d->ref.deref()) {
@@ -166,9 +157,6 @@ QSupportedWritingSystems::~QSupportedWritingSystems()
    }
 }
 
-/*!
-    \internal
-*/
 void QSupportedWritingSystems::detach()
 {
    if (d->ref.load() != 1) {
@@ -180,28 +168,17 @@ void QSupportedWritingSystems::detach()
    }
 }
 
-/*!
-    Sets or clears support for the specified \a writingSystem based on the
-    value given by \a support.
-*/
 void QSupportedWritingSystems::setSupported(QFontDatabase::WritingSystem writingSystem, bool support)
 {
    detach();
    d->vector[writingSystem] = support;
 }
 
-/*!
-    Returns \c true if the writing system specified by \a writingSystem is
-    supported; otherwise returns \c false.
-*/
 bool QSupportedWritingSystems::supported(QFontDatabase::WritingSystem writingSystem) const
 {
    return d->vector.at(writingSystem);
 }
 
-/*!
-    \internal
- */
 QPlatformFontDatabase::~QPlatformFontDatabase()
 {
 }
@@ -324,9 +301,9 @@ QList<int> QPlatformFontDatabase::standardSizes() const
    QList<int> retval;
 
    static const quint8 standard[] =
-   { 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72 };
+         { 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72 };
 
-   static const int num_standards = int(sizeof standard / sizeof * standard);
+   static constexpr const int num_standards = int(sizeof standard / sizeof * standard);
 
    std::copy(standard, standard + num_standards, std::back_inserter(retval));
 
@@ -419,74 +396,75 @@ QSupportedWritingSystems QPlatformFontDatabase::writingSystemsFromTrueTypeBits(q
          index = bit / 32;
 
          flag = 1 << (bit & 31);
+
          if (bit == 127 || (unicodeRange[index] & flag)) {
             writingSystems.setSupported(QFontDatabase::WritingSystem(i));
             hasScript = true;
-            // qDebug("font %s: index=%d, flag=%8x supports script %d", familyName.latin1(), index, flag, i);
          }
       }
    }
+
    if (codePageRange[0] & ((1 << Latin1CsbBit) | (1 << CentralEuropeCsbBit) | (1 << TurkishCsbBit) | (1 << BalticCsbBit))) {
       writingSystems.setSupported(QFontDatabase::Latin);
       hasScript = true;
-      //qDebug("font %s supports Latin", familyName.latin1());
    }
+
    if (codePageRange[0] & (1 << CyrillicCsbBit)) {
       writingSystems.setSupported(QFontDatabase::Cyrillic);
       hasScript = true;
-      //qDebug("font %s supports Cyrillic", familyName.latin1());
    }
+
    if (codePageRange[0] & (1 << GreekCsbBit)) {
       writingSystems.setSupported(QFontDatabase::Greek);
       hasScript = true;
-      //qDebug("font %s supports Greek", familyName.latin1());
    }
+
    if (codePageRange[0] & (1 << HebrewCsbBit)) {
       writingSystems.setSupported(QFontDatabase::Hebrew);
       hasScript = true;
-      //qDebug("font %s supports Hebrew", familyName.latin1());
    }
+
    if (codePageRange[0] & (1 << ArabicCsbBit)) {
       writingSystems.setSupported(QFontDatabase::Arabic);
       hasScript = true;
-      //qDebug("font %s supports Arabic", familyName.latin1());
    }
+
    if (codePageRange[0] & (1 << ThaiCsbBit)) {
       writingSystems.setSupported(QFontDatabase::Thai);
       hasScript = true;
-      //qDebug("font %s supports Thai", familyName.latin1());
    }
+
    if (codePageRange[0] & (1 << VietnameseCsbBit)) {
       writingSystems.setSupported(QFontDatabase::Vietnamese);
       hasScript = true;
-      //qDebug("font %s supports Vietnamese", familyName.latin1());
    }
+
    if (codePageRange[0] & (1 << SimplifiedChineseCsbBit)) {
       writingSystems.setSupported(QFontDatabase::SimplifiedChinese);
       hasScript = true;
-      //qDebug("font %s supports Simplified Chinese", familyName.latin1());
    }
+
    if (codePageRange[0] & (1 << TraditionalChineseCsbBit)) {
       writingSystems.setSupported(QFontDatabase::TraditionalChinese);
       hasScript = true;
-      //qDebug("font %s supports Traditional Chinese", familyName.latin1());
    }
+
    if (codePageRange[0] & (1 << JapaneseCsbBit)) {
       writingSystems.setSupported(QFontDatabase::Japanese);
       hasScript = true;
-      //qDebug("font %s supports Japanese", familyName.latin1());
    }
+
    if (codePageRange[0] & ((1 << KoreanCsbBit) | (1 << KoreanJohabCsbBit))) {
       writingSystems.setSupported(QFontDatabase::Korean);
       hasScript = true;
-      //qDebug("font %s supports Korean", familyName.latin1());
    }
+
    if (codePageRange[0] & (1U << SymbolCsbBit)) {
       writingSystems = QSupportedWritingSystems();
       hasScript = false;
    }
 
-   if (!hasScript) {
+   if (! hasScript) {
       writingSystems.setSupported(QFontDatabase::Symbol);
    }
 

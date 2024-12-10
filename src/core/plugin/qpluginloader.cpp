@@ -21,14 +21,14 @@
 *
 ***********************************************************************/
 
-#include <qplatformdefs.h>
+#include <qpluginloader.h>
 
 #include <qcoreapplication.h>
 #include <qdebug.h>
 #include <qdir.h>
 #include <qfileinfo.h>
+#include <qplatformdefs.h>
 #include <qplugin.h>
-#include <qpluginloader.h>
 #include <qstringview.h>
 
 #include <qlibrary_p.h>
@@ -129,12 +129,10 @@ static QString locatePlugin(const QString &fileName)
    const QStringView baseName = fileName.midView(slash + 1);
    const QStringView basePath  = isAbsolute ? QStringView() : fileName.leftView(slash + 1);    // keep the '/'
 
-   const bool debug = qt_debug_component();
-
    QStringList paths;
 
    if (isAbsolute) {
-      paths.append(fileName.left(slash));         // don't include the '/'
+      paths.append(fileName.left(slash));         // do not include the '/'
    } else {
       paths = QCoreApplication::libraryPaths();
       paths.prepend(".");                         // search in current dir first
@@ -145,10 +143,6 @@ static QString locatePlugin(const QString &fileName)
          for (const QString &suffix : suffixes) {
             const QString fn = path + '/' + basePath + prefix + baseName + suffix;
 
-            if (debug) {
-               qDebug() << "Trying..." << fn;
-            }
-
             if (QFileInfo(fn).isFile()) {
                return fn;
             }
@@ -156,9 +150,9 @@ static QString locatePlugin(const QString &fileName)
       }
    }
 
-   if (debug) {
-      qDebug() << fileName << "not found";
-   }
+#if defined(CS_SHOW_DEBUG_CORE_PLUGIN)
+      qDebug() << "locatePlugin() filename = " << fileName << " was not found";
+#endif
 
    return QString();
 }
@@ -186,10 +180,10 @@ void QPluginLoader::setFileName(const QString &fileName)
 
 #else
 
-   if (qt_debug_component()) {
-      qWarning("QPluginLoader::setFileName() Unable to load %s into a statically linked CopperSpice library",
-            QFile::encodeName(fileName).constData() );
-   }
+#if defined(CS_SHOW_DEBUG_CORE_PLUGIN)
+   qDebug("QPluginLoader::setFileName() Unable to load %s into a statically linked CopperSpice library",
+         QFile::encodeName(fileName).constData() );
+#endif
 
 #endif
 }

@@ -24,15 +24,15 @@
 #ifndef QABSTRACT_NETWORKCACHE_H
 #define QABSTRACT_NETWORKCACHE_H
 
-#include <qobject.h>
-#include <qshareddata.h>
-#include <qpair.h>
 #include <qnetwork_request.h>
+#include <qobject.h>
+#include <qpair.h>
+#include <qshareddata.h>
 
-class QIODevice;
-class QDateTime;
-class QNetworkCacheMetaDataPrivate;
 class QAbstractNetworkCachePrivate;
+class QDateTime;
+class QIODevice;
+class QNetworkCacheMetaDataPrivate;
 class QUrl;
 
 template <class T>
@@ -55,10 +55,14 @@ class Q_NETWORK_EXPORT QNetworkCacheMetaData
    }
 
    QNetworkCacheMetaData &operator=(const QNetworkCacheMetaData &other);
-   void swap(QNetworkCacheMetaData &other)
-    { qSwap(d, other.d); }
+
+   void swap(QNetworkCacheMetaData &other) {
+      qSwap(d, other.d);
+   }
+
    bool operator==(const QNetworkCacheMetaData &other) const;
-   inline bool operator!=(const QNetworkCacheMetaData &other) const {
+
+   bool operator!=(const QNetworkCacheMetaData &other) const {
       return !(*this == other);
    }
 

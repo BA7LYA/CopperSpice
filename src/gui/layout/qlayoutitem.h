@@ -24,24 +24,26 @@
 #ifndef QLAYOUTITEM_H
 #define QLAYOUTITEM_H
 
-#include <qsizepolicy.h>
 #include <qrect.h>
-#include <limits.h>
-
-static const int QLAYOUTSIZE_MAX = INT_MAX / 256 / 16;
+#include <qsizepolicy.h>
 
 class QLayout;
 class QLayoutItem;
+class QSize;
 class QSpacerItem;
 class QWidget;
-class QSize;
+
+#include <limits.h>
+
+static constexpr const int QLAYOUTSIZE_MAX = INT_MAX / 256 / 16;
 
 class Q_GUI_EXPORT QLayoutItem
 {
-
  public:
    inline explicit QLayoutItem(Qt::Alignment alignment = Qt::Alignment());
+
    virtual ~QLayoutItem();
+
    virtual QSize sizeHint() const = 0;
    virtual QSize minimumSize() const = 0;
    virtual QSize maximumSize() const = 0;
@@ -128,7 +130,7 @@ class Q_GUI_EXPORT QWidgetItem : public QLayoutItem
    bool isEmpty() const override;
    void setGeometry(const QRect &rect) override;
    QRect geometry() const override;
-   virtual QWidget *widget() override;
+   QWidget *widget() override;
 
    bool hasHeightForWidth() const override;
    int heightForWidth(int width) const override;
@@ -155,20 +157,21 @@ class Q_GUI_EXPORT QWidgetItemV2 : public QWidgetItem
    int heightForWidth(int width) const override;
 
  private:
-   enum { Dirty = -123, HfwCacheMaxSize = 3 };
+   static constexpr const int ItemDirty    = -123;
+   static constexpr const int SizeCacheMax = 3;
 
    inline bool useSizeCache() const;
    void updateCacheIfNecessary() const;
 
    void invalidateSizeCache() {
-      q_cachedMinimumSize.setWidth(Dirty);
+      q_cachedMinimumSize.setWidth(ItemDirty);
       q_hfwCacheSize = 0;
    }
 
    mutable QSize q_cachedMinimumSize;
    mutable QSize q_cachedSizeHint;
    mutable QSize q_cachedMaximumSize;
-   mutable QSize q_cachedHfws[HfwCacheMaxSize];
+   mutable QSize q_cachedHfws[SizeCacheMax];
    mutable short q_firstCachedHfw;
    mutable short q_hfwCacheSize;
    void *d;

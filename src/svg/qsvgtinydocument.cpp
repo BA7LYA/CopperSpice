@@ -21,22 +21,22 @@
 *
 ***********************************************************************/
 
-#include "qsvgtinydocument_p.h"
+#include <qsvgtinydocument_p.h>
 
-#include "qsvghandler_p.h"
-#include "qsvgfont_p.h"
-#include "qpainter.h"
-#include "qfile.h"
-#include "qbuffer.h"
-#include "qbytearray.h"
-#include "qqueue.h"
-#include "qstack.h"
-#include "qdebug.h"
+#include <qbuffer.h>
+#include <qbytearray.h>
+#include <qdebug.h>
+#include <qfile.h>
+#include <qpainter.h>
+#include <qqueue.h>
+#include <qstack.h>
+
+#include <qsvgfont_p.h>
+#include <qsvghandler_p.h>
 
 #ifndef QT_NO_COMPRESS
 #include <zlib.h>
 #endif
-
 
 QSvgTinyDocument::QSvgTinyDocument()
    : QSvgStructureNode(nullptr), m_widthPercent(false), m_heightPercent(false)
@@ -254,8 +254,11 @@ void QSvgTinyDocument::draw(QPainter *p, const QString &id, const QRectF &bounds
 {
    QSvgNode *node = scopeNode(id);
 
-   if (!node) {
+   if (! node) {
+#if defined(CS_SHOW_DEBUG_SVG)
       qDebug("Unable to find node %s, skipping rendering.", csPrintable(id));
+#endif
+
       return;
    }
 
@@ -442,8 +445,11 @@ QMatrix QSvgTinyDocument::matrixForElement(const QString &id) const
 {
    QSvgNode *node = scopeNode(id);
 
-   if (!node) {
+   if (! node) {
+#if defined(CS_SHOW_DEBUG_SVG)
       qDebug("Unable to find node %s, skipping rendering.", csPrintable(id));
+#endif
+
       return QMatrix();
    }
 

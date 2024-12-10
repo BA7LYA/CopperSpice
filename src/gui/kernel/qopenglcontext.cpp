@@ -25,20 +25,20 @@
 #include <qopenglcontext_p.h>
 
 #include <qdebug.h>
-#include <qwindow.h>
-#include <qscreen.h>
-#include <qthreadstorage.h>
-#include <qthread.h>
+#include <qplatform_integration.h>
 #include <qplatform_nativeinterface.h>
 #include <qplatform_openglcontext.h>
-#include <qplatform_integration.h>
+#include <qscreen.h>
+#include <qthread.h>
+#include <qthreadstorage.h>
+#include <qwindow.h>
 
 #include <qapplication_p.h>
-#include <qopengl_p.h>
-#include <qwindow_p.h>
 #include <qopengl_extensions_p.h>
-#include <qopengl_version_functions_p.h>
+#include <qopengl_p.h>
 #include <qopengl_texturehelper_p.h>
+#include <qopengl_version_functions_p.h>
+#include <qwindow_p.h>
 
 #ifndef QT_OPENGL_ES_2
 #include <QOpenGLFunctions_1_0>
@@ -49,10 +49,8 @@ class QOpenGLVersionProfilePrivate
 {
  public:
    QOpenGLVersionProfilePrivate()
-      : majorVersion(0),
-        minorVersion(0),
-        profile(QSurfaceFormat::NoProfile)
-   {}
+      : majorVersion(0), minorVersion(0), profile(QSurfaceFormat::NoProfile)
+   { }
 
    int majorVersion;
    int minorVersion;
@@ -158,13 +156,11 @@ void qt_gl_set_global_share_context(QOpenGLContext *context)
    global_share_context = context;
 }
 
-// internal
 QOpenGLContext *qt_gl_global_share_context()
 {
    return global_share_context;
 }
 
-// internal
 QOpenGLContext *QOpenGLContextPrivate::setCurrentContext(QOpenGLContext *context)
 {
    QGuiGLThreadContext *threadContext = qwindow_context_storage()->localData();
@@ -195,7 +191,7 @@ int QOpenGLContextPrivate::maxTextureSize()
    funcs->glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
 
 #ifndef QT_OPENGL_ES
-   if (!q->isOpenGLES()) {
+   if (! q->isOpenGLES()) {
       GLenum proxy = GL_PROXY_TEXTURE_2D;
 
       GLint size;
@@ -261,14 +257,12 @@ bool QOpenGLContext::areSharing(QOpenGLContext *first, QOpenGLContext *second)
    return first->shareGroup() == second->shareGroup();
 }
 
-// internal
 QPlatformOpenGLContext *QOpenGLContext::handle() const
 {
    Q_D(const QOpenGLContext);
    return d->platformGLContext;
 }
 
-// internal
 QPlatformOpenGLContext *QOpenGLContext::shareHandle() const
 {
    Q_D(const QOpenGLContext);
@@ -350,14 +344,14 @@ bool QOpenGLContext::create()
 
    d->platformGLContext = QGuiApplicationPrivate::platformIntegration()->createPlatformOpenGLContext(this);
 
-   if (!d->platformGLContext) {
+   if (! d->platformGLContext) {
       return false;
    }
 
    d->platformGLContext->initialize();
    d->platformGLContext->setContext(this);
 
-   if (!d->platformGLContext->isSharing()) {
+   if (! d->platformGLContext->isSharing()) {
       d->shareContext = nullptr;
    }
 
@@ -367,24 +361,6 @@ bool QOpenGLContext::create()
    return isValid();
 }
 
-/*!
-    \internal
-
-    Destroy the underlying platform context associated with this context.
-
-    If any other context is directly or indirectly sharing resources with this
-    context, the shared resources, which includes vertex buffer objects, shader
-    objects, textures, and framebuffer objects, are not freed. However,
-    destroying the underlying platform context frees any state associated with
-    the context.
-
-    After \c destroy() has been called, you must call create() if you wish to
-    use the context again.
-
-    \note This implicitly calls doneCurrent() if the context is current.
-
-    \sa create()
-*/
 void QOpenGLContext::destroy()
 {
    deleteQGLContext();
@@ -674,14 +650,12 @@ QScreen *QOpenGLContext::screen() const
    return d->screen;
 }
 
-// internal
 void *QOpenGLContext::qGLContextHandle() const
 {
    Q_D(const QOpenGLContext);
    return d->qGLContextHandle;
 }
 
-// internal
 void QOpenGLContext::setQGLContextHandle(void *handle, void (*qGLContextDeleteFunction)(void *))
 {
    Q_D(QOpenGLContext);
@@ -689,7 +663,6 @@ void QOpenGLContext::setQGLContextHandle(void *handle, void (*qGLContextDeleteFu
    d->qGLContextDeleteFunction = qGLContextDeleteFunction;
 }
 
-// internal
 void QOpenGLContext::deleteQGLContext()
 {
    Q_D(QOpenGLContext);
@@ -716,10 +689,13 @@ QOpenGLContext::OpenGLModuleType QOpenGLContext::openGLModuleType()
 #if defined(QT_OPENGL_DYNAMIC)
    Q_ASSERT(qGuiApp);
    return QGuiApplicationPrivate::instance()->platformIntegration()->openGLModuleType();
+
 #elif defined(QT_OPENGL_ES_2)
    return LibGLES;
+
 #else
    return LibGL;
+
 #endif
 }
 
@@ -740,14 +716,12 @@ QOpenGLContext *QOpenGLContext::globalShareContext()
    return qt_gl_global_share_context();
 }
 
-// internal
 QOpenGLVersionFunctionsBackend *QOpenGLContext::functionsBackend(const QOpenGLVersionStatus &v) const
 {
    Q_D(const QOpenGLContext);
    return d->versionFunctionsBackend.value(v, nullptr);
 }
 
-// internal
 void QOpenGLContext::insertFunctionsBackend(const QOpenGLVersionStatus &v,
    QOpenGLVersionFunctionsBackend *backend)
 {
@@ -755,35 +729,30 @@ void QOpenGLContext::insertFunctionsBackend(const QOpenGLVersionStatus &v,
    d->versionFunctionsBackend.insert(v, backend);
 }
 
-// internal
 void QOpenGLContext::removeFunctionsBackend(const QOpenGLVersionStatus &v)
 {
    Q_D(QOpenGLContext);
    d->versionFunctionsBackend.remove(v);
 }
 
-// internal
 void QOpenGLContext::insertExternalFunctions(QAbstractOpenGLFunctions *f)
 {
    Q_D(QOpenGLContext);
    d->externalVersionFunctions.insert(f);
 }
 
-// internal
 void QOpenGLContext::removeExternalFunctions(QAbstractOpenGLFunctions *f)
 {
    Q_D(QOpenGLContext);
    d->externalVersionFunctions.remove(f);
 }
 
-// internal
 QOpenGLTextureHelper *QOpenGLContext::textureFunctions() const
 {
    Q_D(const QOpenGLContext);
    return d->textureFunctions;
 }
 
-// internal
 void QOpenGLContext::setTextureFunctions(QOpenGLTextureHelper *textureFuncs)
 {
    Q_D(QOpenGLContext);
@@ -796,7 +765,6 @@ QOpenGLContextGroup::QOpenGLContextGroup()
    d_ptr->q_ptr = this;
 }
 
-// internal
 QOpenGLContextGroup::~QOpenGLContextGroup()
 {
    Q_D(QOpenGLContextGroup);
@@ -925,7 +893,6 @@ void QOpenGLSharedResource::free()
    }
 }
 
-// internal
 void QOpenGLSharedResourceGuard::freeResource(QOpenGLContext *context)
 {
    if (m_id) {
@@ -935,21 +902,16 @@ void QOpenGLSharedResourceGuard::freeResource(QOpenGLContext *context)
    }
 }
 
-// internal
 QOpenGLMultiGroupSharedResource::QOpenGLMultiGroupSharedResource()
    : active(0)
 {
-#ifdef QT_GL_CONTEXT_RESOURCE_DEBUG
-   qDebug("Creating context group resource object %p.", this);
+#if defined(CS_SHOW_DEBUG_GUI_OPENGL)
+   qDebug("QOpenGLMultiGroupSharedResource() Creating context group resource object %p", this);
 #endif
 }
 
 QOpenGLMultiGroupSharedResource::~QOpenGLMultiGroupSharedResource()
 {
-#ifdef QT_GL_CONTEXT_RESOURCE_DEBUG
-   qDebug("Deleting context group resource %p. Group size: %d.", this, m_groups.size());
-#endif
-
    for (int i = 0; i < m_groups.size(); ++i) {
       if (!m_groups.at(i)->shares().isEmpty()) {
          QOpenGLContext *context = m_groups.at(i)->shares().first();
@@ -966,8 +928,9 @@ QOpenGLMultiGroupSharedResource::~QOpenGLMultiGroupSharedResource()
 
 void QOpenGLMultiGroupSharedResource::insert(QOpenGLContext *context, QOpenGLSharedResource *value)
 {
-#ifdef QT_GL_CONTEXT_RESOURCE_DEBUG
-   qDebug("Inserting context group resource %p for context %p, managed by %p.", value, context, this);
+#if defined(CS_SHOW_DEBUG_GUI_OPENGL)
+   qDebug("QOpenGLMultiGroupSharedResource::insert() Inserting context group resource "
+      "%p for context %p, managed by %p.", value, context, this);
 #endif
 
    QOpenGLContextGroup *group = context->shareGroup();
@@ -1000,9 +963,9 @@ QList<QOpenGLSharedResource *> QOpenGLMultiGroupSharedResource::resources() cons
 
 void QOpenGLMultiGroupSharedResource::cleanup(QOpenGLContextGroup *group, QOpenGLSharedResource *value)
 {
-
-#ifdef QT_GL_CONTEXT_RESOURCE_DEBUG
-   qDebug("Cleaning up context group resource %p, for group %p in thread %p.", this, group, QThread::currentThread());
+#if defined(CS_SHOW_DEBUG_GUI_OPENGL)
+   qDebug("QOpenGLMultiGroupSharedResource::cleanup() Context group resource %p, for group %p in thread %p",
+         this, group, QThread::currentThread());
 #endif
 
    value->invalidateResource();

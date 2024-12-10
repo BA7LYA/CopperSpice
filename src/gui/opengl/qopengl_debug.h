@@ -100,17 +100,16 @@ public:
     GLuint id() const;
     QString message() const;
 
-    static QOpenGLDebugMessage createApplicationMessage(const QString &text,
-                                                        GLuint id = 0,
-                                                        Severity severity = NotificationSeverity,
-                                                        Type type = OtherType);
-    static QOpenGLDebugMessage createThirdPartyMessage(const QString &text,
-                                                       GLuint id = 0,
-                                                       Severity severity = NotificationSeverity,
-                                                       Type type = OtherType);
+    static QOpenGLDebugMessage createApplicationMessage(const QString &text, GLuint id = 0,
+          Severity severity = NotificationSeverity, Type type = OtherType);
+
+    static QOpenGLDebugMessage createThirdPartyMessage(const QString &text, GLuint id = 0,
+          Severity severity = NotificationSeverity, Type type = OtherType);
 
     bool operator==(const QOpenGLDebugMessage &debugMessage) const;
-    inline bool operator!=(const QOpenGLDebugMessage &debugMessage) const { return !operator==(debugMessage); }
+    bool operator!=(const QOpenGLDebugMessage &debugMessage) const {
+       return !operator==(debugMessage);
+    }
 
 private:
     friend class QOpenGLDebugLogger;

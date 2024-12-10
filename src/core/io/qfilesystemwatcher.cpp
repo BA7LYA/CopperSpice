@@ -51,7 +51,7 @@
 
 #endif
 
-enum { PollingInterval = 1000 };
+static constexpr const int PollingInterval = 1000;
 
 class QPollingFileSystemWatcherEngine : public QFileSystemWatcherEngine
 {
@@ -433,8 +433,8 @@ void QFileSystemWatcher::addPaths(const QStringList &paths)
    QStringList p = paths;
    QFileSystemWatcherEngine *engine = nullptr;
 
-   if (!objectName().startsWith(QLatin1String("_qt_autotest_force_engine_"))) {
-      // Normal runtime case - search intelligently for best engine
+   if (! objectName().startsWith(QLatin1String("_qt_autotest_force_engine_"))) {
+      // normal runtime case - search intelligently for best engine
       if (d->native) {
          engine = d->native;
       } else {
@@ -446,17 +446,27 @@ void QFileSystemWatcher::addPaths(const QStringList &paths)
       // Autotest override case - use the explicitly selected engine only
       QString forceName = objectName().mid(26);
 
-      if (forceName == QLatin1String("poller")) {
-         qDebug() << "QFileSystemWatcher: skipping native engine, using only polling engine";
+      if (forceName == "poller") {
+#if defined(CS_SHOW_DEBUG_CORE)
+         qDebug("QFileSystemWatcher::addPaths() Do not use native engine, use only polling engine");
+#endif
+
          d_func()->initPollerEngine();
          engine = d->poller;
 
-      } else if (forceName == QLatin1String("native")) {
-         qDebug() << "QFileSystemWatcher: skipping polling engine, using only native engine";
+      } else if (forceName == "native") {
+#if defined(CS_SHOW_DEBUG_CORE)
+         qDebug("QFileSystemWatcher::addPaths() Do not use polling engine, use only native engine");
+#endif
+
          engine = d->native;
 
       } else {
-         qDebug() << "QFileSystemWatcher: skipping polling and native engine, using only explicit" << forceName << "engine";
+#if defined(CS_SHOW_DEBUG_CORE)
+         qDebug() << "QFileSystemWatcher::addPaths() Do not use native engine or polling engine, using explicit"
+               << forceName << "engine";
+#endif
+
          d_func()->initForcedEngine(forceName);
          engine = d->forced;
       }

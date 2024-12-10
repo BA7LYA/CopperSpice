@@ -70,7 +70,7 @@ class QDoubleSpinBoxPrivate : public QAbstractSpinBoxPrivate
    // variables
    int decimals;
 
-   inline void init() {
+   void init() {
       Q_Q(QDoubleSpinBox);
       q->setInputMethodHints(Qt::ImhFormattedNumbersOnly);
    }
@@ -248,9 +248,6 @@ int QSpinBox::valueFromText(const QString &text) const
    return d->validateAndInterpret(copy, pos, state).toInt();
 }
 
-/*!
-  \reimp
-*/
 QValidator::State QSpinBox::validate(QString &text, int &pos) const
 {
    Q_D(const QSpinBox);

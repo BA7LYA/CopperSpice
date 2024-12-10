@@ -22,31 +22,34 @@
 ***********************************************************************/
 
 #include <qwin_integration.h>
-#include <qwin_window.h>
+
+#include <qplatform_nativeinterface.h>
+#include <qvariant.h>
 #include <qwin_context.h>
-#include <qwin_opengl_context.h>
-#include <qwin_screen.h>
-#include <qwin_theme.h>
-#include <qwin_services.h>
+#include <qwin_fontdatabase.h>
 #include <qwin_inputcontext.h>
 #include <qwin_keymapper.h>
+#include <qwin_opengl_context.h>
 #include <qwin_opengl_tester.h>
+#include <qwin_screen.h>
+#include <qwin_services.h>
+#include <qwin_theme.h>
+#include <qwin_window.h>
+#include <qwindowsysteminterface.h>
+
+#ifndef QT_NO_ACCESSIBILITY
+#  include <qwin_accessibility.h>
+#endif
 
 #if defined(QT_USE_FREETYPE)
 #  include <qwin_fontdatabase_ft.h>
 #endif
-
-#include <qwin_fontdatabase.h>
 
 #ifndef QT_NO_CLIPBOARD
 #  include <qwin_clipboard.h>
 #ifndef QT_NO_DRAGANDDROP
 #  include <qwin_drag.h>
 #endif
-#endif
-
-#ifndef QT_NO_ACCESSIBILITY
-#  include <qwin_accessibility.h>
 #endif
 
 #if ! defined(QT_NO_SESSIONMANAGER)
@@ -60,11 +63,6 @@
 #if ! defined(QT_NO_OPENGL) && ! defined(QT_OPENGL_ES_2)
 #  include <qwin_gl_context.h>
 #endif
-
-#include <qdebug.h>
-#include <qvariant.h>
-#include <qplatform_nativeinterface.h>
-#include <qwindowsysteminterface.h>
 
 #include <qapplication_p.h>
 #include <qhighdpiscaling_p.h>
@@ -105,8 +103,8 @@ struct QWindowsIntegrationPrivate {
 };
 
 template <typename IntType>
-bool parseIntOption(const QString &parameter, const QLatin1String &option,
-   IntType minimumValue, IntType maximumValue, IntType *target)
+bool parseIntOption(const QString &parameter, const QString &option, IntType minimumValue,
+      IntType maximumValue, IntType *target)
 {
    const int valueLength = parameter.size() - option.size() - 1;
 
@@ -122,13 +120,14 @@ bool parseIntOption(const QString &parameter, const QLatin1String &option,
    if (ok) {
       if (value >= minimumValue && value <= maximumValue) {
          *target = static_cast<IntType>(value);
+
       } else {
-         qWarning() << "Value" << value << "for option" << option << "out of range"
+         qWarning() << "parseIntOption() Value = " << value << "for option " << option << " out of range"
             << minimumValue << ".." << maximumValue;
       }
 
    } else {
-      qWarning() << "Invalid value" << valueView << "for option" << option;
+      qWarning() << "parseIntOption() Invalid value = " << valueView << " for option" << option;
    }
 
    return true;
@@ -140,34 +139,39 @@ static inline unsigned parseOptions(const QStringList &paramList,
    unsigned options = 0;
 
    for (const QString &param : paramList) {
-      if (param.startsWith(QLatin1String("fontengine="))) {
-         if (param.endsWith(QLatin1String("freetype"))) {
+      if (param.startsWith("fontengine=")) {
+
+         if (param.endsWith("freetype")) {
             options |= QWindowsIntegration::FontDatabaseFreeType;
-         } else if (param.endsWith(QLatin1String("native"))) {
+
+         } else if (param.endsWith("native")) {
             options |= QWindowsIntegration::FontDatabaseNative;
          }
 
-      } else if (param.startsWith(QLatin1String("dialogs="))) {
-         if (param.endsWith(QLatin1String("xp"))) {
+      } else if (param.startsWith("dialogs=")) {
+
+         if (param.endsWith("xp")) {
             options |= QWindowsIntegration::XpNativeDialogs;
-         } else if (param.endsWith(QLatin1String("none"))) {
+
+         } else if (param.endsWith("none")) {
             options |= QWindowsIntegration::NoNativeDialogs;
          }
 
-      } else if (param == QLatin1String("gl=gdi")) {
+      } else if (param == "gl=gdi") {
          options |= QWindowsIntegration::DisableArb;
 
-      } else if (param == QLatin1String("nomousefromtouch")) {
+      } else if (param == "nomousefromtouch") {
          options |= QWindowsIntegration::DontPassOsMouseEventsSynthesizedFromTouch;
 
-      } else if (parseIntOption(param, QLatin1String("verbose"), 0, INT_MAX, &QWindowsContext::verbose)
-         || parseIntOption(param, QLatin1String("tabletabsoluterange"), 0, INT_MAX, tabletAbsoluteRange)
-         || parseIntOption(param, QLatin1String("dpiawareness"), QtWindows::ProcessDpiUnaware, QtWindows::ProcessPerMonitorDpiAware,
-            dpiAwareness)) {
+       } else if (parseIntOption(param, "tabletabsoluterange", 0, INT_MAX, tabletAbsoluteRange) ||
+            parseIntOption(param, "dpiawareness", QtWindows::ProcessDpiUnaware,
+            QtWindows::ProcessPerMonitorDpiAware, dpiAwareness)) {
+
       } else {
-         qWarning() << "Unknown option" << param;
+         qWarning() << "parseOptions() Unknown option" << param;
       }
    }
+
    return options;
 }
 
@@ -312,13 +316,13 @@ QPlatformWindow *QWindowsIntegration::createPlatformWindow(QWindow *window) cons
    return result;
 }
 
-// Overridden to return a QWindowsDirect2DWindow in Direct2D plugin.
+// Overridden to return a QWindowsDirect2DWindow in Direct2D plugin
 QWindowsWindow *QWindowsIntegration::createPlatformWindowHelper(QWindow *window, const QWindowsWindowData &data) const
 {
    return new QWindowsWindow(window, data);
 }
 
-#ifndef QT_NO_OPENGL
+#if ! defined(QT_NO_OPENGL)
 
 QWindowsStaticOpenGLContext *QWindowsStaticOpenGLContext::doCreate()
 {
@@ -329,16 +333,16 @@ QWindowsStaticOpenGLContext *QWindowsStaticOpenGLContext::doCreate()
       case QWindowsOpenGLTester::DesktopGl:
          if (QWindowsStaticOpenGLContext *glCtx = QOpenGLStaticContext::create()) {
             if ((QWindowsOpenGLTester::supportedRenderers() & QWindowsOpenGLTester::DisableRotationFlag)
-               && !QWindowsScreen::setOrientationPreference(Qt::LandscapeOrientation)) {
-               qWarning("Unable to disable rotation.");
+                  && !QWindowsScreen::setOrientationPreference(Qt::LandscapeOrientation)) {
+               qWarning("QWindowsStaticOpenGLContext::doCreate() Unable to disable rotation");
             }
             return glCtx;
          }
 
-         qWarning("System OpenGL failed. Falling back to Software OpenGL.");
+         qWarning("QWindowsStaticOpenGLContext::doCreate() System OpenGL failed, Falling back to Software OpenGL");
          return QOpenGLStaticContext::create(true);
 
-      // If ANGLE is requested, use it, don't try anything else.
+      // If ANGLE is requested use it, do not try anything else
       case QWindowsOpenGLTester::AngleRendererD3d9:
       case QWindowsOpenGLTester::AngleRendererD3d11:
       case QWindowsOpenGLTester::AngleRendererD3d11Warp:
@@ -351,41 +355,50 @@ QWindowsStaticOpenGLContext *QWindowsStaticOpenGLContext::doCreate()
          if (QWindowsStaticOpenGLContext *swCtx = QOpenGLStaticContext::create(true)) {
             return swCtx;
          }
-         qWarning("Software OpenGL failed. Falling back to system OpenGL.");
+
+         qWarning("QWindowsStaticOpenGLContext::doCreate() Software OpenGL failed, Falling back to system OpenGL");
 
          if (QWindowsOpenGLTester::supportedRenderers() & QWindowsOpenGLTester::DesktopGl) {
             return QOpenGLStaticContext::create();
          }
+
          return nullptr;
+
       default:
          break;
    }
 
    const QWindowsOpenGLTester::Renderers supportedRenderers = QWindowsOpenGLTester::supportedRenderers();
+
    if (supportedRenderers & QWindowsOpenGLTester::DesktopGl) {
       if (QWindowsStaticOpenGLContext *glCtx = QOpenGLStaticContext::create()) {
+
          if ((supportedRenderers & QWindowsOpenGLTester::DisableRotationFlag)
-            && !QWindowsScreen::setOrientationPreference(Qt::LandscapeOrientation)) {
-            qWarning("Unable to disable rotation.");
+               && ! QWindowsScreen::setOrientationPreference(Qt::LandscapeOrientation)) {
+            qWarning("QWindowsStaticOpenGLContext::doCreate() Unable to disable rotation");
          }
          return glCtx;
       }
    }
+
    if (QWindowsOpenGLTester::Renderers glesRenderers = supportedRenderers & QWindowsOpenGLTester::GlesMask) {
       if (QWindowsEGLStaticContext *eglCtx = QWindowsEGLStaticContext::create(glesRenderers)) {
          return eglCtx;
       }
    }
+
    return QOpenGLStaticContext::create(true);
 
 #elif defined(QT_OPENGL_ES_2)
    QWindowsOpenGLTester::Renderers glesRenderers = QWindowsOpenGLTester::requestedGlesRenderer();
+
    if (glesRenderers == QWindowsOpenGLTester::InvalidRenderer) {
       glesRenderers = QWindowsOpenGLTester::supportedGlesRenderers();
    }
+
    return QWindowsEGLStaticContext::create(glesRenderers);
 
-#elif !defined(QT_NO_OPENGL)
+#else
    return QOpenGLStaticContext::create();
 
 #endif
@@ -398,7 +411,9 @@ QWindowsStaticOpenGLContext *QWindowsStaticOpenGLContext::create()
 
 QPlatformOpenGLContext *QWindowsIntegration::createPlatformOpenGLContext(QOpenGLContext *context) const
 {
-   if (QWindowsStaticOpenGLContext *staticOpenGLContext = QWindowsIntegration::staticOpenGLContext()) {
+   QWindowsStaticOpenGLContext *staticOpenGLContext = QWindowsIntegration::staticOpenGLContext();
+
+   if (staticOpenGLContext != nullptr) {
       QScopedPointer<QWindowsOpenGLContext> result(staticOpenGLContext->createContext(context));
 
       if (result->isValid()) {
@@ -412,9 +427,9 @@ QPlatformOpenGLContext *QWindowsIntegration::createPlatformOpenGLContext(QOpenGL
 QOpenGLContext::OpenGLModuleType QWindowsIntegration::openGLModuleType()
 {
 #if defined(QT_OPENGL_ES_2)
-
    return QOpenGLContext::LibGLES;
-#elif !defined(QT_OPENGL_DYNAMIC)
+
+#elif ! defined(QT_OPENGL_DYNAMIC)
    return QOpenGLContext::LibGL;
 
 #else
@@ -429,6 +444,7 @@ QOpenGLContext::OpenGLModuleType QWindowsIntegration::openGLModuleType()
 QWindowsStaticOpenGLContext *QWindowsIntegration::staticOpenGLContext()
 {
    QWindowsIntegration *integration = QWindowsIntegration::instance();
+
    if (! integration) {
       return nullptr;
    }
@@ -444,7 +460,6 @@ QWindowsStaticOpenGLContext *QWindowsIntegration::staticOpenGLContext()
 }
 
 #endif // ! QT_NO_OPENGL
-
 
 QPlatformFontDatabase *QWindowsIntegration::fontDatabase() const
 {

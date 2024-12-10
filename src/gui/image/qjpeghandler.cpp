@@ -84,7 +84,7 @@ extern "C" {
 
 }
 
-static const int max_buf = 4096;
+static constexpr const int max_buf = 4096;
 
 struct my_jpeg_source_mgr : public jpeg_source_mgr {
    // Nothing dynamic - cannot rely on destruction over longjump
@@ -95,7 +95,6 @@ struct my_jpeg_source_mgr : public jpeg_source_mgr {
  public:
    my_jpeg_source_mgr(QIODevice *device);
 };
-
 
 extern "C" {
 
@@ -906,9 +905,6 @@ static QImageIOHandler::Transformations exif2Qt(int exifOrientation)
    return QImageIOHandler::TransformationNone;
 }
 
-/*!
-    \internal
-*/
 bool QJpegHandlerPrivate::readJpegHeader(QIODevice *device)
 {
    if (state == Ready) {

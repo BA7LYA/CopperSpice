@@ -38,7 +38,12 @@ static bool isConfigFunction(QEasingCurve::Type type)
 class QEasingCurveFunction
 {
  public:
-   enum Type { In, Out, InOut, OutIn };
+   enum Type {
+      In,
+      Out,
+      InOut,
+      OutIn
+   };
 
    QEasingCurveFunction(QEasingCurveFunction::Type type = In, qreal period = 0.3, qreal amplitude = 1.0,
          qreal overshoot = 1.70158)
@@ -287,7 +292,7 @@ static QEasingCurve::EasingFunction curveToFunc(QEasingCurve::Type curve)
       case QEasingCurve::OutInCirc:
          return &easeOutInCirc;
 
-      // Internal for, compatibility with QTimeLine only ??
+      // for compatibility with QTimeLine only (verify)
       case QEasingCurve::InCurve:
          return &easeInCurve;
 

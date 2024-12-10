@@ -78,11 +78,11 @@ class QPixelFormat
    static_assert(uint(TotalFieldWidthByWidths) == uint(TotalFieldWidthByOffsets), "Type mismatch");
    static_assert(uint(TotalFieldWidthByWidths) == 8 * sizeof(quint64), "Type mismatch");
 
-   constexpr inline uchar get(Field offset, FieldWidth width) const {
+   constexpr uchar get(Field offset, FieldWidth width) const {
       return uchar((data >> uint(offset)) & ((static_cast<quint64>(1) << uint(width)) - static_cast<quint64>(1)));
    }
 
-   constexpr static inline quint64 set(Field offset, FieldWidth width, uchar value) {
+   static constexpr quint64 set(Field offset, FieldWidth width, uchar value) {
       return (quint64(value) & ((static_cast<quint64>(1) << uint(width)) - static_cast<quint64>(1))) << uint(offset);
    }
 
@@ -146,25 +146,20 @@ class QPixelFormat
       CurrentSystemEndian
    };
 
-   constexpr inline QPixelFormat()  : data(0) {}
-   constexpr inline QPixelFormat(ColorModel colorModel,
-      uchar firstSize,
-      uchar secondSize,
-      uchar thirdSize,
-      uchar fourthSize,
-      uchar fifthSize,
-      uchar alphaSize,
-      AlphaUsage alphaUsage,
-      AlphaPosition alphaPosition,
-      AlphaPremultiplied premultiplied,
-      TypeInterpretation typeInterpretation,
-      ByteOrder byteOrder = CurrentSystemEndian,
-      uchar subEnum = 0) ;
+   constexpr QPixelFormat()
+      : data(0)
+   { }
 
-   constexpr inline ColorModel colorModel() const   {
+   constexpr inline QPixelFormat(ColorModel colorModel, uchar firstSize, uchar secondSize,
+         uchar thirdSize, uchar fourthSize, uchar fifthSize, uchar alphaSize, AlphaUsage alphaUsage,
+         AlphaPosition alphaPosition, AlphaPremultiplied premultiplied, TypeInterpretation typeInterpretation,
+         ByteOrder byteOrder = CurrentSystemEndian, uchar subEnum = 0);
+
+   constexpr ColorModel colorModel() const   {
       return ColorModel(get(ModelField, ModelFieldWidth));
    }
-   constexpr inline uchar channelCount() const  {
+
+   constexpr uchar channelCount() const  {
       return (get(FirstField, FirstFieldWidth) > 0) +
          (get(SecondField, SecondFieldWidth) > 0) +
          (get(ThirdField, ThirdFieldWidth) > 0) +
@@ -173,91 +168,100 @@ class QPixelFormat
          (get(AlphaField, AlphaFieldWidth) > 0);
    }
 
-   constexpr inline uchar redSize() const {
+   constexpr uchar redSize() const {
       return get(FirstField, FirstFieldWidth);
    }
-   constexpr inline uchar greenSize() const  {
+
+   constexpr uchar greenSize() const  {
       return get(SecondField, SecondFieldWidth);
    }
-   constexpr inline uchar blueSize() const  {
+   constexpr uchar blueSize() const  {
       return get(ThirdField, ThirdFieldWidth);
    }
 
-   constexpr inline uchar cyanSize() const  {
+   constexpr uchar cyanSize() const  {
       return get(FirstField, FirstFieldWidth);
    }
-   constexpr inline uchar magentaSize() const  {
+
+   constexpr uchar magentaSize() const  {
       return get(SecondField, SecondFieldWidth);
    }
-   constexpr inline uchar yellowSize() const  {
+
+   constexpr uchar yellowSize() const  {
       return get(ThirdField, ThirdFieldWidth);
    }
-   constexpr inline uchar blackSize() const  {
+
+   constexpr uchar blackSize() const  {
       return get(FourthField, FourthFieldWidth);
    }
 
-   constexpr inline uchar hueSize() const  {
+   constexpr uchar hueSize() const  {
       return get(FirstField, FirstFieldWidth);
    }
-   constexpr inline uchar saturationSize() const  {
+
+   constexpr uchar saturationSize() const  {
       return get(SecondField, SecondFieldWidth);
    }
-   constexpr inline uchar lightnessSize() const  {
-      return get(ThirdField, ThirdFieldWidth);
-   }
-   constexpr inline uchar brightnessSize() const  {
+
+   constexpr uchar lightnessSize() const  {
       return get(ThirdField, ThirdFieldWidth);
    }
 
-   constexpr inline uchar alphaSize() const  {
+   constexpr uchar brightnessSize() const  {
+      return get(ThirdField, ThirdFieldWidth);
+   }
+
+   constexpr uchar alphaSize() const  {
       return get(AlphaField, AlphaFieldWidth);
    }
 
-   constexpr inline uchar bitsPerPixel() const  {
-      return get(FirstField, FirstFieldWidth) +
-         get(SecondField, SecondFieldWidth) +
-         get(ThirdField, ThirdFieldWidth) +
-         get(FourthField, FourthFieldWidth) +
-         get(FifthField, FifthFieldWidth) +
-         get(AlphaField, AlphaFieldWidth);
+   constexpr uchar bitsPerPixel() const  {
+      return get(FirstField, FirstFieldWidth) + get(SecondField, SecondFieldWidth) +
+         get(ThirdField, ThirdFieldWidth) + get(FourthField, FourthFieldWidth) +
+         get(FifthField, FifthFieldWidth) + get(AlphaField, AlphaFieldWidth);
    }
 
-   constexpr inline AlphaUsage alphaUsage() const  {
+   constexpr AlphaUsage alphaUsage() const  {
       return AlphaUsage(get(AlphaUsageField, AlphaUsageFieldWidth));
    }
-   constexpr inline AlphaPosition alphaPosition() const  {
+
+   constexpr AlphaPosition alphaPosition() const  {
       return AlphaPosition(get(AlphaPositionField, AlphaPositionFieldWidth));
    }
-   constexpr inline AlphaPremultiplied premultiplied() const  {
+
+   constexpr AlphaPremultiplied premultiplied() const  {
       return AlphaPremultiplied(get(PremulField, PremulFieldWidth));
    }
-   constexpr inline TypeInterpretation typeInterpretation() const  {
+
+   constexpr TypeInterpretation typeInterpretation() const  {
       return TypeInterpretation(get(TypeInterpretationField, TypeInterpretationFieldWidth));
    }
-   constexpr inline ByteOrder byteOrder() const  {
+
+   constexpr ByteOrder byteOrder() const  {
       return ByteOrder(get(ByteOrderField, ByteOrderFieldWidth));
    }
 
-   constexpr inline YUVLayout yuvLayout() const  {
+   constexpr YUVLayout yuvLayout() const  {
       return YUVLayout(get(SubEnumField, SubEnumFieldWidth));
    }
-   constexpr inline uchar subEnum() const  {
+
+   constexpr uchar subEnum() const  {
       return get(SubEnumField, SubEnumFieldWidth);
    }
 
  private:
-   constexpr static inline ByteOrder resolveByteOrder(ByteOrder bo) {
+   static constexpr ByteOrder resolveByteOrder(ByteOrder bo) {
       return bo == CurrentSystemEndian ? Q_BYTE_ORDER == Q_LITTLE_ENDIAN ? LittleEndian : BigEndian : bo ;
    }
 
  private:
    quint64 data;
 
-   friend constexpr inline bool operator==(QPixelFormat fmt1, QPixelFormat fmt2) {
+   friend constexpr bool operator==(QPixelFormat fmt1, QPixelFormat fmt2) {
       return fmt1.data == fmt2.data;
    }
 
-   friend constexpr inline bool operator!=(QPixelFormat fmt1, QPixelFormat fmt2) {
+   friend constexpr bool operator!=(QPixelFormat fmt1, QPixelFormat fmt2) {
       return !(fmt1 == fmt2);
    }
 };
@@ -276,8 +280,8 @@ QPixelFormat Q_GUI_EXPORT QPixelFormat_createYUV(QPixelFormat::YUVLayout yuvLayo
 }
 
 constexpr QPixelFormat::QPixelFormat(ColorModel mdl, uchar firstSize, uchar secondSize, uchar thirdSize, uchar fourthSize,
-   uchar fifthSize, uchar alfa, AlphaUsage usage, AlphaPosition position, AlphaPremultiplied premult,
-   TypeInterpretation typeInterp, ByteOrder b_order, uchar s_enum)
+      uchar fifthSize, uchar alfa, AlphaUsage usage, AlphaPosition position, AlphaPremultiplied premult,
+      TypeInterpretation typeInterp, ByteOrder b_order, uchar s_enum)
    : data(set(ModelField, ModelFieldWidth, uchar(mdl)) |
         set(FirstField, FirstFieldWidth, firstSize) |
         set(SecondField, SecondFieldWidth, secondSize) |
@@ -295,26 +299,12 @@ constexpr QPixelFormat::QPixelFormat(ColorModel mdl, uchar firstSize, uchar seco
 {
 }
 
-constexpr inline QPixelFormat qPixelFormatRgba(uchar red,
-   uchar green,
-   uchar blue,
-   uchar alfa,
-   QPixelFormat::AlphaUsage usage,
-   QPixelFormat::AlphaPosition position,
-   QPixelFormat::AlphaPremultiplied pmul = QPixelFormat::NotPremultiplied,
-   QPixelFormat::TypeInterpretation typeInt = QPixelFormat::UnsignedInteger)
+constexpr inline QPixelFormat qPixelFormatRgba(uchar red, uchar green, uchar blue, uchar alfa,
+      QPixelFormat::AlphaUsage usage, QPixelFormat::AlphaPosition position,
+      QPixelFormat::AlphaPremultiplied pmul = QPixelFormat::NotPremultiplied,
+      QPixelFormat::TypeInterpretation typeInt = QPixelFormat::UnsignedInteger)
 {
-   return QPixelFormat(QPixelFormat::RGB,
-         red,
-         green,
-         blue,
-         0,
-         0,
-         alfa,
-         usage,
-         position,
-         pmul,
-         typeInt);
+   return QPixelFormat(QPixelFormat::RGB, red, green, blue, 0, 0, alfa, usage, position, pmul, typeInt);
 }
 
 constexpr inline QPixelFormat qPixelFormatGrayscale(uchar channelSize,
@@ -375,9 +365,7 @@ constexpr inline QPixelFormat qPixelFormatHsl(uchar channelSize,
    QPixelFormat::TypeInterpretation typeInt = QPixelFormat::FloatingPoint)
 {
    return QPixelFormat(QPixelFormat::HSL, channelSize, channelSize, channelSize, 0, 0, alfa, usage,
-         position,
-         QPixelFormat::NotPremultiplied,
-         typeInt);
+      position, QPixelFormat::NotPremultiplied, typeInt);
 }
 
 constexpr inline QPixelFormat qPixelFormatHsv(uchar channelSize, uchar alfa = 0,

@@ -78,7 +78,7 @@ QAccessibleTable::QAccessibleTable(QWidget *w)
 
 bool QAccessibleTable::isValid() const
 {
-   return (view() && !qobject_cast<QWidget *>(view())->d_func()->data.in_destructor);
+   return (view() && !qobject_cast<QWidget *>(view())->d_func()->m_privateData.in_destructor);
 }
 
 QAccessibleTable::~QAccessibleTable()
@@ -1128,6 +1128,7 @@ QString QAccessibleTableCell::text(QAccessible::Text t) const
 {
    QAbstractItemModel *model = view->model();
    QString value;
+
    switch (t) {
       case QAccessible::Name:
          value = model->data(m_index, Qt::AccessibleTextRole).toString();
@@ -1135,18 +1136,21 @@ QString QAccessibleTableCell::text(QAccessible::Text t) const
             value = model->data(m_index, Qt::DisplayRole).toString();
          }
          break;
+
       case QAccessible::Description:
          value = model->data(m_index, Qt::AccessibleDescriptionRole).toString();
          break;
+
       default:
          break;
    }
+
    return value;
 }
 
-void QAccessibleTableCell::setText(QAccessible::Text /*t*/, const QString &text)
+void QAccessibleTableCell::setText(QAccessible::Text, const QString &text)
 {
-   if (!(m_index.flags() & Qt::ItemIsEditable)) {
+   if (! (m_index.flags() & Qt::ItemIsEditable)) {
       return;
    }
    view->model()->setData(m_index, text);

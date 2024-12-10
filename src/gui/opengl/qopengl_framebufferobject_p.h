@@ -33,11 +33,9 @@ class QOpenGLFramebufferObjectFormatPrivate
 {
 public:
     QOpenGLFramebufferObjectFormatPrivate()
-        : ref(1),
-          samples(0),
+        : ref(1), samples(0),
           attachment(QOpenGLFramebufferObject::NoAttachment),
-          target(GL_TEXTURE_2D),
-          mipmap(false)
+          target(GL_TEXTURE_2D), mipmap(false)
     {
 #ifndef QT_OPENGL_ES_2
         // There is nothing that says QOpenGLFramebufferObjectFormat needs a current
@@ -52,14 +50,11 @@ public:
     }
     QOpenGLFramebufferObjectFormatPrivate
             (const QOpenGLFramebufferObjectFormatPrivate *other)
-        : ref(1),
-          samples(other->samples),
-          attachment(other->attachment),
-          target(other->target),
-          internal_format(other->internal_format),
-          mipmap(other->mipmap)
+        : ref(1), samples(other->samples), attachment(other->attachment),
+          target(other->target), internal_format(other->internal_format), mipmap(other->mipmap)
     {
     }
+
     bool equals(const QOpenGLFramebufferObjectFormatPrivate *other)
     {
         return samples == other->samples &&
@@ -125,8 +120,9 @@ public:
     };
     QVector<ColorAttachment> colorAttachments;
 
-    inline GLuint fbo() const { return fbo_guard ? fbo_guard->id() : 0; }
+    GLuint fbo() const {
+       return fbo_guard ? fbo_guard->id() : 0;
+    }
 };
-
 
 #endif

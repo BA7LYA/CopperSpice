@@ -23,6 +23,7 @@
 
 #include <qauthenticator.h>
 #include <qauthenticator_p.h>
+
 #include <qbytearray.h>
 #include <qcryptographichash.h>
 #include <qdatastream.h>
@@ -37,8 +38,11 @@
 #include <qtimezone.h>
 
 #ifdef Q_OS_WIN
+
 #include <qmutex.h>
+
 #include <qmutexpool_p.h>
+
 #include <rpc.h>
 
 #define SECURITY_WIN32 1
@@ -66,9 +70,6 @@ QAuthenticator::~QAuthenticator()
    }
 }
 
-/*!
-    Constructs a copy of \a other.
-*/
 QAuthenticator::QAuthenticator(const QAuthenticator &other)
    : d(nullptr)
 {
@@ -83,9 +84,6 @@ QAuthenticator &QAuthenticator::operator=(const QAuthenticator &other)
       return *this;
    }
 
-   // Do not share the d since challenge reponse/based changes
-   // could corrupt the internal store and different network requests
-   // can utilize different types of proxies.
    detach();
 
    if (other.d) {
@@ -145,9 +143,6 @@ void QAuthenticator::setPassword(const QString &password)
    d->password = password;
 }
 
-/*!
-  \internal
-*/
 void QAuthenticator::detach()
 {
    if (!d) {
@@ -160,9 +155,6 @@ void QAuthenticator::detach()
    }
 }
 
-/*!
-  returns the realm requiring authentication.
-*/
 QString QAuthenticator::realm() const
 {
    return d ? d->realm : QString();
@@ -205,13 +197,11 @@ class QNtlmWindowsHandles
 #endif
 
 QAuthenticatorPrivate::QAuthenticatorPrivate()
-   : method(None)
+   : method(None), phase(Start), hasFailed(false), nonceCount(0)
 
 #if defined(Q_OS_WIN)
    , ntlmWindowsHandles(nullptr)
 #endif
-
-   , hasFailed(false), phase(Start), nonceCount(0)
 {
    cnonce = QCryptographicHash::hash(QByteArray::number(qrand(), 16) + QByteArray::number(qrand(), 16),
                                      QCryptographicHash::Md5).toHex();
@@ -588,13 +578,9 @@ QByteArray QAuthenticatorPrivate::digestMd5Response(const QByteArray &challenge,
    QByteArray opaque = options.value("opaque");
    QByteArray qop = options.value("qop");
 
-   //    qDebug() << "calculating digest: method=" << method << "path=" << path;
    QByteArray response = digestMd5ResponseHelper(options.value("algorithm"), user.toLatin1(),
-                         realm.toLatin1(), password.toLatin1(),
-                         nonce, nonceCountString,
-                         cnonce, qop, method,
-                         path, QByteArray());
-
+         realm.toLatin1(), password.toLatin1(), nonce, nonceCountString,
+         cnonce, qop, method, path, QByteArray());
 
    QByteArray credentials;
    credentials += "username=\"" + user.toLatin1() + "\", ";
@@ -766,26 +752,28 @@ QByteArray QAuthenticatorPrivate::digestMd5Response(const QByteArray &challenge,
 //#define NTLMV1_CLIENT
 
 
-//************************Global variables***************************
+// Global variables
 
-const int blockSize = 64;        // as per RFC2104 Block-size is 512 bits
+const int blockSize        = 64;        // as per RFC2104 Block-size is 512 bits
 
-const quint8 respversion = 1;
+const quint8 respversion   = 1;
 const quint8 hirespversion = 1;
 
 /* usage:
    // fill up ctx with what we know.
    QByteArray response = qNtlmPhase1(ctx);
+
    // send response (b64 encoded??)
    // get response from server (b64 decode?)
    Phase2Block pb;
    qNtlmDecodePhase2(response, pb);
    response = qNtlmPhase3(ctx, pb);
+
    // send response (b64 encoded??)
 */
 
 /*
-   TODO:
+   Pending-CS
     - Fix unicode handling
     - add v2 handling
 */
@@ -793,28 +781,35 @@ const quint8 hirespversion = 1;
 class QNtlmBuffer
 {
  public:
-   QNtlmBuffer() : len(0), maxLen(0), offset(0) {}
+   static constexpr const int Size = 8;
+
+   QNtlmBuffer()
+      : len(0), maxLen(0), offset(0)
+   { }
+
    quint16 len;
    quint16 maxLen;
    quint32 offset;
-   enum { Size = 8 };
 };
 
 class QNtlmPhase1BlockBase
 {
  public:
+   static constexpr const int Size = 32;
+
    char magic[8];
    quint32 type;
    quint32 flags;
    QNtlmBuffer domain;
    QNtlmBuffer workstation;
-   enum { Size = 32 };
 };
 
 // ################# check paddings
 class QNtlmPhase2BlockBase
 {
  public:
+   static constexpr const int Size = 48;
+
    char magic[8];
    quint32 type;
    QNtlmBuffer targetName;
@@ -822,12 +817,13 @@ class QNtlmPhase2BlockBase
    unsigned char challenge[8];
    quint32 context[2];
    QNtlmBuffer targetInfo;
-   enum { Size = 48 };
 };
 
 class QNtlmPhase3BlockBase
 {
  public:
+   static constexpr const int Size = 64;
+
    char magic[8];
    quint32 type;
    QNtlmBuffer lmResponse;
@@ -837,7 +833,6 @@ class QNtlmPhase3BlockBase
    QNtlmBuffer workstation;
    QNtlmBuffer sessionKey;
    quint32 flags;
-   enum { Size = 64 };
 };
 
 static void qStreamNtlmBuffer(QDataStream &ds, const QByteArray &s)

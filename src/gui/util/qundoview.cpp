@@ -22,6 +22,7 @@
 ***********************************************************************/
 
 #include <qundoview.h>
+#include <qlistview_p.h>
 
 #ifndef QT_NO_UNDOVIEW
 
@@ -30,8 +31,6 @@
 #include <qpointer.h>
 #include <qundogroup.h>
 #include <qundostack.h>
-
-#include <qlistview_p.h>
 
 class QUndoModel : public QAbstractItemModel
 {
@@ -219,11 +218,14 @@ QVariant QUndoModel::data(const QModelIndex &index, int role) const
       if (index.row() == 0) {
          return m_emty_label;
       }
+
       return m_stack->text(index.row() - 1);
+
    } else if (role == Qt::DecorationRole) {
       if (index.row() == m_stack->cleanIndex() && !m_clean_icon.isNull()) {
          return m_clean_icon;
       }
+
       return QVariant();
    }
 
@@ -261,8 +263,8 @@ class QUndoViewPrivate : public QListViewPrivate
 #ifdef QT_NO_UNDOGROUP
    QUndoViewPrivate()
       : model(nullptr)
-  {
-  }
+   {
+   }
 
 #else
    QUndoViewPrivate()
@@ -304,7 +306,6 @@ QUndoView::QUndoView(QUndoStack *stack, QWidget *parent)
 }
 
 #ifndef QT_NO_UNDOGROUP
-
 QUndoView::QUndoView(QUndoGroup *group, QWidget *parent)
    : QListView(*new QUndoViewPrivate(), parent)
 {
@@ -312,7 +313,6 @@ QUndoView::QUndoView(QUndoGroup *group, QWidget *parent)
    d->init();
    setGroup(group);
 }
-
 #endif
 
 QUndoView::~QUndoView()

@@ -35,7 +35,9 @@ namespace QPatternist {
 class PullBridge : public AbstractXmlPullProvider
 {
  public:
-   inline PullBridge(const QXmlNodeModelIndex::Iterator::Ptr &it) : m_current(StartOfInput) {
+   PullBridge(const QXmlNodeModelIndex::Iterator::Ptr &it)
+      : m_current(StartOfInput)
+   {
       Q_ASSERT(it);
       m_iterators.push(qMakePair(StartOfInput, it));
    }
@@ -43,9 +45,7 @@ class PullBridge : public AbstractXmlPullProvider
    Event next() override;
    Event current() const override;
    QXmlName name() const override;
-   /**
-    * Returns always an empty QVariant.
-    */
+
    QVariant atomicValue() const override;
    QString stringValue() const override;
    QHash<QXmlName, QString> attributes() override;

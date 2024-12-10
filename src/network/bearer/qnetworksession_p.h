@@ -25,6 +25,7 @@
 #define QNETWORKSESSION_P_H
 
 #include <qnetworksession.h>
+
 #include <qsharedpointer.h>
 
 #include <qnetworkconfiguration_p.h>
@@ -103,11 +104,11 @@ class Q_NETWORK_EXPORT QNetworkSessionPrivate : public QObject
    NET_CS_SIGNAL_2(usagePoliciesChanged, data)
 
  protected:
-   inline QNetworkConfigurationPrivatePointer privateConfiguration(const QNetworkConfiguration &config) const {
+   QNetworkConfigurationPrivatePointer privateConfiguration(const QNetworkConfiguration &config) const {
       return config.d;
    }
 
-   inline void setPrivateConfiguration(QNetworkConfiguration &config, QNetworkConfigurationPrivatePointer ptr) const {
+   void setPrivateConfiguration(QNetworkConfiguration &config, QNetworkConfigurationPrivatePointer ptr) const {
       config.d = ptr;
    }
 

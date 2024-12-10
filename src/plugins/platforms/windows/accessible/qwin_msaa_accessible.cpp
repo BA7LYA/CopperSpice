@@ -24,20 +24,20 @@
 #ifndef QT_NO_ACCESSIBILITY
 
 #include <qwin_msaa_accessible.h>
-#include <qwin_accessibility.h>
-#include <comutils.h>
 
+#include <qapplication.h>
 #include <qdebug.h>
 #include <qmap.h>
 #include <qpair.h>
-#include <qsettings.h>
-#include <qapplication.h>
 #include <qplatform_nativeinterface.h>
-#include <qwindow.h>
+#include <qsettings.h>
+#include <qwin_accessibility.h>
 #include <qwin_additional.h>
+#include <qwindow.h>
 
 #include <qhighdpiscaling_p.h>
 
+#include <comutils.h>
 #include <servprov.h>
 #include <winuser.h>
 
@@ -59,14 +59,14 @@ public:
 
     virtual ~QWindowsEnumerate() {}
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *);
-    ULONG STDMETHODCALLTYPE AddRef();
-    ULONG STDMETHODCALLTYPE Release();
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override;
+    ULONG STDMETHODCALLTYPE AddRef() override;
+    ULONG STDMETHODCALLTYPE Release() override;
 
-    HRESULT STDMETHODCALLTYPE Clone(IEnumVARIANT **ppEnum);
-    HRESULT STDMETHODCALLTYPE Next(unsigned long  celt, VARIANT FAR*  rgVar, unsigned long FAR*  pCeltFetched);
-    HRESULT STDMETHODCALLTYPE Reset();
-    HRESULT STDMETHODCALLTYPE Skip(unsigned long celt);
+    HRESULT STDMETHODCALLTYPE Clone(IEnumVARIANT **ppEnum) override;
+    HRESULT STDMETHODCALLTYPE Next(unsigned long  celt, VARIANT FAR*  rgVar, unsigned long FAR*  pCeltFetched) override;
+    HRESULT STDMETHODCALLTYPE Reset() override;
+    HRESULT STDMETHODCALLTYPE Skip(unsigned long celt) override;
 
 private:
     ULONG ref;
@@ -164,25 +164,22 @@ HRESULT STDMETHODCALLTYPE QWindowsEnumerate::Skip(unsigned long celt)
     return S_OK;
 }
 
-#if defined(CS_SHOW_DEBUG)
+#if defined(CS_SHOW_DEBUG_PLATFORM)
 void accessibleDebugClientCalls_helper(const char* funcName, const QAccessibleInterface *iface)
 {
    qDebug() << iface << funcName;
 }
 #endif
 
-/**************************************************************\
- *                                                             *
- *                        IUnknown                             *
- *                                                             *
- **************************************************************/
+
+// IUnknown
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::QueryInterface(REFIID id, LPVOID *iface)
 {
     *iface = nullptr;
 
     QByteArray strIID = IIDToString(id);
 
-#if defined(CS_SHOW_DEBUG)
+#if defined(CS_SHOW_DEBUG_PLATFORM)
     if (! strIID.isEmpty()) {
         qDebug() << "QWindowsIA2Accessible::QI() - IID:"
                  << strIID << ", iface:" << accessibleInterface();
@@ -225,11 +222,7 @@ ULONG STDMETHODCALLTYPE QWindowsMsaaAccessible::Release()
     return ref;
 }
 
-
-/*
-  IDispatch
-*/
-
+// IDispatch
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::GetTypeInfoCount(unsigned int * pctinfo)
 {
     // We don't use a type library
@@ -253,7 +246,7 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::GetIDsOfNames(const _GUID &, w
    return DISP_E_MEMBERNOTFOUND;
 
 #else
-    // PROPERTIES:  Hierarchical
+    // PROPERTIES: Hierarchical
 
     if (_bstr_t(rgszNames[0]) == _bstr_t(L"accParent"))
         rgdispid[0] = DISPID_ACC_PARENT;
@@ -431,7 +424,8 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::Invoke(long dispIdMember, cons
 
         case DISPID_ACC_LOCATION:
             if (wFlags == DISPATCH_METHOD)
-                hr = accLocation(&pDispParams->rgvarg[4].lVal, &pDispParams->rgvarg[3].lVal, &pDispParams->rgvarg[2].lVal, &pDispParams->rgvarg[1].lVal, pDispParams->rgvarg[0]);
+                hr = accLocation(&pDispParams->rgvarg[4].lVal, &pDispParams->rgvarg[3].lVal, &pDispParams->rgvarg[2].lVal,
+                      &pDispParams->rgvarg[1].lVal, pDispParams->rgvarg[0]);
             else
                 hr = DISP_E_MEMBERNOTFOUND;
             break;
@@ -469,9 +463,7 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::Invoke(long dispIdMember, cons
 }
 
 /*
-  IAccessible
-
-IAccessible::accHitTest documents the value returned in pvarID like this:
+  IAccessible - IAccessible::accHitTest documents the value returned in pvarID like this:
 
 | *Point location*                                       | *vt member* | *Value member*          |
 +========================================================+=============+=========================+
@@ -489,6 +481,7 @@ IAccessible::accHitTest documents the value returned in pvarID like this:
 |                                                        |             | interface pointer       |
 +--------------------------------------------------------+-------------+-------------------------+
 */
+
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::accHitTest(long xLeft, long yTop, VARIANT *pvarID)
 {
     QAccessibleInterface *accessible = accessibleInterface();
@@ -497,7 +490,7 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::accHitTest(long xLeft, long yT
         return E_FAIL;
 
     const QPoint pos = QHighDpi::fromNativeLocalPosition(QPoint(xLeft, yTop),
-                                                         QWindowsAccessibility::windowHelper(accessible));
+          QWindowsAccessibility::windowHelper(accessible));
 
     QAccessibleInterface *child = accessible->childAt(pos.x(), pos.y());
 
@@ -523,16 +516,6 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::accHitTest(long xLeft, long yT
     return S_FALSE;
 }
 
-/*
- It is recommended to read
-    "Implementing a Microsoft Active Accessibility (MSAA) Server.
-    Practical Tips for Developers and How Mozilla Does It"
-    (https://developer.mozilla.org/En/Accessibility/Implementing_an_MSAA_Server)
-
- to get an overview of what's important to implement and what parts of MSAA
- can be ignored. All stuff prefixed with "moz" are information from that page.
-*/
-// moz: [important]
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::accLocation(long *pxLeft, long *pyTop, long *pcxWidth, long *pcyHeight, VARIANT varID)
 {
     QAccessibleInterface *accessible = accessibleInterface();
@@ -543,8 +526,7 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::accLocation(long *pxLeft, long
     QAccessibleInterface *acc = childPointer(accessible, varID);
     if (!acc || !acc->isValid())
         return E_FAIL;
-    const QRect rect = QHighDpi::toNativePixels(acc->rect(),
-                                                QWindowsAccessibility::windowHelper(accessible));
+    const QRect rect = QHighDpi::toNativePixels(acc->rect(), QWindowsAccessibility::windowHelper(accessible));
 
     *pxLeft = rect.x();
     *pyTop = rect.y();
@@ -554,7 +536,7 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::accLocation(long *pxLeft, long
     return S_OK;
 }
 
-// moz: [important, but no need to implement up/down/left/right]
+// no need to implement up/down/left/right
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::accNavigate(long navDir, VARIANT varStart, VARIANT *pvarEnd)
 {
     QAccessibleInterface *accessible = accessibleInterface();
@@ -687,7 +669,6 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::accNavigate(long navDir, VARIA
     return S_FALSE;
 }
 
-// moz: [important]
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accChild(VARIANT varChildID, IDispatch** ppdispChild)
 {
     QAccessibleInterface *accessible = accessibleInterface();
@@ -707,7 +688,6 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accChild(VARIANT varChildI
     return E_FAIL;
 }
 
-// moz: [important]
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accChildCount(long* pcountChildren)
 {
     QAccessibleInterface *accessible = accessibleInterface();
@@ -719,7 +699,6 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accChildCount(long* pcount
     return S_OK;
 }
 
-// moz: [important]
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accParent(IDispatch** ppdispParent)
 {
     QAccessibleInterface *accessible = accessibleInterface();
@@ -739,9 +718,6 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accParent(IDispatch** ppdi
     return S_FALSE;
 }
 
-/*
-  Properties and methods
-*/
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::accDoDefaultAction(VARIANT varID)
 {
     (void) varID;
@@ -872,7 +848,6 @@ static QAccessibleInterface *relatedInterface(QAccessibleInterface *iface, QAcce
     return rels.value(0).first;
 }
 
-// moz: [important]
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accName(VARIANT varID, BSTR* pszName)
 {
     QAccessibleInterface *accessible = accessibleInterface();
@@ -925,7 +900,6 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::put_accName(VARIANT, BSTR)
     return DISP_E_MEMBERNOTFOUND;
 }
 
-// moz: [important]
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accRole(VARIANT varID, VARIANT *pvarRole)
 {
     QAccessibleInterface *accessible = accessibleInterface();
@@ -966,7 +940,6 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accRole(VARIANT varID, VAR
     return S_OK;
 }
 
-// moz: [important]
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accState(VARIANT varID, VARIANT *pvarState)
 {
     QAccessibleInterface *accessible = accessibleInterface();
@@ -1047,7 +1020,6 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accState(VARIANT varID, VA
     return S_OK;
 }
 
-// moz: [important]
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accValue(VARIANT varID, BSTR* pszValue)
 {
     QAccessibleInterface *accessible = accessibleInterface();
@@ -1084,7 +1056,6 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::put_accValue(VARIANT, BSTR)
     return DISP_E_MEMBERNOTFOUND;
 }
 
-// moz: [important]
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::accSelect(long flagsSelect, VARIANT varID)
 {
     (void) flagsSelect;
@@ -1098,15 +1069,17 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::accSelect(long flagsSelect, VA
     bool res = false;
 
 /*
-  ### Check for accessibleTableInterface() or accessibleTextInterface()
+  // Check for accessibleTableInterface() or accessibleTextInterface()
+  // and if there are no ia2 interfaces we should do nothing??
 
-  ### and if there are no ia2 interfaces we should do nothing??
     if (flagsSelect & SELFLAG_TAKEFOCUS)
         res = accessible()->doAction(SetFocus, varID.lVal, QVariantList());
+
     if (flagsSelect & SELFLAG_TAKESELECTION) {
         accessible()->doAction(ClearSelection, 0, QVariantList());
         res = accessible()->doAction(AddToSelection, varID.lVal, QVariantList());
     }
+
     if (flagsSelect & SELFLAG_EXTENDSELECTION)
         res = accessible()->doAction(ExtendSelection, varID.lVal, QVariantList());
     if (flagsSelect & SELFLAG_ADDSELECTION)
@@ -1114,25 +1087,16 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::accSelect(long flagsSelect, VA
     if (flagsSelect & SELFLAG_REMOVESELECTION)
         res = accessible()->doAction(RemoveSelection, varID.lVal, QVariantList());
 */
+
     return res ? S_OK : S_FALSE;
 }
 
-/*!
-    \internal
-    Can return:
 
-  +-------------+------------------------------------------------------------------------------+
-  | VT_EMPTY    | None. Neither this object nor any of its children has the keyboard focus.    |
-  +-------------+------------------------------------------------------------------------------+
-  | VT_I4       | lVal is CHILDID_SELF. The object itself has the keyboard focus.              |
-  +-------------+------------------------------------------------------------------------------+
-  | VT_I4       | lVal contains the child ID of the child element that has the keyboard focus. |
-  +-------------+------------------------------------------------------------------------------+
-  | VT_DISPATCH | pdispVal member is the address of the IDispatch interface for the child      |
-  |             | object that has the keyboard focus.                                          |
-  +-------------+------------------------------------------------------------------------------+
-    moz: [important]
-*/
+//  VT_EMPTY    - None. Neither this object nor any of its children has the keyboard focus.
+//  VT_I4       - lVal is CHILDID_SELF. The object itself has the keyboard focus.
+//  VT_I4       - lVal contains the child ID of the child element that has the keyboard focus.
+//  VT_DISPATCH - pdispVal member is the address of the IDispatch interface for the child object that has the keyboard focus.
+
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accFocus(VARIANT *pvarID)
 {
     QAccessibleInterface *accessible = accessibleInterface();
@@ -1204,9 +1168,7 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::get_accSelection(VARIANT *pvar
     return S_OK;
 }
 
-/**************************************************************\
- *                         IOleWindow                          *
- **************************************************************/
+// IOleWindow
 HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::GetWindow(HWND *phwnd)
 {
     *phwnd = nullptr;
@@ -1227,8 +1189,8 @@ HRESULT STDMETHODCALLTYPE QWindowsMsaaAccessible::GetWindow(HWND *phwnd)
 
     *phwnd = (HWND)platform->nativeResourceForWindow("handle", window);
 
-#if defined(CS_SHOW_DEBUG)
-    qDebug() << "QWindowsAccessible::GetWindow(): " << *phwnd;
+#if defined(CS_SHOW_DEBUG_PLATFORM)
+    qDebug() << "QWindowsAccessible::GetWindow() handle = " << *phwnd;
 #endif
 
     return S_OK;

@@ -875,7 +875,7 @@ bool QSslSocketBackendPrivate::initSslContext()
 {
    Q_Q(QSslSocket);
 
-   Q_ASSERT_X(!context, Q_FUNC_INFO, "invalid socket state, context is not null");
+   Q_ASSERT_X(!context, "QSslSocketBackendPrivate::initSslContext()", "Invalid socket state, context is not null");
    Q_ASSERT(plainSocket);
 
    context.reset(qt_createSecureTransportContext(mode));
@@ -967,7 +967,7 @@ static QByteArray _q_makePkcs12(const QList<QSslCertificate> &certs, const QSslK
 
 bool QSslSocketBackendPrivate::setSessionCertificate(QString &errorDescription, QAbstractSocket::SocketError &errorCode)
 {
-   Q_ASSERT_X(context, Q_FUNC_INFO, "invalid SSL context (null)");
+   Q_ASSERT_X(context, "QSslSocketBackendPrivate::setSessionCertificate()", "Invalid SSL context (null)");
 
    QSslCertificate localCertificate;
    if (!configuration.localCertificateChain.isEmpty()) {
@@ -1047,7 +1047,7 @@ bool QSslSocketBackendPrivate::setSessionCertificate(QString &errorDescription, 
 
 bool QSslSocketBackendPrivate::setSessionProtocol()
 {
-   Q_ASSERT_X(context, Q_FUNC_INFO, "invalid SSL context (null)");
+   Q_ASSERT_X(context, "QSslSocketBackendPrivate::setSessionProtocol()", "Invalid SSL context (null)");
 
    // QSsl::SslV2 == kSSLProtocol2 is disabled in secure transport and
    // always fails with errSSLIllegalParam:
@@ -1056,7 +1056,11 @@ bool QSslSocketBackendPrivate::setSessionProtocol()
    // where MINIMUM_STREAM_VERSION is SSL_Version_3_0, MAXIMUM_STREAM_VERSION is TLS_Version_1_2.
 
    if (configuration.protocol == QSsl::SslV2) {
+
+#if defined(CS_SHOW_DEBUG_NETWORK)
       qDebug() << "protocol QSsl::SslV2 is disabled";
+#endif
+
       return false;
    }
 
@@ -1097,7 +1101,7 @@ bool QSslSocketBackendPrivate::verifyPeerTrust()
    const QSslSocket::PeerVerifyMode verifyMode = configuration.peerVerifyMode;
    const bool canIgnoreVerify = canIgnoreTrustVerificationFailure();
 
-   Q_ASSERT_X(context, Q_FUNC_INFO, "invalid SSL context (null)");
+   Q_ASSERT_X(context, "QSslSocketBackendPrivate::verifyPeerTrust()", "Invalid SSL context (null)");
    Q_ASSERT(plainSocket);
 
    QCFType<SecTrustRef> trust;
@@ -1319,13 +1323,16 @@ bool QSslSocketBackendPrivate::startHandshake()
 
    // Connection aborted during handshake phase.
    if (q->state() != QAbstractSocket::ConnectedState) {
+#if defined(CS_SHOW_DEBUG_NETWORK)
       qDebug() << "Connection aborted";
+#endif
+
       return false;
    }
 
    // check protocol version ourselves, as Secure Transport does not enforce
    // the requested min / max versions.
-   if (!verifySessionProtocol()) {
+   if (! verifySessionProtocol()) {
       setErrorAndEmit(QAbstractSocket::SslHandshakeFailedError, "Protocol version mismatch");
       plainSocket->disconnectFromHost();
       return false;

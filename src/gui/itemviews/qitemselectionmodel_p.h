@@ -34,10 +34,10 @@ class QItemSelectionModelPrivate
    QItemSelectionModelPrivate()
       : model(nullptr), currentCommand(QItemSelectionModel::NoUpdate),
         tableSelected(false), tableColCount(0), tableRowCount(0)
-   {
-   }
+   { }
 
-   virtual ~QItemSelectionModelPrivate() {}
+   virtual ~QItemSelectionModelPrivate()
+   { }
 
    QItemSelection expandSelection(const QItemSelection &selection, QItemSelectionModel::SelectionFlags command) const;
 
@@ -47,21 +47,26 @@ class QItemSelectionModelPrivate
    void _q_columnsAboutToBeRemoved(const QModelIndex &parent, int start, int end);
    void _q_rowsAboutToBeInserted(const QModelIndex &parent, int start, int end);
    void _q_columnsAboutToBeInserted(const QModelIndex &parent, int start, int end);
+
    void _q_layoutAboutToBeChanged(const QList<QPersistentModelIndex> &parents = QList<QPersistentModelIndex>(),
       QAbstractItemModel::LayoutChangeHint hint = QAbstractItemModel::NoLayoutChangeHint);
+
    void _q_layoutChanged(const QList<QPersistentModelIndex> &parents = QList<QPersistentModelIndex>(),
       QAbstractItemModel::LayoutChangeHint hint = QAbstractItemModel::NoLayoutChangeHint);
 
-   inline void remove(QList<QItemSelectionRange> &r) {
+   void remove(QList<QItemSelectionRange> &r) {
       QList<QItemSelectionRange>::const_iterator it = r.constBegin();
+
       for (; it != r.constEnd(); ++it) {
          ranges.removeAll(*it);
       }
    }
 
-   inline void finalize() {
+   void finalize() {
       ranges.merge(currentSelection, currentCommand);
-      if (!currentSelection.isEmpty()) { // ### perhaps this should be in QList
+
+      if (! currentSelection.isEmpty()) {
+         // ### perhaps this should be in QList
          currentSelection.clear();
       }
    }
@@ -87,6 +92,5 @@ class QItemSelectionModelPrivate
 };
 
 #endif // QT_NO_ITEMVIEWS
-
 
 #endif // QITEMSELECTIONMODEL_P_H

@@ -22,11 +22,10 @@
 ***********************************************************************/
 
 #include <qlocalserver.h>
-#include <qlocalserver_p.h>
-
 #include <qlocalsocket.h>
 #include <qtemporarydir.h>
 
+#include <qlocalserver_p.h>
 #include <qlocalsocket_p.h>
 #include <qnet_unix_p.h>
 
@@ -266,7 +265,7 @@ void QLocalServerPrivate::_q_onNewConnection()
 {
    Q_Q(QLocalServer);
 
-   if (listenSocket != -1) {
+   if (listenSocket == -1) {
       return;
    }
 
@@ -342,8 +341,8 @@ void QLocalServerPrivate::setError(const QString &function)
          errorString = QLocalServer::tr("%1: Unknown error %2").formatArg(function).formatArg(errno);
          error = QAbstractSocket::UnknownSocketError;
 
-#if defined QLOCALSERVER_DEBUG
-         qWarning() << errorString << "fullServerName:" << fullServerName;
+#if defined(CS_SHOW_DEBUG_NETWORK)
+         qDebug() << "QLocalServer::setError() Server Name = " << fullServerName << "Error = " << errorString;
 #endif
    }
 }

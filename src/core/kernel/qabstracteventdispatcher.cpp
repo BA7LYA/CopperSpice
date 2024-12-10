@@ -22,26 +22,25 @@
 ***********************************************************************/
 
 #include <qabstracteventdispatcher.h>
+#include <qabstracteventdispatcher_p.h>
 
 #include <qabstractnativeeventfilter.h>
 #include <qthread.h>
 
-#include <qabstracteventdispatcher_p.h>
 #include <qcoreapplication_p.h>
 #include <qfreelist_p.h>
 #include <qthread_p.h>
 
 // we allow for 2^24 = 8^8 = 16777216 simultaneously running timers
-struct QtTimerIdFreeListConstants : public QFreeListDefaultConstants {
-   enum {
-      InitialNextValue = 1,
-      BlockCount = 6
-   };
+struct QtTimerIdFreeListConstants : public QFreeListDefaultConstants
+{
+   static constexpr const int InitialNextValue = 1;
+   static constexpr const int BlockCount       = 6;
 
    static const int Sizes[BlockCount];
 };
 
-enum {
+enum TimerOffset {
    Offset0 = 0x00000000,
    Offset1 = 0x00000040,
    Offset2 = 0x00000100,
@@ -93,7 +92,6 @@ QAbstractEventDispatcher::QAbstractEventDispatcher(QObject *parent)
    d_ptr->q_ptr = this;
 }
 
-// internal
 QAbstractEventDispatcher::QAbstractEventDispatcher(QAbstractEventDispatcherPrivate &dd, QObject *parent)
    : QObject(parent), d_ptr(&dd)
 {
@@ -118,13 +116,11 @@ int QAbstractEventDispatcher::registerTimer(int interval, Qt::TimerType timerTyp
    return id;
 }
 
-// ### Are these called when the _application_ starts/stops or just when the current _event loop_ starts/stops?
+// ### are these called when the _application_ starts/stops or just when the current _event loop_ starts/stops?
 
-// internal
 void QAbstractEventDispatcher::startingUp()
 { }
 
-// internal
 void QAbstractEventDispatcher::closingDown()
 { }
 

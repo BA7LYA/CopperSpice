@@ -27,14 +27,14 @@
 #include <qpainterpath.h>
 #include <qvector.h>
 
-#include <qpaintengineex_p.h>
 #include <qdrawhelper_p.h>
+#include <qoutlinemapper_p.h>
 #include <qpaintengine_p.h>
+#include <qpaintengineex_p.h>
+#include <qpainter_p.h>
 #include <qrasterizer_p.h>
 #include <qstroker_p.h>
-#include <qpainter_p.h>
 #include <qtextureglyphcache_p.h>
-#include <qoutlinemapper_p.h>
 
 #include <stdlib.h>
 
@@ -116,11 +116,11 @@ class Q_GUI_EXPORT QRasterPaintEngine : public QPaintEngineEx
    void setState(QPainterState *s) override;
    QPainterState *createState(QPainterState *orig) const override;
 
-   inline QRasterPaintEngineState *state() {
+   QRasterPaintEngineState *state() {
       return static_cast<QRasterPaintEngineState *>(QPaintEngineEx::state());
    }
 
-   inline const QRasterPaintEngineState *state() const {
+   const QRasterPaintEngineState *state() const {
       return static_cast<const QRasterPaintEngineState *>(QPaintEngineEx::state());
    }
 
@@ -219,23 +219,23 @@ class Q_GUI_EXPORT QRasterPaintEngine : public QPaintEngineEx
    bool setClipRectInDeviceCoords(const QRect &r, Qt::ClipOperation op);
    QRect toNormalizedFillRect(const QRectF &rect);
 
-   inline void ensureBrush(const QBrush &brush) {
+   void ensureBrush(const QBrush &brush) {
       if (! qbrush_fast_equals(state()->lastBrush, brush) || state()->fillFlags) {
          updateBrush(brush);
       }
    }
 
-   inline void ensureBrush() {
+   void ensureBrush() {
       ensureBrush(state()->brush);
    }
 
-   inline void ensurePen(const QPen &pen) {
+   void ensurePen(const QPen &pen) {
       if (! qpen_fast_equals(state()->lastPen, pen) || (pen.style() != Qt::NoPen && state()->strokeFlags)) {
          updatePen(pen);
       }
    }
 
-   inline void ensurePen() {
+   void ensurePen() {
       ensurePen(state()->pen);
    }
 
@@ -243,7 +243,7 @@ class Q_GUI_EXPORT QRasterPaintEngine : public QPaintEngineEx
    inline void ensureOutlineMapper();
 
    void updateRasterState();
-   inline void ensureRasterState() {
+   void ensureRasterState() {
       if (state()->dirty) {
          updateRasterState();
       }
@@ -264,7 +264,7 @@ class QRasterPaintEnginePrivate : public QPaintEngineExPrivate
    void rasterize(QT_FT_Outline *outline, ProcessSpans callback, void *userData, QRasterBuffer *rasterBuffer);
    void updateMatrixData(QSpanData *spanData, const QBrush &brush, const QTransform &brushMatrix);
 
-   void systemStateChanged();
+   void systemStateChanged() override;
 
    void drawImage(const QPointF &pt, const QImage &img, SrcOverBlendFunc func,
       const QRect &clip, int alpha, const QRect &sr = QRect());
@@ -338,14 +338,14 @@ class QClipData
 
    void initialize();
 
-   inline ClipLine *clipLines() {
+   ClipLine *clipLines() {
       if (! m_clipLines) {
          initialize();
       }
       return m_clipLines;
    }
 
-   inline QSpan *spans() {
+   QSpan *spans() {
       if (! m_spans) {
          initialize();
       }
@@ -432,10 +432,6 @@ class QRasterBuffer
       return m_buffer + y * bytes_per_line;
    }
 
-#if defined(QT_DEBUG)
-   QImage bufferImage() const;
-#endif
-
    void flushToARGBImage(QImage *image) const;
 
    int width() const {
@@ -485,6 +481,7 @@ inline void QRasterPaintEngine::ensureOutlineMapper()
 inline const QClipData *QRasterPaintEnginePrivate::clip() const
 {
    Q_Q(const QRasterPaintEngine);
+
    if (q->state() && q->state()->clip && q->state()->clip->enabled) {
       return q->state()->clip;
    }
@@ -494,6 +491,7 @@ inline const QClipData *QRasterPaintEnginePrivate::clip() const
 inline const QClipData *QRasterPaintEngine::clipData() const
 {
    Q_D(const QRasterPaintEngine);
+
    if (state() && state()->clip && state()->clip->enabled) {
       return state()->clip;
    }

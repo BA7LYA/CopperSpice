@@ -22,15 +22,16 @@
 ***********************************************************************/
 
 #include <qnetwork_request.h>
-#include <qnetwork_request_p.h>
 
-#include <qlocale.h>
 #include <qdatetime.h>
+#include <qlocale.h>
 #include <qnetwork_cookie.h>
 #include <qplatformdefs.h>
-#include <qsslconfiguration.h>
 #include <qshareddata.h>
+#include <qsslconfiguration.h>
 #include <qtimezone.h>
+
+#include <qnetwork_request_p.h>
 
 #include <ctype.h>
 #include <stdio.h>
@@ -38,17 +39,19 @@
 class QNetworkRequestPrivate: public QSharedData, public QNetworkHeadersPrivate
 {
  public:
-   static const int maxRedirectCount = 50;
+   static constexpr const int maxRedirectCount = 50;
 
    QNetworkRequestPrivate()
-      : priority(QNetworkRequest::NormalPriority)
+      : priority(QNetworkRequest::NormalPriority),
+
 #ifdef QT_SSL
-      , sslConfiguration(nullptr)
+        sslConfiguration(nullptr),
 #endif
-      , maxRedirectsAllowed(maxRedirectCount)
+        maxRedirectsAllowed(maxRedirectCount)
    { }
 
-   ~QNetworkRequestPrivate() {
+   ~QNetworkRequestPrivate()
+   {
 
 #ifdef QT_SSL
       delete sslConfiguration;
@@ -69,12 +72,10 @@ class QNetworkRequestPrivate: public QSharedData, public QNetworkHeadersPrivate
 #endif
    }
 
-   inline bool operator==(const QNetworkRequestPrivate &other) const {
-      return url == other.url &&
-             priority == other.priority &&
-             rawHeaders == other.rawHeaders &&
-             attributes == other.attributes &&
-             maxRedirectsAllowed == other.maxRedirectsAllowed;
+   bool operator==(const QNetworkRequestPrivate &other) const {
+      return url == other.url && priority == other.priority && rawHeaders == other.rawHeaders &&
+            attributes == other.attributes && maxRedirectsAllowed == other.maxRedirectsAllowed;
+
       // do not compare cookedHeaders
    }
 
@@ -503,14 +504,6 @@ void QNetworkHeadersPrivate::setRawHeader(const QByteArray &key, const QByteArra
    parseAndSetHeader(key, value);
 }
 
-/*!
-    \internal
-    Sets the internal raw headers list to match \a list. The cooked headers
-    will also be updated.
-
-    If \a list contains duplicates, they will be stored, but only the first one
-    is usually accessed.
-*/
 void QNetworkHeadersPrivate::setAllRawHeaders(const RawHeadersList &list)
 {
    cookedHeaders.clear();

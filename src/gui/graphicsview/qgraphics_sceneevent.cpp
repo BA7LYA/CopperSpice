@@ -25,29 +25,25 @@
 
 #ifndef QT_NO_GRAPHICSVIEW
 
-#if defined(QT_DEBUG)
-#include <qdebug.h>
-#endif
-
+#include <qgesture.h>
+#include <qgraphicsitem.h>
+#include <qgraphicsview.h>
 #include <qmap.h>
 #include <qpoint.h>
 #include <qsize.h>
 #include <qstring.h>
-#include <qgraphicsview.h>
-#include <qgraphicsitem.h>
-#include <qgesture.h>
+
 #include <qevent_p.h>
 
 class QGraphicsSceneEventPrivate
 {
  public:
-   inline QGraphicsSceneEventPrivate()
+   QGraphicsSceneEventPrivate()
       : widget(nullptr), q_ptr(nullptr)
-   {
-   }
+   { }
 
-   inline virtual ~QGraphicsSceneEventPrivate() {
-   }
+   virtual ~QGraphicsSceneEventPrivate()
+   { }
 
    QWidget *widget;
    QGraphicsSceneEvent *q_ptr;
@@ -74,7 +70,6 @@ QWidget *QGraphicsSceneEvent::widget() const
    return d_ptr->widget;
 }
 
-// internal
 void QGraphicsSceneEvent::setWidget(QWidget *widget)
 {
    d_ptr->widget = widget;
@@ -85,7 +80,7 @@ class QGraphicsSceneMouseEventPrivate : public QGraphicsSceneEventPrivate
    Q_DECLARE_PUBLIC(QGraphicsSceneMouseEvent)
 
  public:
-   inline QGraphicsSceneMouseEventPrivate()
+   QGraphicsSceneMouseEventPrivate()
       : button(Qt::NoButton), buttons(Qt::EmptyFlag), modifiers(Qt::EmptyFlag),
         source(Qt::MouseEventNotSynthesized), flags(Qt::EmptyFlag)
    { }
@@ -107,7 +102,6 @@ class QGraphicsSceneMouseEventPrivate : public QGraphicsSceneEventPrivate
    Qt::MouseEventFlags flags;
 };
 
-// internal
 QGraphicsSceneMouseEvent::QGraphicsSceneMouseEvent(Type type)
    : QGraphicsSceneEvent(*new QGraphicsSceneMouseEventPrivate, type)
 {
@@ -123,7 +117,6 @@ QPointF QGraphicsSceneMouseEvent::pos() const
    return d->pos;
 }
 
-// internal
 void QGraphicsSceneMouseEvent::setPos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneMouseEvent);
@@ -136,7 +129,6 @@ QPointF QGraphicsSceneMouseEvent::scenePos() const
    return d->scenePos;
 }
 
-// internal (cs)
 void QGraphicsSceneMouseEvent::setScenePos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneMouseEvent);
@@ -149,7 +141,6 @@ QPoint QGraphicsSceneMouseEvent::screenPos() const
    return d->screenPos;
 }
 
-// internal (cs)
 void QGraphicsSceneMouseEvent::setScreenPos(const QPoint &pos)
 {
    Q_D(QGraphicsSceneMouseEvent);
@@ -162,7 +153,6 @@ QPointF QGraphicsSceneMouseEvent::buttonDownPos(Qt::MouseButton button) const
    return d->buttonDownPos.value(button);
 }
 
-// internal (cs)
 void QGraphicsSceneMouseEvent::setButtonDownPos(Qt::MouseButton button, const QPointF &pos)
 {
    Q_D(QGraphicsSceneMouseEvent);
@@ -175,13 +165,11 @@ QPointF QGraphicsSceneMouseEvent::buttonDownScenePos(Qt::MouseButton button) con
    return d->buttonDownScenePos.value(button);
 }
 
-// internal (cs)
 void QGraphicsSceneMouseEvent::setButtonDownScenePos(Qt::MouseButton button, const QPointF &pos)
 {
    Q_D(QGraphicsSceneMouseEvent);
    d->buttonDownScenePos.insert(button, pos);
 }
-
 
 QPoint QGraphicsSceneMouseEvent::buttonDownScreenPos(Qt::MouseButton button) const
 {
@@ -189,7 +177,6 @@ QPoint QGraphicsSceneMouseEvent::buttonDownScreenPos(Qt::MouseButton button) con
    return d->buttonDownScreenPos.value(button);
 }
 
-// internal (cs)
 void QGraphicsSceneMouseEvent::setButtonDownScreenPos(Qt::MouseButton button, const QPoint &pos)
 {
    Q_D(QGraphicsSceneMouseEvent);
@@ -202,7 +189,6 @@ QPointF QGraphicsSceneMouseEvent::lastPos() const
    return d->lastPos;
 }
 
-// internal (cs)
 void QGraphicsSceneMouseEvent::setLastPos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneMouseEvent);
@@ -215,7 +201,6 @@ QPointF QGraphicsSceneMouseEvent::lastScenePos() const
    return d->lastScenePos;
 }
 
-// internal (cs)
 void QGraphicsSceneMouseEvent::setLastScenePos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneMouseEvent);
@@ -228,7 +213,6 @@ QPoint QGraphicsSceneMouseEvent::lastScreenPos() const
    return d->lastScreenPos;
 }
 
-// internal (cs)
 void QGraphicsSceneMouseEvent::setLastScreenPos(const QPoint &pos)
 {
    Q_D(QGraphicsSceneMouseEvent);
@@ -241,7 +225,6 @@ Qt::MouseButtons QGraphicsSceneMouseEvent::buttons() const
    return d->buttons;
 }
 
-// internal
 void QGraphicsSceneMouseEvent::setButtons(Qt::MouseButtons buttons)
 {
    Q_D(QGraphicsSceneMouseEvent);
@@ -254,7 +237,6 @@ Qt::MouseButton QGraphicsSceneMouseEvent::button() const
    return d->button;
 }
 
-// internal
 void QGraphicsSceneMouseEvent::setButton(Qt::MouseButton button)
 {
    Q_D(QGraphicsSceneMouseEvent);
@@ -316,7 +298,6 @@ class QGraphicsSceneWheelEventPrivate : public QGraphicsSceneEventPrivate
    Qt::Orientation orientation;
 };
 
-// internal
 QGraphicsSceneWheelEvent::QGraphicsSceneWheelEvent(Type type)
    : QGraphicsSceneEvent(*new QGraphicsSceneWheelEventPrivate, type)
 {
@@ -332,7 +313,6 @@ QPointF QGraphicsSceneWheelEvent::pos() const
    return d->pos;
 }
 
-// internal
 void QGraphicsSceneWheelEvent::setPos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneWheelEvent);
@@ -345,7 +325,6 @@ QPointF QGraphicsSceneWheelEvent::scenePos() const
    return d->scenePos;
 }
 
-// internal (cs)
 void QGraphicsSceneWheelEvent::setScenePos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneWheelEvent);
@@ -358,7 +337,6 @@ QPoint QGraphicsSceneWheelEvent::screenPos() const
    return d->screenPos;
 }
 
-// internal (cs)
 void QGraphicsSceneWheelEvent::setScreenPos(const QPoint &pos)
 {
    Q_D(QGraphicsSceneWheelEvent);
@@ -371,7 +349,6 @@ Qt::MouseButtons QGraphicsSceneWheelEvent::buttons() const
    return d->buttons;
 }
 
-// internal (cs)
 void QGraphicsSceneWheelEvent::setButtons(Qt::MouseButtons buttons)
 {
    Q_D(QGraphicsSceneWheelEvent);
@@ -384,7 +361,6 @@ Qt::KeyboardModifiers QGraphicsSceneWheelEvent::modifiers() const
    return d->modifiers;
 }
 
-// internal (cs)
 void QGraphicsSceneWheelEvent::setModifiers(Qt::KeyboardModifiers modifiers)
 {
    Q_D(QGraphicsSceneWheelEvent);
@@ -397,7 +373,6 @@ int QGraphicsSceneWheelEvent::delta() const
    return d->delta;
 }
 
-// internal
 void QGraphicsSceneWheelEvent::setDelta(int delta)
 {
    Q_D(QGraphicsSceneWheelEvent);
@@ -410,7 +385,6 @@ Qt::Orientation QGraphicsSceneWheelEvent::orientation() const
    return d->orientation;
 }
 
-// internal
 void QGraphicsSceneWheelEvent::setOrientation(Qt::Orientation orientation)
 {
    Q_D(QGraphicsSceneWheelEvent);
@@ -434,7 +408,6 @@ class QGraphicsSceneContextMenuEventPrivate : public QGraphicsSceneEventPrivate
    QGraphicsSceneContextMenuEvent::Reason reason;
 };
 
-// internal
 QGraphicsSceneContextMenuEvent::QGraphicsSceneContextMenuEvent(Type type)
    : QGraphicsSceneEvent(*new QGraphicsSceneContextMenuEventPrivate, type)
 {
@@ -462,7 +435,6 @@ QPointF QGraphicsSceneContextMenuEvent::scenePos() const
    return d->scenePos;
 }
 
-// internal (cs)
 void QGraphicsSceneContextMenuEvent::setScenePos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneContextMenuEvent);
@@ -475,7 +447,6 @@ QPoint QGraphicsSceneContextMenuEvent::screenPos() const
    return d->screenPos;
 }
 
-// internal (cs)
 void QGraphicsSceneContextMenuEvent::setScreenPos(const QPoint &pos)
 {
    Q_D(QGraphicsSceneContextMenuEvent);
@@ -488,7 +459,6 @@ Qt::KeyboardModifiers QGraphicsSceneContextMenuEvent::modifiers() const
    return d->modifiers;
 }
 
-// internal (cs)
 void QGraphicsSceneContextMenuEvent::setModifiers(Qt::KeyboardModifiers modifiers)
 {
    Q_D(QGraphicsSceneContextMenuEvent);
@@ -501,7 +471,6 @@ QGraphicsSceneContextMenuEvent::Reason QGraphicsSceneContextMenuEvent::reason() 
    return d->reason;
 }
 
-// internal (cs)
 void QGraphicsSceneContextMenuEvent::setReason(Reason reason)
 {
    Q_D(QGraphicsSceneContextMenuEvent);
@@ -520,7 +489,6 @@ class QGraphicsSceneHoverEventPrivate : public QGraphicsSceneEventPrivate
    Qt::KeyboardModifiers modifiers;
 };
 
-// internal (cs)
 QGraphicsSceneHoverEvent::QGraphicsSceneHoverEvent(Type type)
    : QGraphicsSceneEvent(*new QGraphicsSceneHoverEventPrivate, type)
 {
@@ -548,7 +516,6 @@ QPointF QGraphicsSceneHoverEvent::scenePos() const
    return d->scenePos;
 }
 
-// internal (cs)
 void QGraphicsSceneHoverEvent::setScenePos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneHoverEvent);
@@ -561,7 +528,6 @@ QPoint QGraphicsSceneHoverEvent::screenPos() const
    return d->screenPos;
 }
 
-// internal (cs)
 void QGraphicsSceneHoverEvent::setScreenPos(const QPoint &pos)
 {
    Q_D(QGraphicsSceneHoverEvent);
@@ -574,9 +540,6 @@ QPointF QGraphicsSceneHoverEvent::lastPos() const
    return d->lastPos;
 }
 
-/*!
-    \internal
-*/
 void QGraphicsSceneHoverEvent::setLastPos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneHoverEvent);
@@ -589,9 +552,6 @@ QPointF QGraphicsSceneHoverEvent::lastScenePos() const
    return d->lastScenePos;
 }
 
-/*!
-    \internal
-*/
 void QGraphicsSceneHoverEvent::setLastScenePos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneHoverEvent);
@@ -604,9 +564,6 @@ QPoint QGraphicsSceneHoverEvent::lastScreenPos() const
    return d->lastScreenPos;
 }
 
-/*!
-    \internal
-*/
 void QGraphicsSceneHoverEvent::setLastScreenPos(const QPoint &pos)
 {
    Q_D(QGraphicsSceneHoverEvent);
@@ -632,7 +589,6 @@ class QGraphicsSceneHelpEventPrivate : public QGraphicsSceneEventPrivate
    QPoint screenPos;
 };
 
-// internal
 QGraphicsSceneHelpEvent::QGraphicsSceneHelpEvent(Type type)
    : QGraphicsSceneEvent(*new QGraphicsSceneHelpEventPrivate, type)
 {
@@ -648,7 +604,6 @@ QPointF QGraphicsSceneHelpEvent::scenePos() const
    return d->scenePos;
 }
 
-// internal (cs)
 void QGraphicsSceneHelpEvent::setScenePos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneHelpEvent);
@@ -661,7 +616,6 @@ QPoint QGraphicsSceneHelpEvent::screenPos() const
    return d->screenPos;
 }
 
-// internal (cs)
 void QGraphicsSceneHelpEvent::setScreenPos(const QPoint &pos)
 {
    Q_D(QGraphicsSceneHelpEvent);
@@ -673,7 +627,7 @@ class QGraphicsSceneDragDropEventPrivate : public QGraphicsSceneEventPrivate
    Q_DECLARE_PUBLIC(QGraphicsSceneDragDropEvent)
 
  public:
-   inline QGraphicsSceneDragDropEventPrivate()
+   QGraphicsSceneDragDropEventPrivate()
       : source(nullptr), mimeData(nullptr)
    {
    }
@@ -690,7 +644,6 @@ class QGraphicsSceneDragDropEventPrivate : public QGraphicsSceneEventPrivate
    const QMimeData *mimeData;
 };
 
-// internal
 QGraphicsSceneDragDropEvent::QGraphicsSceneDragDropEvent(Type type)
    : QGraphicsSceneEvent(*new QGraphicsSceneDragDropEventPrivate, type)
 {
@@ -706,7 +659,6 @@ QPointF QGraphicsSceneDragDropEvent::pos() const
    return d->pos;
 }
 
-// internal
 void QGraphicsSceneDragDropEvent::setPos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneDragDropEvent);
@@ -719,7 +671,6 @@ QPointF QGraphicsSceneDragDropEvent::scenePos() const
    return d->scenePos;
 }
 
-// internal (cs)
 void QGraphicsSceneDragDropEvent::setScenePos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneDragDropEvent);
@@ -732,7 +683,6 @@ QPoint QGraphicsSceneDragDropEvent::screenPos() const
    return d->screenPos;
 }
 
-// internal (cs)
 void QGraphicsSceneDragDropEvent::setScreenPos(const QPoint &pos)
 {
    Q_D(QGraphicsSceneDragDropEvent);
@@ -745,7 +695,6 @@ Qt::MouseButtons QGraphicsSceneDragDropEvent::buttons() const
    return d->buttons;
 }
 
-// internal
 void QGraphicsSceneDragDropEvent::setButtons(Qt::MouseButtons buttons)
 {
    Q_D(QGraphicsSceneDragDropEvent);
@@ -758,7 +707,6 @@ Qt::KeyboardModifiers QGraphicsSceneDragDropEvent::modifiers() const
    return d->modifiers;
 }
 
-// internal
 void QGraphicsSceneDragDropEvent::setModifiers(Qt::KeyboardModifiers modifiers)
 {
    Q_D(QGraphicsSceneDragDropEvent);
@@ -771,7 +719,6 @@ Qt::DropActions QGraphicsSceneDragDropEvent::possibleActions() const
    return d->possibleActions;
 }
 
-// internal
 void QGraphicsSceneDragDropEvent::setPossibleActions(Qt::DropActions actions)
 {
    Q_D(QGraphicsSceneDragDropEvent);
@@ -783,8 +730,6 @@ Qt::DropAction QGraphicsSceneDragDropEvent::proposedAction() const
    Q_D(const QGraphicsSceneDragDropEvent);
    return d->proposedAction;
 }
-
-// internal
 
 void QGraphicsSceneDragDropEvent::setProposedAction(Qt::DropAction action)
 {
@@ -816,7 +761,6 @@ QWidget *QGraphicsSceneDragDropEvent::source() const
    return d->source;
 }
 
-// internal
 void QGraphicsSceneDragDropEvent::setSource(QWidget *source)
 {
    Q_D(QGraphicsSceneDragDropEvent);
@@ -829,7 +773,6 @@ const QMimeData *QGraphicsSceneDragDropEvent::mimeData() const
    return d->mimeData;
 }
 
-// internal
 void QGraphicsSceneDragDropEvent::setMimeData(const QMimeData *data)
 {
    Q_D(QGraphicsSceneDragDropEvent);
@@ -841,7 +784,7 @@ class QGraphicsSceneResizeEventPrivate : public QGraphicsSceneEventPrivate
    Q_DECLARE_PUBLIC(QGraphicsSceneResizeEvent)
 
  public:
-   inline QGraphicsSceneResizeEventPrivate() {
+   QGraphicsSceneResizeEventPrivate() {
    }
 
    QSizeF oldSize;
@@ -863,7 +806,6 @@ QSizeF QGraphicsSceneResizeEvent::oldSize() const
    return d->oldSize;
 }
 
-// internal
 void QGraphicsSceneResizeEvent::setOldSize(const QSizeF &size)
 {
    Q_D(QGraphicsSceneResizeEvent);
@@ -876,7 +818,6 @@ QSizeF QGraphicsSceneResizeEvent::newSize() const
    return d->newSize;
 }
 
-// internal
 void QGraphicsSceneResizeEvent::setNewSize(const QSizeF &size)
 {
    Q_D(QGraphicsSceneResizeEvent);
@@ -888,7 +829,7 @@ class QGraphicsSceneMoveEventPrivate : public QGraphicsSceneEventPrivate
    Q_DECLARE_PUBLIC(QGraphicsSceneMoveEvent)
 
  public:
-   inline QGraphicsSceneMoveEventPrivate() {
+   QGraphicsSceneMoveEventPrivate() {
    }
 
    QPointF oldPos;
@@ -910,7 +851,6 @@ QPointF QGraphicsSceneMoveEvent::oldPos() const
    return d->oldPos;
 }
 
-// internal
 void QGraphicsSceneMoveEvent::setOldPos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneMoveEvent);
@@ -923,7 +863,6 @@ QPointF QGraphicsSceneMoveEvent::newPos() const
    return d->newPos;
 }
 
-// internal
 void QGraphicsSceneMoveEvent::setNewPos(const QPointF &pos)
 {
    Q_D(QGraphicsSceneMoveEvent);

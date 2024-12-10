@@ -22,29 +22,28 @@
 ***********************************************************************/
 
 #include <qfont.h>
-#include <qdebug.h>
-#include <qpaintdevice.h>
-#include <qfontdatabase.h>
-#include <qfontmetrics.h>
-#include <qfontinfo.h>
-#include <qpainter.h>
-#include <qhash.h>
-#include <qdatastream.h>
-#include <qapplication.h>
-#include <qstringlist.h>
-#include <qscreen.h>
+#include <qfont_p.h>
 
+#include <qapplication.h>
+#include <qdatastream.h>
+#include <qdebug.h>
+#include <qfontdatabase.h>
+#include <qfontinfo.h>
+#include <qfontmetrics.h>
+#include <qhash.h>
+#include <qmutex.h>
+#include <qmutexlocker.h>
+#include <qpaintdevice.h>
+#include <qpainter.h>
+#include <qplatform_fontdatabase.h>
+#include <qplatform_integration.h>
+#include <qplatform_screen.h>
+#include <qscreen.h>
+#include <qstringlist.h>
 #include <qthread.h>
 #include <qthreadstorage.h>
-#include <qplatform_screen.h>
-#include <qplatform_integration.h>
-#include <qplatform_fontdatabase.h>
-
-#include <qmutexlocker.h>
-#include <qmutex.h>
 
 #include <qapplication_p.h>
-#include <qfont_p.h>
 #include <qfontengine_p.h>
 #include <qpainter_p.h>
 #include <qtextengine_p.h>
@@ -52,36 +51,40 @@
 
 #include <limits.h>
 
-#ifdef QFONTCACHE_DEBUG
-#  define FC_DEBUG qDebug
-#else
-#  define FC_DEBUG if (false) qDebug
-#endif
+static constexpr const uint MinCacheSize = 4 * 1024;        // 4 mb
 
 #ifndef QFONTCACHE_DECREASE_TRIGGER_LIMIT
 #  define QFONTCACHE_DECREASE_TRIGGER_LIMIT 256
 #endif
 
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+// fast timeouts for debugging
+static constexpr const int fast_timeout =   1000;  // 1s
+static constexpr const int slow_timeout =   5000;  // 5s
+
+#else
+static constexpr const int fast_timeout =  10000;  // 10s
+static constexpr const int slow_timeout = 300000;  //  5m
+
+#endif
+
 bool QFontDef::exactMatch(const QFontDef &other) const
 {
    /*
-     QFontDef comparison is more complicated than just simple
-     per-member comparisons.
+     QFontDef comparison is more complicated than just simple per-member comparisons.
 
-     When comparing point/pixel sizes, either point or pixelsize
-     could be -1.  in This case we have to compare the non negative
-     size value.
+     When comparing point/pixel sizes, either point or pixelsize could be -1.
+     In this case we have to compare the non negative size value.
 
-     This test will fail if the point-sizes differ by 1/2 point or
-     more or they do not round to the same value.  We have to do this
-     since our API still uses 'int' point-sizes in the API, but store
-     deci-point-sizes internally.
+     This test will fail if the point-sizes differ by 1/2 point or more or they do not
+     round to the same value. We need to do this since our API uses 'int' point sizes
+     however we store decimal point sizes in the code.
 
-     To compare the family members, we need to parse the font names
-     and compare the family/foundry strings separately.  This allows
-     us to compare e.g. "Helvetica" and "Helvetica [Adobe]" with
-     positive results.
+     To compare the family members parse the font names and compare the family/foundry
+     strings separately.  This allows us to compare font like  "Helvetica" and
+     "Helvetica [Adobe]" sucessfully.
    */
+
    if (pixelSize != -1 && other.pixelSize != -1) {
       if (pixelSize != other.pixelSize) {
          return false;
@@ -379,13 +382,11 @@ QFont::QFont(const QFont &font, QPaintDevice *pd)
    }
 }
 
-// internal
 QFont::QFont(QFontPrivate *data)
    : d(data), resolve_mask(QFont::AllPropertiesResolved)
 {
 }
 
-// internal
 void QFont::detach()
 {
    if (d->ref.load() == 1) {
@@ -1455,17 +1456,6 @@ bool QFontInfo::exactMatch() const
    return d->request.exactMatch(engine->fontDef);
 }
 
-#ifdef QFONTCACHE_DEBUG
-// fast timeouts for debugging
-static const int fast_timeout =   1000;  // 1s
-static const int slow_timeout =   5000;  // 5s
-#else
-static const int fast_timeout =  10000;  // 10s
-static const int slow_timeout = 300000;  //  5m
-#endif
-
-const uint QFontCache::min_cost = 4 * 1024; // 4mb
-
 static QThreadStorage<QFontCache *> *theFontCache()
 {
    static QThreadStorage<QFontCache *> retval;
@@ -1502,9 +1492,8 @@ void QFontCache::cleanup()
 std::atomic<int> font_cache_id{1};
 
 QFontCache::QFontCache()
-   : QObject(), total_cost(0), max_cost(min_cost),
-     current_timestamp(0), fast(false), timer_id(-1),
-     m_id(font_cache_id.fetch_add(1, std::memory_order_relaxed))
+   : QObject(), total_cost(0), max_cost(MinCacheSize), current_timestamp(0), fast(false),
+     timer_id(-1), m_id(font_cache_id.fetch_add(1, std::memory_order_relaxed))
 {
 }
 
@@ -1562,9 +1551,12 @@ void QFontCache::clear()
                delete engine;
 
             } else if (cacheCount == 0) {
-               FC_DEBUG("QFontCache::clear: engine %p still has refcount %d",
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+               qDebug("QFontCache::clear() Engine %p still has refcount %d",
                      static_cast<void *>(engine), engine->m_refCount.load());
+#endif
             }
+
             it.value().data = nullptr;
          }
       }
@@ -1575,19 +1567,19 @@ void QFontCache::clear()
    engineCacheCount.clear();
 
    total_cost = 0;
-   max_cost = min_cost;
+   max_cost   = MinCacheSize;
 }
 
 QFontEngineData *QFontCache::findEngineData(const QFontDef &def) const
 {
-   EngineDataCache::const_iterator it = engineDataCache.constFind(def);
+   EngineDataCache::const_iterator iter = engineDataCache.constFind(def);
 
-   if (it == engineDataCache.constEnd()) {
+   if (iter == engineDataCache.constEnd()) {
       return nullptr;
    }
 
    // found
-   return it.value();
+   return iter.value();
 }
 
 void QFontCache::insertEngineData(const QFontDef &def, QFontEngineData *engineData)
@@ -1596,9 +1588,8 @@ void QFontCache::insertEngineData(const QFontDef &def, QFontEngineData *engineDa
 
    engineData->m_refCount.ref();
 
-   // Decrease now rather than waiting
-
-   if (total_cost > min_cost * 2 && engineDataCache.size() >= QFONTCACHE_DECREASE_TRIGGER_LIMIT) {
+   // decrease now rather than waiting
+   if (total_cost > MinCacheSize * 2 && engineDataCache.size() >= QFONTCACHE_DECREASE_TRIGGER_LIMIT) {
       decreaseCache();
    }
 
@@ -1635,11 +1626,14 @@ void QFontCache::insertEngine(const Key &key, QFontEngine *engine, bool insertMu
    Q_ASSERT(engine != nullptr);
    Q_ASSERT(key.multi == (engine->type() == QFontEngine::Multi));
 
-   FC_DEBUG("QFontCache: inserting new engine %p", static_cast<void *>(engine));
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+   qDebug("QFontCache::insertEngine() Inserting new engine %p", static_cast<void *>(engine));
+#endif
+
    engine->m_refCount.ref();
 
-   // Decrease now rather than waiting
-   if (total_cost > min_cost * 2 && engineCache.size() >= QFONTCACHE_DECREASE_TRIGGER_LIMIT) {
+   // decrease now rather than waiting
+   if (total_cost > MinCacheSize * 2 && engineCache.size() >= QFONTCACHE_DECREASE_TRIGGER_LIMIT) {
       decreaseCache();
    }
 
@@ -1667,14 +1661,18 @@ void QFontCache::increaseCost(uint cost)
    cost = cost > 0 ? cost : 1;
    total_cost += cost;
 
-   FC_DEBUG("  COST: increased %u kb, total_cost %u kb, max_cost %u kb",
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+   qDebug("QFontCache::increaseCost() Increased %u kb, total_cost %u kb, max_cost %u kb",
       cost, total_cost, max_cost);
+#endif
 
    if (total_cost > max_cost) {
       max_cost = total_cost;
 
       if (timer_id == -1 || ! fast) {
-         FC_DEBUG("  TIMER: starting fast timer (%d ms)", fast_timeout);
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+         qDebug("QFontCache::increaseCost() Starting fast timer (%d ms)", fast_timeout);
+#endif
 
          if (timer_id != -1) {
             killTimer(timer_id);
@@ -1690,20 +1688,27 @@ void QFontCache::decreaseCost(uint cost)
 {
    cost = (cost + 512) / 1024; // cost is stored in kb
    cost = cost > 0 ? cost : 1;
+
    Q_ASSERT(cost <= total_cost);
    total_cost -= cost;
 
-   FC_DEBUG("  COST: decreased %u kb, total_cost %u kb, max_cost %u kb",
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+   qDebug("QFontCache::decreaseCost) Decreased %u kb, total_cost %u kb, max_cost %u kb",
       cost, total_cost, max_cost);
+#endif
 }
 
 void QFontCache::timerEvent(QTimerEvent *)
 {
-   FC_DEBUG("QFontCache::timerEvent() Performing cache maintenance (timestamp %u)",
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+   qDebug("QFontCache::timerEvent() Performing cache maintenance (timestamp %u)",
       current_timestamp);
+#endif
 
-   if (total_cost <= max_cost && max_cost <= min_cost) {
-      FC_DEBUG("  cache redused sufficiently, stopping timer");
+   if (total_cost <= max_cost && max_cost <= MinCacheSize) {
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+      qDebug("QFontCache::timerEvent() Cache reduce sufficiently, stopping timer");
+#endif
 
       killTimer(timer_id);
       timer_id = -1;
@@ -1721,11 +1726,8 @@ void QFontCache::decreaseCache()
    uint in_use_cost = 0;
 
    {
-      FC_DEBUG("  SWEEP engine data:");
-
       // make sure the cost of each engine data is at least 1kb
-      const uint engine_data_cost =
-         sizeof(QFontEngineData) > 1024 ? sizeof(QFontEngineData) : 1024;
+      const uint engine_data_cost = sizeof(QFontEngineData) > 1024 ? sizeof(QFontEngineData) : 1024;
 
       EngineDataCache::const_iterator it  = engineDataCache.constBegin();
       EngineDataCache::const_iterator end = engineDataCache.constEnd();
@@ -1739,8 +1741,6 @@ void QFontCache::decreaseCache()
    }
 
    {
-      FC_DEBUG("  SWEEP engine:");
-
       for (const auto &item : engineCache) {
          if (item.data->m_refCount.load() != 0) {
             in_use_cost += item.data->cache_cost / engineCacheCount.value(item.data);
@@ -1756,19 +1756,23 @@ void QFontCache::decreaseCache()
    /*
      calculate the new maximum cost for the cache
 
-     NOTE: in_use_cost is *not* correct due to rounding errors in the
-     above algorithm.  instead of worrying about getting the
-     calculation correct, we are more interested in speed, and use
+     in_use_cost is *not* correct due to rounding errors in the above algorithm.
+     instead of trying to get the calculation exact, more interested in speed so
      in_use_cost as a floor for new_max_cost
    */
-   uint new_max_cost = qMax(qMax(max_cost / 2, in_use_cost), min_cost);
 
-   FC_DEBUG("  after sweep, in use %u kb, total %u kb, max %u kb, new max %u kb",
+   uint new_max_cost = qMax(qMax(max_cost / 2, in_use_cost), MinCacheSize);
+
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+   qDebug("QFontCache::decreaseCache() In use %u kb, total %u kb, max %u kb, new max %u kb",
       in_use_cost, total_cost, max_cost, new_max_cost);
+#endif
 
    if (new_max_cost == max_cost) {
       if (fast) {
-         FC_DEBUG("  cannot shrink cache, slowing timer");
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+         qDebug("QFontCache::decreaseCache() Uunable to shrink cache, slowing timer");
+#endif
 
          killTimer(timer_id);
          timer_id = startTimer(slow_timeout);
@@ -1776,9 +1780,8 @@ void QFontCache::decreaseCache()
       }
 
       return;
-   } else if (! fast) {
-      FC_DEBUG("  dropping into passing gear");
 
+   } else if (! fast) {
       killTimer(timer_id);
       timer_id = startTimer(fast_timeout);
       fast = true;
@@ -1787,7 +1790,9 @@ void QFontCache::decreaseCache()
    max_cost = new_max_cost;
 
    {
-      FC_DEBUG("  CLEAN engine data:");
+#if defined(CS_SHOW_DEBUG_GUI_TEXT)
+      qDebug("QFontCache::decreaseCache() Expire engine data");
+#endif
 
       // clean out all unused engine data
       EngineDataCache::iterator it  = engineDataCache.begin();
